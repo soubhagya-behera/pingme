@@ -10,7 +10,15 @@ import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.soubhagya.pingme.dto.request.LoginRequest;
+import com.soubhagya.pingme.dto.response.LoginResponse;
+
+import com.soubhagya.pingme.security.JwtService;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +27,12 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
 
     private final ModelMapper modelMapper;
+
+    private final PasswordEncoder passwordEncoder;
+
+    private final AuthenticationManager authenticationManager;
+
+private final JwtService jwtService;
 
     @Override
     public UserResponse register(RegisterRequest request) {
@@ -30,6 +44,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = modelMapper.map(request,User.class);
+
+user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         user.setRole(UserRole.USER);
 
@@ -52,5 +68,32 @@ public class AuthServiceImpl implements AuthService {
 return response;
 
     }
+
+    @Override
+public LoginResponse login(LoginRequest request) {
+
+    authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                    request.getEmail(),
+                    request.getPassword()
+            )
+    );
+
+    User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    String token = jwtService.generateToken(user.getEmail());
+
+    return LoginResponse.builder()
+            .token(token)
+            .id(user.getId())
+            .fullName(user.getFullName())
+            .email(user.getEmail())
+            .role(user.getRole().name())
+            .status(user.getStatus().name())
+            .online(user.getOnline())
+            .build();
+
+}
 
 }

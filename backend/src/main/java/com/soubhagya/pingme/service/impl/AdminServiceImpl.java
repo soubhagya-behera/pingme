@@ -36,4 +36,49 @@ public class AdminServiceImpl implements AdminService {
 
     }
 
+    @Override
+public UserResponse approveUser(Long id) {
+
+    User user = userRepository.findById(id)
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+    user.setStatus(UserStatus.APPROVED);
+
+    User updatedUser = userRepository.save(user);
+
+    return UserResponse.builder()
+            .id(updatedUser.getId())
+            .fullName(updatedUser.getFullName())
+            .email(updatedUser.getEmail())
+            .profession(updatedUser.getProfession())
+            .bio(updatedUser.getBio())
+            .phone(updatedUser.getPhone())
+            .status(updatedUser.getStatus().name())
+            .build();
+}
+
+@Override
+public UserResponse rejectUser(Long id) {
+
+    User user = userRepository.findById(id)
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+    user.setStatus(UserStatus.REJECTED);
+
+    User updatedUser = userRepository.save(user);
+
+    return UserResponse.builder()
+            .id(updatedUser.getId())
+            .fullName(updatedUser.getFullName())
+            .email(updatedUser.getEmail())
+            .profession(updatedUser.getProfession())
+            .bio(updatedUser.getBio())
+            .phone(updatedUser.getPhone())
+            .status(updatedUser.getStatus().name())
+            .build();
+
+}
+
 }

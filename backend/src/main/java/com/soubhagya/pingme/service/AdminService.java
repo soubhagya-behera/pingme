@@ -8,4 +8,7 @@ public interface AdminService {
 
     List<UserResponse> getPendingUsers();
 
+    UserResponse approveUser(Long id);
+
+    UserResponse rejectUser(Long id);
 }

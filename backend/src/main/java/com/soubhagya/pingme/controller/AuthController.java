@@ -1,6 +1,8 @@
 package com.soubhagya.pingme.controller;
 
+import com.soubhagya.pingme.dto.request.LoginRequest;
 import com.soubhagya.pingme.dto.request.RegisterRequest;
+import com.soubhagya.pingme.dto.response.LoginResponse;
 import com.soubhagya.pingme.dto.response.UserResponse;
 import com.soubhagya.pingme.payload.ApiResponse;
 import com.soubhagya.pingme.service.AuthService;
@@ -37,5 +39,20 @@ public class AuthController {
         );
 
     }
+
+    @PostMapping("/login")
+public ResponseEntity<ApiResponse<LoginResponse>> login(
+        @Valid @RequestBody LoginRequest request) {
+
+    LoginResponse response = authService.login(request);
+
+    return ResponseEntity.ok(
+            ResponseUtil.success(
+                    "Login Successful",
+                    response
+            )
+    );
+
+}
 
 }

@@ -28,4 +28,40 @@ public class AdminController {
         );
     }
 
+    @PutMapping("/approve/{id}")
+public ResponseEntity<ApiResponse<UserResponse>> approveUser(
+        @PathVariable Long id) {
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "User Approved Successfully",
+
+                    adminService.approveUser(id)
+
+            )
+
+    );
+
+}
+
+@PutMapping("/reject/{id}")
+public ResponseEntity<ApiResponse<UserResponse>> rejectUser(
+        @PathVariable Long id) {
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "User Rejected Successfully",
+
+                    adminService.rejectUser(id)
+
+            )
+
+    );
+
+}
+
 }
