@@ -13,27 +13,46 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceAlreadyExistsException.class)
     public ResponseEntity<ApiResponse<?>> handleAlreadyExists(ResourceAlreadyExistsException ex){
 
-        return ResponseEntity.badRequest().body(
-                ApiResponse.builder()
-                        .success(false)
-                        .message(ex.getMessage())
-                        .build()
-        );
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ApiResponse.builder()
+                                .success(false)
+                                .message(ex.getMessage())
+                                .build()
+                );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<?>> handleValidation(MethodArgumentNotValidException ex){
+    public ResponseEntity<ApiResponse<?>> validation(MethodArgumentNotValidException ex){
 
         String error = ex.getBindingResult()
                 .getFieldError()
                 .getDefaultMessage();
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+        return ResponseEntity.badRequest().body(
+
                 ApiResponse.builder()
                         .success(false)
                         .message(error)
                         .build()
+
         );
+
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<?>> exception(Exception ex){
+
+        return ResponseEntity.internalServerError().body(
+
+                ApiResponse.builder()
+                        .success(false)
+                        .message(ex.getMessage())
+                        .build()
+
+        );
+
     }
 
 }

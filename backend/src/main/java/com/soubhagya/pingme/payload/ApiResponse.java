@@ -1,10 +1,14 @@
 package com.soubhagya.pingme.payload;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
-@Data
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ApiResponse<T> {
 
     private boolean success;
@@ -12,5 +16,8 @@ public class ApiResponse<T> {
     private String message;
 
     private T data;
+
+    @Builder.Default
+    private LocalDateTime timestamp = LocalDateTime.now();
 
 }
