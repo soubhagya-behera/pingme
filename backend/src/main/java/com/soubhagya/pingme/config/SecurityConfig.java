@@ -11,9 +11,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.soubhagya.pingme.security.CustomUserDetailsService;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -21,6 +26,20 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
 
     }
+
+    @Bean
+public DaoAuthenticationProvider authenticationProvider() {
+
+    DaoAuthenticationProvider provider =
+            new DaoAuthenticationProvider();
+
+    provider.setUserDetailsService(customUserDetailsService);
+
+    provider.setPasswordEncoder(passwordEncoder());
+
+    return provider;
+
+}
 
     @Bean
     public AuthenticationManager authenticationManager(
@@ -50,9 +69,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
 
                 )
-
+                .authenticationProvider(authenticationProvider())
                 .httpBasic(Customizer.withDefaults());
-
         return http.build();
 
     }
