@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/friend-request")
 @RequiredArgsConstructor
@@ -38,5 +40,25 @@ public class FriendRequestController {
         );
 
     }
+
+    @GetMapping("/incoming/{userId}")
+public ResponseEntity<ApiResponse<List<FriendRequestResponse>>>
+getIncomingRequests(
+
+        @PathVariable Long userId){
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Incoming Friend Requests",
+
+                    friendRequestService.getIncomingRequests(userId)
+
+            )
+
+    );
+
+}
 
 }

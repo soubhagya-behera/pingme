@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -126,6 +127,44 @@ FriendRequest saved =
         .status(saved.getStatus().name())
 
         .build();
+
+}
+
+@Override
+public List<FriendRequestResponse> getIncomingRequests(Long userId) {
+
+    User receiver = userRepository.findById(userId)
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+    List<FriendRequest> requests =
+            friendRequestRepository.findByReceiverAndStatus(
+
+                    receiver,
+
+                    FriendRequestStatus.PENDING
+
+            );
+
+    return requests.stream()
+
+            .map(request -> FriendRequestResponse.builder()
+
+                    .requestId(request.getId())
+
+                    .senderId(request.getSender().getId())
+
+                    .receiverId(request.getReceiver().getId())
+
+                    .senderName(request.getSender().getFullName())
+
+                    .receiverName(request.getReceiver().getFullName())
+
+                    .status(request.getStatus().name())
+
+                    .build())
+
+            .toList();
 
 }
 }
