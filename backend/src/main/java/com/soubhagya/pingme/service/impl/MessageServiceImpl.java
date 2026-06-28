@@ -34,10 +34,10 @@ public class MessageServiceImpl implements MessageService {
                         new RuntimeException("Receiver not found"));
 
         List<Message> messages =
-                messageRepository.findBySenderAndReceiverOrderBySentAtAsc(
-                        sender,
-                        receiver
-                );
+        messageRepository.getConversation(
+                sender,
+                receiver
+        );
 
         return messages.stream()
 
