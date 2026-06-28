@@ -61,4 +61,24 @@ getIncomingRequests(
 
 }
 
+@PutMapping("/accept/{requestId}")
+public ResponseEntity<ApiResponse<FriendRequestResponse>>
+acceptRequest(
+
+        @PathVariable Long requestId){
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Friend Request Accepted",
+
+                    friendRequestService.acceptRequest(requestId)
+
+            )
+
+    );
+
+}
+
 }

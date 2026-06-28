@@ -15,13 +15,21 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.soubhagya.pingme.entity.Friend;
+import com.soubhagya.pingme.repository.FriendRepository;
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @RequiredArgsConstructor
 public class FriendRequestServiceImpl implements FriendRequestService {
 
     private final FriendRequestRepository friendRequestRepository;
 
+    private final FriendRepository friendRepository;
+
     private final UserRepository userRepository;
+
+    
 
     @Override
 public FriendRequestResponse sendRequest(FriendRequestDto request) {
@@ -165,6 +173,58 @@ public List<FriendRequestResponse> getIncomingRequests(Long userId) {
                     .build())
 
             .toList();
+
+}
+
+@Transactional
+@Override
+public FriendRequestResponse acceptRequest(Long requestId) {
+
+    FriendRequest request =
+            friendRequestRepository.findById(requestId)
+
+            .orElseThrow(()->
+                    new RuntimeException("Request not found"));
+
+                    if(request.getStatus()!=FriendRequestStatus.PENDING){
+
+    throw new RuntimeException(
+            "Request already processed");
+
+}
+
+request.setStatus(FriendRequestStatus.ACCEPTED);
+
+friendRequestRepository.save(request);
+
+Friend friend =
+        Friend.builder()
+
+        .userOne(request.getSender())
+
+        .userTwo(request.getReceiver())
+
+        .friendsSince(LocalDateTime.now())
+
+        .build();
+
+friendRepository.save(friend);
+
+return FriendRequestResponse.builder()
+
+        .requestId(request.getId())
+
+        .senderId(request.getSender().getId())
+
+        .receiverId(request.getReceiver().getId())
+
+        .senderName(request.getSender().getFullName())
+
+        .receiverName(request.getReceiver().getFullName())
+
+        .status(request.getStatus().name())
+
+        .build();
 
 }
 }

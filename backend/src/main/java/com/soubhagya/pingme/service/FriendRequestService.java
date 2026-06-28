@@ -10,4 +10,6 @@ public interface FriendRequestService {
     FriendRequestResponse sendRequest(FriendRequestDto request);
 
     List<FriendRequestResponse> getIncomingRequests(Long userId);
+
+    FriendRequestResponse acceptRequest(Long requestId);
 }
