@@ -60,11 +60,12 @@ public DaoAuthenticationProvider authenticationProvider() {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers(
+                .requestMatchers(
         "/api/auth/**",
         "/api/admin/**",
-        "/api/test/**",
-        "/api/users/**"
+        "/api/users/**",
+        "/api/friend-request/**",
+        "/api/test/**"
 ).permitAll()
 
                         .anyRequest().authenticated()
