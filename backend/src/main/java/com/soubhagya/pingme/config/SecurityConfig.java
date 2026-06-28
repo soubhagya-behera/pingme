@@ -65,7 +65,8 @@ public DaoAuthenticationProvider authenticationProvider() {
         "/api/admin/**",
         "/api/users/**",
         "/api/friend-request/**",
-        "/api/test/**"
+        "/api/test/**",
+        "/api/messages/**"
 ).permitAll()
 
                         .anyRequest().authenticated()

@@ -2,6 +2,7 @@ package com.soubhagya.pingme.controller;
 
 import com.soubhagya.pingme.dto.request.FriendRequestDto;
 import com.soubhagya.pingme.dto.response.FriendRequestResponse;
+import com.soubhagya.pingme.dto.response.FriendResponse;
 import com.soubhagya.pingme.payload.ApiResponse;
 import com.soubhagya.pingme.service.FriendRequestService;
 import com.soubhagya.pingme.util.ResponseUtil;
@@ -10,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
+import com.soubhagya.pingme.dto.response.FriendResponse;
 import java.util.List;
 
 @RestController
@@ -74,6 +78,26 @@ acceptRequest(
                     "Friend Request Accepted",
 
                     friendRequestService.acceptRequest(requestId)
+
+            )
+
+    );
+
+}
+
+@GetMapping("/friends/{userId}")
+public ResponseEntity<ApiResponse<List<FriendResponse>>>
+getFriends(
+
+        @PathVariable Long userId){
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Friends List",
+
+                    friendRequestService.getFriends(userId)
 
             )
 

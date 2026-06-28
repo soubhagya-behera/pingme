@@ -19,6 +19,11 @@ import com.soubhagya.pingme.entity.Friend;
 import com.soubhagya.pingme.repository.FriendRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.soubhagya.pingme.dto.response.FriendResponse;
+
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class FriendRequestServiceImpl implements FriendRequestService {
@@ -225,6 +230,77 @@ return FriendRequestResponse.builder()
         .status(request.getStatus().name())
 
         .build();
+
+}
+
+@Override
+public List<FriendResponse> getFriends(Long userId) {
+
+    User user = userRepository.findById(userId)
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+    List<FriendResponse> friends = new ArrayList<>();
+
+    List<Friend> userOneFriends =
+            friendRepository.findByUserOne(user);
+
+    for(Friend friend : userOneFriends){
+
+        User f = friend.getUserTwo();
+
+        friends.add(
+
+                FriendResponse.builder()
+
+                        .id(f.getId())
+
+                        .fullName(f.getFullName())
+
+                        .email(f.getEmail())
+
+                        .profession(f.getProfession())
+
+                        .profilePicture(f.getProfilePicture())
+
+                        .online(f.getOnline())
+
+                        .build()
+
+        );
+
+    }
+
+    List<Friend> userTwoFriends =
+            friendRepository.findByUserTwo(user);
+
+    for(Friend friend : userTwoFriends){
+
+        User f = friend.getUserOne();
+
+        friends.add(
+
+                FriendResponse.builder()
+
+                        .id(f.getId())
+
+                        .fullName(f.getFullName())
+
+                        .email(f.getEmail())
+
+                        .profession(f.getProfession())
+
+                        .profilePicture(f.getProfilePicture())
+
+                        .online(f.getOnline())
+
+                        .build()
+
+        );
+
+    }
+
+    return friends;
 
 }
 }
