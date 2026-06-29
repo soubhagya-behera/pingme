@@ -234,11 +234,14 @@ return FriendRequestResponse.builder()
 }
 
 @Override
-public List<FriendResponse> getFriends(Long userId) {
+public List<FriendResponse> getFriends(String email) {
 
-    User user = userRepository.findById(userId)
-            .orElseThrow(() ->
-                    new RuntimeException("User not found"));
+    User user = userRepository.findByEmail(email)
+
+        .orElseThrow(() ->
+
+                new RuntimeException("User not found"));
+            
 
     List<FriendResponse> friends = new ArrayList<>();
 

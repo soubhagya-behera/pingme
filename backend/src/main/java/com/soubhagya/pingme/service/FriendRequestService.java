@@ -16,5 +16,5 @@ public interface FriendRequestService {
 
     FriendRequestResponse acceptRequest(Long requestId);
 
-    List<FriendResponse> getFriends(Long userId);
+    List<FriendResponse> getFriends(String email);
 }

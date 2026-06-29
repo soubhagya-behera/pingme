@@ -16,6 +16,8 @@ import java.util.List;
 import com.soubhagya.pingme.dto.response.FriendResponse;
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
+
 @RestController
 @RequestMapping("/api/friend-request")
 @RequiredArgsConstructor
@@ -85,11 +87,9 @@ acceptRequest(
 
 }
 
-@GetMapping("/friends/{userId}")
+@GetMapping("/friends")
 public ResponseEntity<ApiResponse<List<FriendResponse>>>
-getFriends(
-
-        @PathVariable Long userId){
+getFriends(Authentication authentication){
 
     return ResponseEntity.ok(
 
@@ -97,7 +97,11 @@ getFriends(
 
                     "Friends List",
 
-                    friendRequestService.getFriends(userId)
+                    friendRequestService.getFriends(
+
+        authentication.getName()
+
+)
 
             )
 
