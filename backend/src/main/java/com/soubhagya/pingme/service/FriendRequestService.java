@@ -10,7 +10,13 @@ import com.soubhagya.pingme.dto.response.FriendResponse;
 
 public interface FriendRequestService {
 
-    FriendRequestResponse sendRequest(FriendRequestDto request);
+    FriendRequestResponse sendRequest(
+
+        FriendRequestDto request,
+
+        String email
+
+);
 
     List<FriendRequestResponse> getIncomingRequests(Long userId);
 

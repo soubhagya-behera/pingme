@@ -26,26 +26,35 @@ public class FriendRequestController {
     private final FriendRequestService friendRequestService;
 
     @PostMapping("/send")
-    public ResponseEntity<ApiResponse<FriendRequestResponse>>
-    sendRequest(
+public ResponseEntity<ApiResponse<FriendRequestResponse>> sendRequest(
 
-            @Valid
-            @RequestBody
-            FriendRequestDto request){
+        @RequestBody FriendRequestDto request,
 
-        return ResponseEntity.ok(
+        Authentication authentication){
 
-                ResponseUtil.success(
+    FriendRequestResponse response =
 
-                        "Friend Request Sent",
+            friendRequestService.sendRequest(
 
-                        friendRequestService.sendRequest(request)
+                    request,
 
-                )
+                    authentication.getName()
 
-        );
+            );
 
-    }
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Friend Request Sent",
+
+                    response
+
+            )
+
+    );
+
+}
 
     @GetMapping("/incoming/{userId}")
 public ResponseEntity<ApiResponse<List<FriendRequestResponse>>>
