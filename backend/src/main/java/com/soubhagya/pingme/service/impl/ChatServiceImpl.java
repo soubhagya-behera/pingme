@@ -5,6 +5,7 @@ import com.soubhagya.pingme.entity.Message;
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.enums.MessageStatus;
 import com.soubhagya.pingme.enums.MessageType;
+import com.soubhagya.pingme.repository.FriendRepository;
 import com.soubhagya.pingme.repository.MessageRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.ChatService;
@@ -25,6 +26,8 @@ public class ChatServiceImpl implements ChatService {
 
     private final SimpMessagingTemplate messagingTemplate;
 
+    private final FriendRepository friendRepository;
+    
     @Override
     public void sendMessage(
         ChatMessage chatMessage,
@@ -37,6 +40,30 @@ public class ChatServiceImpl implements ChatService {
         User receiver = userRepository.findById(chatMessage.getReceiverId())
                 .orElseThrow(() ->
                         new RuntimeException("Receiver not found"));
+
+                        boolean areFriends =
+        friendRepository
+                .existsByUserOneAndUserTwoOrUserOneAndUserTwo(
+
+                        sender,
+
+                        receiver,
+
+                        receiver,
+
+                        sender
+
+                );
+
+if (!areFriends) {
+
+    throw new RuntimeException(
+
+            "You can only chat with accepted friends."
+
+    );
+
+}
 
         Message message = Message.builder()
                 .sender(sender)
@@ -54,9 +81,14 @@ messagingTemplate.convertAndSend(
         "/topic/messages/" + receiver.getId(),
 
         ChatMessage.builder()
-                .receiverId(receiver.getId())
-                .content(savedMessage.getContent())
-                .build()
+
+        .receiverId(receiver.getId())
+
+        .content(savedMessage.getContent())
+
+        .sentAt(savedMessage.getSentAt())
+
+        .build()
 
 );
 

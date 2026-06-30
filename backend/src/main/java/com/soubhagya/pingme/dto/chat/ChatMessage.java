@@ -2,6 +2,8 @@ package com.soubhagya.pingme.dto.chat;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -12,5 +14,7 @@ public class ChatMessage {
     private Long receiverId;
 
     private String content;
+
+    private LocalDateTime sentAt;
 
 }
