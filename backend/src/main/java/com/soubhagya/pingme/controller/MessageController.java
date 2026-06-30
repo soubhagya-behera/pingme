@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -17,31 +18,31 @@ public class MessageController {
 
     private final MessageService messageService;
 
-    @GetMapping("/{senderId}/{receiverId}")
-    public ResponseEntity<ApiResponse<List<MessageResponse>>> getChatHistory(
+    @GetMapping("/history/{friendId}")
+public ResponseEntity<ApiResponse<List<MessageResponse>>> getChatHistory(
 
-            @PathVariable Long senderId,
+        @PathVariable Long friendId,
 
-            @PathVariable Long receiverId){
+        Authentication authentication){
 
-        return ResponseEntity.ok(
+    return ResponseEntity.ok(
 
-                ResponseUtil.success(
+            ResponseUtil.success(
 
-                        "Chat History",
+                    "Chat History",
 
-                        messageService.getChatHistory(
+                    messageService.getChatHistory(
 
-                                senderId,
+                            authentication.getName(),
 
-                                receiverId
+                            friendId
 
-                        )
+                    )
 
-                )
+            )
 
-        );
+    );
 
-    }
+}
 
 }

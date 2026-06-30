@@ -22,16 +22,32 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public List<MessageResponse> getChatHistory(
-            Long senderId,
-            Long receiverId) {
 
-        User sender = userRepository.findById(senderId)
-                .orElseThrow(() ->
-                        new RuntimeException("Sender not found"));
+        String email,
 
-        User receiver = userRepository.findById(receiverId)
+        Long friendId) {
+
+        User sender =
+        userRepository.findByEmail(email)
+
                 .orElseThrow(() ->
-                        new RuntimeException("Receiver not found"));
+
+                        new RuntimeException(
+
+                                "User not found"
+
+                        ));
+
+        User receiver =
+        userRepository.findById(friendId)
+
+                .orElseThrow(() ->
+
+                        new RuntimeException(
+
+                                "Friend not found"
+
+                        ));
 
         List<Message> messages =
         messageRepository.getConversation(

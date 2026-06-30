@@ -7,8 +7,11 @@ import java.util.List;
 public interface MessageService {
 
     List<MessageResponse> getChatHistory(
-            Long senderId,
-            Long receiverId
+
+        String email,
+
+        Long friendId
+
     );
 
 }
