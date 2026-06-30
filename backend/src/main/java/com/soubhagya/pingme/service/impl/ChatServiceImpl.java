@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -47,11 +48,9 @@ public class ChatServiceImpl implements ChatService {
 
         Message savedMessage = messageRepository.save(message);
 
-messagingTemplate.convertAndSendToUser(
+messagingTemplate.convertAndSend(
 
-        receiver.getEmail(),
-
-        "/queue/messages",
+        "/topic/messages/" + receiver.getId(),
 
         ChatMessage.builder()
 
@@ -65,7 +64,7 @@ messagingTemplate.convertAndSendToUser(
 
 );
 
-System.out.println("Message Saved & Delivered");
+System.out.println("Message Saved & Broadcast Successfully");
 
     }
 
