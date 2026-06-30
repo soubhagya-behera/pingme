@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -27,11 +26,13 @@ public class ChatServiceImpl implements ChatService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override
-    public void sendMessage(ChatMessage chatMessage) {
+    public void sendMessage(
+        ChatMessage chatMessage,
+        String email) {
 
-        User sender = userRepository.findById(chatMessage.getSenderId())
-                .orElseThrow(() ->
-                        new RuntimeException("Sender not found"));
+        User sender = userRepository.findByEmail(email)
+        .orElseThrow(() ->
+                new RuntimeException("Sender not found"));
 
         User receiver = userRepository.findById(chatMessage.getReceiverId())
                 .orElseThrow(() ->
@@ -53,13 +54,8 @@ messagingTemplate.convertAndSend(
         "/topic/messages/" + receiver.getId(),
 
         ChatMessage.builder()
-
-                .senderId(sender.getId())
-
                 .receiverId(receiver.getId())
-
                 .content(savedMessage.getContent())
-
                 .build()
 
 );
