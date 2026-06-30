@@ -155,11 +155,11 @@ FriendRequest saved =
 }
 
 @Override
-public List<FriendRequestResponse> getIncomingRequests(Long userId) {
+public List<FriendRequestResponse> getIncomingRequests(String email) {
 
-    User receiver = userRepository.findById(userId)
-            .orElseThrow(() ->
-                    new RuntimeException("User not found"));
+    User receiver = userRepository.findByEmail(email)
+        .orElseThrow(() ->
+                new RuntimeException("User not found"));
 
     List<FriendRequest> requests =
             friendRequestRepository.findByReceiverAndStatus(
@@ -194,54 +194,59 @@ public List<FriendRequestResponse> getIncomingRequests(Long userId) {
 
 @Transactional
 @Override
-public FriendRequestResponse acceptRequest(Long requestId) {
+public FriendRequestResponse acceptRequest(
+        Long requestId,
+        String email) {
 
-    FriendRequest request =
-            friendRequestRepository.findById(requestId)
+    // Logged-in user from JWT
+    User loggedInUser = userRepository.findByEmail(email)
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
 
-            .orElseThrow(()->
+    // Friend request
+    FriendRequest request = friendRequestRepository.findById(requestId)
+            .orElseThrow(() ->
                     new RuntimeException("Request not found"));
 
-                    if(request.getStatus()!=FriendRequestStatus.PENDING){
+    // Only receiver can accept
+    if (!request.getReceiver().getId().equals(loggedInUser.getId())) {
 
-    throw new RuntimeException(
-            "Request already processed");
+        throw new RuntimeException(
+                "You are not allowed to accept this request");
 
-}
+    }
 
-request.setStatus(FriendRequestStatus.ACCEPTED);
+    // Already processed?
+    if (request.getStatus() != FriendRequestStatus.PENDING) {
 
-friendRequestRepository.save(request);
+        throw new RuntimeException(
+                "Request already processed");
 
-Friend friend =
-        Friend.builder()
+    }
 
-        .userOne(request.getSender())
+    // Accept request
+    request.setStatus(FriendRequestStatus.ACCEPTED);
 
-        .userTwo(request.getReceiver())
+    friendRequestRepository.save(request);
 
-        .friendsSince(LocalDateTime.now())
+    // Create friendship
+    Friend friend = Friend.builder()
+            .userOne(request.getSender())
+            .userTwo(request.getReceiver())
+            .friendsSince(LocalDateTime.now())
+            .build();
 
-        .build();
+    friendRepository.save(friend);
 
-friendRepository.save(friend);
-
-return FriendRequestResponse.builder()
-
-        .requestId(request.getId())
-
-        .senderId(request.getSender().getId())
-
-        .receiverId(request.getReceiver().getId())
-
-        .senderName(request.getSender().getFullName())
-
-        .receiverName(request.getReceiver().getFullName())
-
-        .status(request.getStatus().name())
-
-        .build();
-
+    // Response
+    return FriendRequestResponse.builder()
+            .requestId(request.getId())
+            .senderId(request.getSender().getId())
+            .receiverId(request.getReceiver().getId())
+            .senderName(request.getSender().getFullName())
+            .receiverName(request.getReceiver().getFullName())
+            .status(request.getStatus().name())
+            .build();
 }
 
 @Override

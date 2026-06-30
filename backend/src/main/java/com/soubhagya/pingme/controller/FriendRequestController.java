@@ -56,11 +56,9 @@ public ResponseEntity<ApiResponse<FriendRequestResponse>> sendRequest(
 
 }
 
-    @GetMapping("/incoming/{userId}")
-public ResponseEntity<ApiResponse<List<FriendRequestResponse>>>
-getIncomingRequests(
-
-        @PathVariable Long userId){
+    @GetMapping("/incoming")
+public ResponseEntity<ApiResponse<List<FriendRequestResponse>>> getIncomingRequests(
+        Authentication authentication) {
 
     return ResponseEntity.ok(
 
@@ -68,7 +66,9 @@ getIncomingRequests(
 
                     "Incoming Friend Requests",
 
-                    friendRequestService.getIncomingRequests(userId)
+                    friendRequestService.getIncomingRequests(
+                            authentication.getName()
+                    )
 
             )
 
@@ -80,7 +80,9 @@ getIncomingRequests(
 public ResponseEntity<ApiResponse<FriendRequestResponse>>
 acceptRequest(
 
-        @PathVariable Long requestId){
+        @PathVariable Long requestId,
+
+        Authentication authentication){
 
     return ResponseEntity.ok(
 
@@ -88,7 +90,13 @@ acceptRequest(
 
                     "Friend Request Accepted",
 
-                    friendRequestService.acceptRequest(requestId)
+                    friendRequestService.acceptRequest(
+
+                            requestId,
+
+                            authentication.getName()
+
+                    )
 
             )
 
