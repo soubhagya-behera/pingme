@@ -1,3 +1,4 @@
+import Card from "./components/ui/Card";
 import Button from "./components/ui/Button";
 import Input from "./components/ui/Input";
 
@@ -13,15 +14,27 @@ function App() {
 
     return (
 
-        <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-5">
 
-            <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl space-y-6">
+            <Card
 
-                <h1 className="text-3xl font-bold text-slate-800">
+                hover
 
-                    PingMe
+                className="w-full max-w-md p-8 space-y-6"
+
+            >
+
+                <h1 className="text-3xl font-bold">
+
+                    Welcome Back 👋
 
                 </h1>
+
+                <p className="text-slate-500">
+
+                    Login to continue chatting.
+
+                </p>
 
                 <Input
 
@@ -29,7 +42,7 @@ function App() {
 
                     icon={<Mail size={20}/>}
 
-                    placeholder="Enter your email"
+                    placeholder="Enter email"
 
                 />
 
@@ -41,7 +54,7 @@ function App() {
 
                     type="password"
 
-                    placeholder="Enter your password"
+                    placeholder="Enter password"
 
                 />
 
@@ -51,7 +64,7 @@ function App() {
 
                 </Button>
 
-            </div>
+            </Card>
 
         </div>
 
