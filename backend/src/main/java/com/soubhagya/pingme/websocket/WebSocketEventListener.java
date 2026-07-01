@@ -8,12 +8,15 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.soubhagya.pingme.websocket.UserStatusMessage;
 
 @Component
 @RequiredArgsConstructor
 public class WebSocketEventListener {
 
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @EventListener
     public void handleConnect(SessionConnectEvent event){
@@ -41,6 +44,22 @@ public class WebSocketEventListener {
             user.setOnline(true);
 
             userRepository.save(user);
+
+            messagingTemplate.convertAndSend(
+
+        "/topic/status",
+
+        UserStatusMessage.builder()
+
+                .userId(user.getId())
+
+                .fullName(user.getFullName())
+
+                .online(true)
+
+                .build()
+
+);
 
             System.out.println(user.getFullName() + " is ONLINE");
 
@@ -74,6 +93,22 @@ public class WebSocketEventListener {
             user.setOnline(false);
 
             userRepository.save(user);
+
+            messagingTemplate.convertAndSend(
+
+        "/topic/status",
+
+        UserStatusMessage.builder()
+
+                .userId(user.getId())
+
+                .fullName(user.getFullName())
+
+                .online(false)
+
+                .build()
+
+);
 
             System.out.println(user.getFullName() + " is OFFLINE");
 
