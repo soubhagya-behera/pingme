@@ -1,42 +1,61 @@
 import Button from "./components/ui/Button";
+import Input from "./components/ui/Input";
+
+import {
+
+    Mail,
+
+    Lock
+
+} from "lucide-react";
 
 function App() {
 
-  return (
+    return (
 
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center">
 
-      <div className="space-y-5">
+            <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl space-y-6">
 
-        <Button>
+                <h1 className="text-3xl font-bold text-slate-800">
 
-          Primary Button
+                    PingMe
 
-        </Button>
+                </h1>
 
-        <Button variant="secondary">
+                <Input
 
-          Secondary
+                    label="Email"
 
-        </Button>
+                    icon={<Mail size={20}/>}
 
-        <Button variant="danger">
+                    placeholder="Enter your email"
 
-          Danger
+                />
 
-        </Button>
+                <Input
 
-        <Button variant="ghost">
+                    label="Password"
 
-          Ghost
+                    icon={<Lock size={20}/>}
 
-        </Button>
+                    type="password"
 
-      </div>
+                    placeholder="Enter your password"
 
-    </div>
+                />
 
-  );
+                <Button className="w-full">
+
+                    Login
+
+                </Button>
+
+            </div>
+
+        </div>
+
+    );
 
 }
 
