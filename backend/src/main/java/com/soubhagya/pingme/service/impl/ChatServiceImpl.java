@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.soubhagya.pingme.websocket.MessageStatusUpdate;
 
 @Service
 @RequiredArgsConstructor
@@ -95,5 +96,69 @@ messagingTemplate.convertAndSend(
 System.out.println("Message Saved & Broadcast Successfully");
 
     }
+
+   @Override
+public void markAsDelivered(Long messageId) {
+
+    Message message = messageRepository.findById(messageId)
+
+            .orElseThrow(() ->
+                    new RuntimeException("Message not found"));
+
+    if(message.getStatus() == MessageStatus.SENT){
+
+        message.setStatus(MessageStatus.DELIVERED);
+
+        messageRepository.save(message);
+
+        messagingTemplate.convertAndSend(
+
+                "/topic/status/" + message.getSender().getId(),
+
+                MessageStatusUpdate.builder()
+
+                        .messageId(message.getId())
+
+                        .status("DELIVERED")
+
+                        .build()
+
+        );
+
+    }
+
+}
+
+@Override
+public void markAsRead(Long messageId) {
+
+    Message message = messageRepository.findById(messageId)
+
+            .orElseThrow(() ->
+                    new RuntimeException("Message not found"));
+
+    if(message.getStatus() != MessageStatus.READ){
+
+        message.setStatus(MessageStatus.READ);
+
+        messageRepository.save(message);
+
+        messagingTemplate.convertAndSend(
+
+                "/topic/status/" + message.getSender().getId(),
+
+                MessageStatusUpdate.builder()
+
+                        .messageId(message.getId())
+
+                        .status("READ")
+
+                        .build()
+
+        );
+
+    }
+
+}
 
 }

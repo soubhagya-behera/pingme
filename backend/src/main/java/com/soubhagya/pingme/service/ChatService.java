@@ -9,4 +9,8 @@ public interface ChatService {
         String email
 );
 
+void markAsDelivered(Long messageId);
+
+void markAsRead(Long messageId);
+
 }

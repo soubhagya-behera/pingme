@@ -6,6 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.soubhagya.pingme.dto.request.UpdateMessageStatusRequest;
 
 @Controller
 @RequiredArgsConstructor
@@ -26,5 +30,31 @@ public class ChatController {
         chatService.sendMessage(message, email);
 
     }
+
+    @PostMapping("/delivered")
+public void markDelivered(
+
+        @RequestBody UpdateMessageStatusRequest request){
+
+    chatService.markAsDelivered(
+
+            request.getMessageId()
+
+    );
+
+}
+
+@PostMapping("/read")
+public void markRead(
+
+        @RequestBody UpdateMessageStatusRequest request){
+
+    chatService.markAsRead(
+
+            request.getMessageId()
+
+    );
+
+}
 
 }
