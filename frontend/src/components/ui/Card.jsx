@@ -20,9 +20,9 @@ export default function Card({
 
                 "rounded-3xl",
 
-                "bg-white",
+                "bg-[var(--card)]",
 
-                "border border-slate-200",
+                "border border-[var(--border)]",
 
                 "shadow-sm",
 
