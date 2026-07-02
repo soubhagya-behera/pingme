@@ -1,0 +1,63 @@
+.friends-page{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:24px;
+
+}
+
+.friends-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.friends-header h1{
+
+    font-size:34px;
+
+    font-weight:700;
+
+}
+
+.friends-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.friend-card{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:24px;
+
+}
+
+.friend-card h3{
+
+    font-size:20px;
+
+    margin-bottom:4px;
+
+}
+
+.friend-card p{
+
+    color:var(--text-secondary);
+
+}
