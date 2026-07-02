@@ -7,6 +7,7 @@ import Friends from "../pages/friends/Friends";
 import Settings from "../pages/settings/Settings";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AppLayout from "../layout/AppLayout";
+import ProtectedRoute from "./ProtectedRoute";
 
 export default function AppRouter() {
   return (
@@ -18,45 +19,75 @@ export default function AppRouter() {
         <Route
           path="/"
           element={
-            <AppLayout>
-              <Dashboard />
-            </AppLayout>
+            <ProtectedRoute>
+
+<AppLayout>
+
+<Dashboard/>
+
+</AppLayout>
+
+</ProtectedRoute>
           }
         />
         
         <Route
           path="/chat"
           element={
-            <AppLayout>
-              <Chat />
-            </AppLayout>
+            <ProtectedRoute>
+
+<AppLayout>
+
+<Chat/>
+
+</AppLayout>
+
+</ProtectedRoute>
           }
         />
         
         <Route
           path="/friends"
           element={
-            <AppLayout>
-              <Friends />
-            </AppLayout>
+            <ProtectedRoute>
+
+    <AppLayout>
+
+        <Friends/>
+
+    </AppLayout>
+
+</ProtectedRoute>
           }
         />
         
         <Route
           path="/settings"
           element={
-            <AppLayout>
-              <Settings />
-            </AppLayout>
+            <ProtectedRoute>
+
+    <AppLayout>
+
+        <Settings/>
+
+    </AppLayout>
+
+</ProtectedRoute>
           }
         />
         
         <Route
           path="/admin"
           element={
-            <AppLayout>
-              <AdminDashboard />
-            </AppLayout>
+            <ProtectedRoute>
+
+    <AppLayout>
+
+        <AdminDashboard/>
+
+    </AppLayout>
+
+</ProtectedRoute>
           }
         />
       </Routes>

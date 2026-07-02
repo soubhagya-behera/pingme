@@ -1,13 +1,165 @@
+import "./Login.css";
+
+import Card from "../../components/ui/Card";
+import Input from "../../components/ui/Input";
+import Button from "../../components/ui/Button";
+
+import { Link, useNavigate } from "react-router-dom";
+
+import { useForm } from "react-hook-form";
+
+import AuthService from "../../services/AuthService";
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
+
 export default function Login(){
 
-    return(
+const{
 
-        <h1 className="text-4xl font-bold">
+register,
 
-            Login Page
+handleSubmit
 
-        </h1>
+}=useForm();
+const navigate = useNavigate();
 
-    );
+const { login } = useAuth();
+
+const onSubmit = async (data) => {
+
+    try {
+
+        const response = await AuthService.login(data);
+
+        const result = response.data.data;
+
+        login(
+
+            {
+                id: result.id,
+                name: result.fullName,
+                email: result.email,
+                role: result.role
+            },
+
+            result.token
+
+        );
+
+        toast.success("Login Successful");
+
+        navigate("/");
+
+    } catch (error) {
+
+        toast.error(
+
+            error.response?.data?.message ||
+
+            "Login Failed"
+
+        );
+
+    }
+
+};
+
+return(
+
+<div className="login-page">
+
+<Card
+
+className="login-card p-8"
+
+>
+
+<h1 className="login-title">
+
+Welcome Back 👋
+
+</h1>
+
+<p className="login-subtitle">
+
+Sign in to continue to PingMe
+
+</p>
+
+<form
+
+onSubmit={handleSubmit(onSubmit)}
+
+>
+
+<div className="form-group">
+
+<Input
+
+placeholder="Email"
+
+type="email"
+
+{
+
+...register("email")
+
+}
+
+/>
+
+</div>
+
+<div className="form-group">
+
+<Input
+
+placeholder="Password"
+
+type="password"
+
+{
+
+...register("password")
+
+}
+
+/>
+
+</div>
+
+<Button
+
+type="submit"
+
+className="w-full"
+
+>
+
+Login
+
+</Button>
+
+</form>
+
+<div className="login-footer">
+
+Don't have an account?
+
+{" "}
+
+<Link to="/register">
+
+Create Account
+
+</Link>
+
+</div>
+
+</Card>
+
+</div>
+
+);
 
 }

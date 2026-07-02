@@ -1,0 +1,53 @@
+.login-page{
+
+    min-height:100vh;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:30px;
+
+}
+
+.login-card{
+
+    width:100%;
+
+    max-width:430px;
+
+}
+
+.login-title{
+
+    font-size:32px;
+
+    font-weight:700;
+
+    margin-bottom:10px;
+
+}
+
+.login-subtitle{
+
+    color:var(--text-secondary);
+
+    margin-bottom:30px;
+
+}
+
+.form-group{
+
+    margin-bottom:20px;
+
+}
+
+.login-footer{
+
+    margin-top:25px;
+
+    text-align:center;
+
+}

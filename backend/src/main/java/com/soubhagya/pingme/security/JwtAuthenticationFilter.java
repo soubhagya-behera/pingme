@@ -23,19 +23,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+protected void doFilterInternal(HttpServletRequest request,
+                                HttpServletResponse response,
+                                FilterChain filterChain)
+        throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
+    final String authHeader = request.getHeader("Authorization");
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        filterChain.doFilter(request, response);
+        return;
+    }
 
-            filterChain.doFilter(request, response);
-            return;
-
-        }
+    try {
 
         String jwt = authHeader.substring(7);
 
@@ -51,31 +51,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-
                                 userDetails,
-
                                 null,
-
                                 userDetails.getAuthorities()
-
                         );
 
                 authentication.setDetails(
-
                         new WebAuthenticationDetailsSource()
                                 .buildDetails(request)
-
                 );
 
                 SecurityContextHolder.getContext()
                         .setAuthentication(authentication);
-
             }
-
         }
 
-        filterChain.doFilter(request, response);
+    } catch (Exception e) {
 
+        // Ignore invalid or expired JWT
     }
 
+    filterChain.doFilter(request, response);
+}
 }
