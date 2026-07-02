@@ -1,6 +1,7 @@
 package com.soubhagya.pingme.service.impl;
 
 import com.soubhagya.pingme.dto.response.MessageResponse;
+import com.soubhagya.pingme.dto.response.RecentChatResponse;
 import com.soubhagya.pingme.entity.Message;
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.repository.MessageRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import com.soubhagya.pingme.dto.response.RecentChatResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -78,5 +80,12 @@ public class MessageServiceImpl implements MessageService {
                 .collect(Collectors.toList());
 
     }
+
+    @Override
+public List<RecentChatResponse> getRecentChats(String email) {
+
+    return List.of();
+
+}
 
 }

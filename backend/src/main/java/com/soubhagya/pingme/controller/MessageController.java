@@ -1,6 +1,7 @@
 package com.soubhagya.pingme.controller;
 
 import com.soubhagya.pingme.dto.response.MessageResponse;
+import com.soubhagya.pingme.dto.response.RecentChatResponse;
 import com.soubhagya.pingme.payload.ApiResponse;
 import com.soubhagya.pingme.service.MessageService;
 import com.soubhagya.pingme.util.ResponseUtil;
@@ -37,6 +38,26 @@ public ResponseEntity<ApiResponse<List<MessageResponse>>> getChatHistory(
 
                             friendId
 
+                    )
+
+            )
+
+    );
+
+}
+
+@GetMapping("/recent")
+public ResponseEntity<ApiResponse<List<RecentChatResponse>>> recentChats(
+        Authentication authentication){
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Recent Chats",
+
+                    messageService.getRecentChats(
+                            authentication.getName()
                     )
 
             )

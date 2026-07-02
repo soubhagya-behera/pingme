@@ -1,29 +1,35 @@
 import Card from "../ui/Card";
 import { Users, Wifi, Bell } from "lucide-react";
 
-export default function StatsCards() {
+export default function StatsCards({
+
+    friends,
+
+    requests
+
+}) {
 
     const stats = [
 
-        {
-            title: "Friends",
-            value: 0,
-            icon: Users
-        },
+    {
+        title: "Friends",
+        value: friends,
+        icon: Users
+    },
 
-        {
-            title: "Online",
-            value: 0,
-            icon: Wifi
-        },
+    {
+        title: "Online",
+        value: 0,
+        icon: Wifi
+    },
 
-        {
-            title: "Requests",
-            value: 0,
-            icon: Bell
-        }
+    {
+        title: "Requests",
+        value: requests,
+        icon: Bell
+    }
 
-    ];
+];
 
     return (
 
