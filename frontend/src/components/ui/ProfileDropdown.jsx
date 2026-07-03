@@ -1,114 +1,233 @@
-import { useState } from "react";
-import { User, Settings, LogOut } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
+import { motion, AnimatePresence } from "framer-motion";
+
+import {
+
+User,
+
+Settings,
+
+LogOut,
+
+ChevronDown
+
+} from "lucide-react";
+
+import Avatar from "./Avatar";
+
 import { useAuth } from "../../context/AuthContext";
+
 import { useNavigate } from "react-router-dom";
 
-export default function ProfileDropdown() {
+export default function ProfileDropdown(){
 
-    const [open, setOpen] = useState(false);
+const { user, logout } = useAuth();
 
-    const { user, logout } = useAuth();
+const navigate = useNavigate();
 
-    const navigate = useNavigate();
+const [open,setOpen]=useState(false);
 
-    const handleLogout = () => {
+const dropdownRef = useRef();
 
-        logout();
+useEffect(()=>{
 
-        navigate("/login");
+const handler=(e)=>{
 
-    };
+if(
 
-    return (
+dropdownRef.current &&
 
-        <div className="relative">
+!dropdownRef.current.contains(e.target)
 
-            <button
+){
 
-                onClick={() => setOpen(!open)}
+setOpen(false);
 
-                className="flex items-center justify-center w-11 h-11 rounded-full border"
+}
 
-            >
+};
 
-                <User size={24} />
+document.addEventListener("mousedown",handler);
 
-            </button>
+return()=>document.removeEventListener("mousedown",handler);
 
-            {
+},[]);
 
-                open && (
+const handleLogout=()=>{
 
-                    <div
+logout();
 
-                        className="absolute right-0 mt-3 w-72 bg-white rounded-2xl shadow-xl border p-4 z-50"
+navigate("/login");
 
-                    >
+};
 
-                        <h3 className="font-bold text-lg">
+return(
 
-                            {user?.name}
+<div
 
-                        </h3>
+className="relative"
 
-                        <p className="text-sm text-gray-500">
+ref={dropdownRef}
 
-                            {user?.email}
+>
 
-                        </p>
+<button
 
-                        <hr className="my-4"/>
+onClick={()=>setOpen(!open)}
 
-                        <button
+className="flex items-center gap-2"
 
-                            className="flex items-center gap-3 w-full py-2"
+>
 
-                            onClick={() => navigate("/profile")}
+<Avatar
 
-                        >
+name={user?.name}
 
-                            <User size={18}/>
+size={42}
 
-                            My Profile
+/>
 
-                        </button>
+<ChevronDown
 
-                        <button
+size={18}
 
-                            className="flex items-center gap-3 w-full py-2"
+/>
 
-                            onClick={() => navigate("/settings")}
+</button>
 
-                        >
+<AnimatePresence>
 
-                            <Settings size={18}/>
+{
 
-                            Settings
+open &&
 
-                        </button>
+(
 
-                        <button
+<motion.div
 
-                            className="flex items-center gap-3 w-full py-2 text-red-500"
+initial={{
 
-                            onClick={handleLogout}
+opacity:0,
 
-                        >
+y:-10,
 
-                            <LogOut size={18}/>
+scale:.95
 
-                            Logout
+}}
 
-                        </button>
+animate={{
 
-                    </div>
+opacity:1,
 
-                )
+y:0,
 
-            }
+scale:1
 
-        </div>
+}}
 
-    );
+exit={{
+
+opacity:0,
+
+y:-10,
+
+scale:.95
+
+}}
+
+transition={{
+
+duration:.2
+
+}}
+
+className="absolute right-0 mt-3 w-72 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xl p-5 z-50"
+
+>
+
+<div className="flex items-center gap-4">
+
+<Avatar
+
+name={user?.name}
+
+size={56}
+
+/>
+
+<div>
+
+<h3 className="font-bold">
+
+{user?.name}
+
+</h3>
+
+<p className="text-sm text-[var(--text-secondary)]">
+
+{user?.email}
+
+</p>
+
+</div>
+
+</div>
+
+<hr className="my-4"/>
+
+<button
+
+className="dropdown-btn"
+
+onClick={()=>navigate("/profile")}
+
+>
+
+<User size={18}/>
+
+<span>My Profile</span>
+
+</button>
+
+<button
+
+className="dropdown-btn"
+
+onClick={()=>navigate("/settings")}
+
+>
+
+<Settings size={18}/>
+
+<span>Settings</span>
+
+</button>
+
+<button
+
+className="dropdown-btn text-red-500"
+
+onClick={handleLogout}
+
+>
+
+<LogOut size={18}/>
+
+<span>Logout</span>
+
+</button>
+
+</motion.div>
+
+)
+
+}
+
+</AnimatePresence>
+
+</div>
+
+);
 
 }

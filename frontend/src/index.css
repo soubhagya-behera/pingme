@@ -1,2 +1,27 @@
 @import "tailwindcss";
 @import "./styles/theme.css";
+
+
+.dropdown-btn{
+
+display:flex;
+
+align-items:center;
+
+gap:12px;
+
+width:100%;
+
+padding:12px;
+
+border-radius:12px;
+
+transition:.2s;
+
+}
+
+.dropdown-btn:hover{
+
+background:rgba(99,102,241,.08);
+
+}

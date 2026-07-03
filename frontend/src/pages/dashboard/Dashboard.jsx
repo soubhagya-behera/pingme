@@ -7,6 +7,7 @@ import PendingRequests from "../../components/dashboard/PendingRequests";
 
 import DashboardService from "../../services/DashboardService";
 
+
 export default function Dashboard() {
 
     const [friends, setFriends] = useState([]);

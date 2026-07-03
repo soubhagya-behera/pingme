@@ -1,24 +1,19 @@
 import { useAuth } from "../../context/AuthContext";
 
+
 export default function DashboardHeader() {
 
     const { user } = useAuth();
-
+    
     return (
 
         <div className="mb-8">
 
-            <h1 className="text-4xl font-bold">
+            <h1 className="text-5xl font-bold">
 
-                Welcome,
+    Welcome, {user?.name?.split(" ")[0]} 👋
 
-                {" "}
-
-                {user?.name}
-
-                👋
-
-            </h1>
+</h1>
 
             <p className="text-slate-500 mt-2">
 
