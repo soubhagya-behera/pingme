@@ -1,5 +1,7 @@
 package com.soubhagya.pingme.service;
 
+import com.soubhagya.pingme.dto.request.UpdateProfileRequest;
+import com.soubhagya.pingme.dto.response.ProfileResponse;
 import com.soubhagya.pingme.dto.response.UserSearchResponse;
 import com.soubhagya.pingme.entity.User;
 
@@ -10,5 +12,12 @@ public interface UserService {
     List<User> getAllUsers();
 
     UserSearchResponse searchUser(String email);
+
+    ProfileResponse getProfile(String email);
+
+    ProfileResponse updateProfile(
+            String email,
+            UpdateProfileRequest request
+    );
 
 }

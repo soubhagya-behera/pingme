@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.soubhagya.pingme.dto.response.UserSearchResponse;
 import com.soubhagya.pingme.entity.User;
+import com.soubhagya.pingme.dto.request.UpdateProfileRequest;
+import com.soubhagya.pingme.dto.response.ProfileResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +47,58 @@ public UserSearchResponse searchUser(String email) {
             .profession(user.getProfession())
             .profilePicture(user.getProfilePicture())
             .online(user.getOnline())
+            .build();
+
+}
+
+@Override
+public ProfileResponse getProfile(String email) {
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+    return ProfileResponse.builder()
+            .id(user.getId())
+            .fullName(user.getFullName())
+            .email(user.getEmail())
+            .profession(user.getProfession())
+            .bio(user.getBio())
+            .phone(user.getPhone())
+            .profilePicture(user.getProfilePicture())
+            .build();
+
+}
+
+@Override
+public ProfileResponse updateProfile(
+
+        String email,
+
+        UpdateProfileRequest request) {
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+    user.setFullName(request.getFullName());
+
+    user.setProfession(request.getProfession());
+
+    user.setBio(request.getBio());
+
+    user.setPhone(request.getPhone());
+
+    User savedUser = userRepository.save(user);
+
+    return ProfileResponse.builder()
+            .id(savedUser.getId())
+            .fullName(savedUser.getFullName())
+            .email(savedUser.getEmail())
+            .profession(savedUser.getProfession())
+            .bio(savedUser.getBio())
+            .phone(savedUser.getPhone())
+            .profilePicture(savedUser.getProfilePicture())
             .build();
 
 }

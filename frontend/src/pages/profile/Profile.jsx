@@ -1,44 +1,160 @@
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+
 import Card from "../../components/ui/Card";
-import { useAuth } from "../../context/AuthContext";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
 
-export default function Profile() {
+import ProfileService from "../../services/ProfileService";
 
-    const { user } = useAuth();
+import toast from "react-hot-toast";
 
-    return (
+export default function Profile(){
 
-        <Card className="p-8">
+const{
 
-            <h1 className="text-3xl font-bold">
+register,
 
-                My Profile
+handleSubmit,
 
-            </h1>
+reset
 
-            <div className="mt-8 space-y-4">
+}=useForm();
 
-                <p>
+useEffect(()=>{
 
-                    <b>Name :</b> {user?.name}
+loadProfile();
 
-                </p>
+},[]);
 
-                <p>
+async function loadProfile(){
 
-                    <b>Email :</b> {user?.email}
+try{
 
-                </p>
+const response=
 
-                <p>
+await ProfileService.getProfile();
 
-                    <b>Role :</b> {user?.role}
+reset(response.data.data);
 
-                </p>
+}catch{
 
-            </div>
+toast.error(
 
-        </Card>
+"Unable to load profile"
 
-    );
+);
+
+}
+
+}
+
+async function onSubmit(data){
+
+try{
+
+await ProfileService.updateProfile(data);
+
+toast.success(
+
+"Profile Updated"
+
+);
+
+}catch{
+
+toast.error(
+
+"Update Failed"
+
+);
+
+}
+
+}
+
+return(
+
+<Card className="p-8 max-w-3xl mx-auto">
+
+<h1 className="text-4xl font-bold mb-8">
+
+My Profile
+
+</h1>
+
+<form
+
+onSubmit={handleSubmit(onSubmit)}
+
+className="space-y-6"
+
+>
+
+<Input
+
+placeholder="Full Name"
+
+{
+
+...register("fullName")
+
+}
+
+/>
+
+<Input
+
+placeholder="Profession"
+
+{
+
+...register("profession")
+
+}
+
+/>
+
+<Input
+
+placeholder="Bio"
+
+{
+
+...register("bio")
+
+}
+
+/>
+
+<Input
+
+placeholder="Phone"
+
+{
+
+...register("phone")
+
+}
+
+/>
+
+<Button
+
+type="submit"
+
+className="w-full"
+
+>
+
+Save Changes
+
+</Button>
+
+</form>
+
+</Card>
+
+);
 
 }
