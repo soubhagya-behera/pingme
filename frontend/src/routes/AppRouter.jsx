@@ -8,6 +8,7 @@ import Settings from "../pages/settings/Settings";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AppLayout from "../layout/AppLayout";
 import ProtectedRoute from "./ProtectedRoute";
+import Profile from "../pages/profile/Profile";
 
 export default function AppRouter() {
   return (
@@ -90,6 +91,21 @@ export default function AppRouter() {
 </ProtectedRoute>
           }
         />
+
+        <Route
+    path="/profile"
+    element={
+        <ProtectedRoute>
+
+            <AppLayout>
+
+                <Profile/>
+
+            </AppLayout>
+
+        </ProtectedRoute>
+    }
+/>
       </Routes>
     </BrowserRouter>
   );

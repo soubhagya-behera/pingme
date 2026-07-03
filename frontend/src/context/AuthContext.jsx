@@ -4,7 +4,13 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
 
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+
+        const savedUser = localStorage.getItem("user");
+
+        return savedUser ? JSON.parse(savedUser) : null;
+
+    });
 
     const [token, setToken] = useState(
 
@@ -12,37 +18,43 @@ export function AuthProvider({ children }) {
 
     );
 
+    // Save Token
     useEffect(() => {
 
-        if(token){
+        if (token) {
 
-            localStorage.setItem(
+            localStorage.setItem("token", token);
 
-                "token",
+        } else {
 
-                token
-
-            );
-
-        }else{
-
-            localStorage.removeItem(
-
-                "token"
-
-            );
+            localStorage.removeItem("token");
 
         }
 
-    },[token]);
+    }, [token]);
 
-    const login = (
+    // Save User
+    useEffect(() => {
 
-        userData,
+        if (user) {
 
-        jwtToken
+            localStorage.setItem(
 
-    )=>{
+                "user",
+
+                JSON.stringify(user)
+
+            );
+
+        } else {
+
+            localStorage.removeItem("user");
+
+        }
+
+    }, [user]);
+
+    const login = (userData, jwtToken) => {
 
         setUser(userData);
 
@@ -50,7 +62,7 @@ export function AuthProvider({ children }) {
 
     };
 
-    const logout = ()=>{
+    const logout = () => {
 
         setUser(null);
 
@@ -58,7 +70,7 @@ export function AuthProvider({ children }) {
 
     };
 
-    return(
+    return (
 
         <AuthContext.Provider
 
@@ -84,7 +96,7 @@ export function AuthProvider({ children }) {
 
 }
 
-export function useAuth(){
+export function useAuth() {
 
     return useContext(AuthContext);
 
