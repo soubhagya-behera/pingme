@@ -8,14 +8,41 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.soubhagya.pingme.dto.request.UpdateMessageStatusRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.http.ResponseEntity;
 
-@Controller
+
+@RestController
+@RequestMapping("/api/chat")
 @RequiredArgsConstructor
 public class ChatController {
 
     private final ChatService chatService;
+
+    @PostMapping("/send")
+public ResponseEntity<?> sendHttpMessage(
+
+        @RequestBody ChatMessage message,
+
+        Authentication authentication
+
+) {
+
+    chatService.sendMessage(
+
+            message,
+
+            authentication.getName()
+
+    );
+
+    return ResponseEntity.ok().build();
+
+}
 
     @MessageMapping("/chat.send")
     public void sendMessage(
@@ -30,6 +57,8 @@ public class ChatController {
         chatService.sendMessage(message, email);
 
     }
+
+    
 
     @PostMapping("/delivered")
 public void markDelivered(

@@ -249,6 +249,60 @@ public FriendRequestResponse acceptRequest(
             .build();
 }
 
+@Transactional
+@Override
+public FriendRequestResponse rejectRequest(
+        Long requestId,
+        String email) {
+
+    User loggedInUser =
+            userRepository.findByEmail(email)
+                    .orElseThrow(() ->
+                            new RuntimeException("User not found"));
+
+    FriendRequest request =
+            friendRequestRepository.findById(requestId)
+                    .orElseThrow(() ->
+                            new RuntimeException("Request not found"));
+
+    if(!request.getReceiver().getId().equals(loggedInUser.getId())){
+
+        throw new RuntimeException(
+                "You are not allowed to reject this request"
+        );
+
+    }
+
+    if(request.getStatus()!=FriendRequestStatus.PENDING){
+
+        throw new RuntimeException(
+                "Request already processed"
+        );
+
+    }
+
+    request.setStatus(FriendRequestStatus.REJECTED);
+
+    friendRequestRepository.save(request);
+
+    return FriendRequestResponse.builder()
+
+            .requestId(request.getId())
+
+            .senderId(request.getSender().getId())
+
+            .receiverId(request.getReceiver().getId())
+
+            .senderName(request.getSender().getFullName())
+
+            .receiverName(request.getReceiver().getFullName())
+
+            .status(request.getStatus().name())
+
+            .build();
+
+}
+
 @Override
 public List<FriendResponse> getFriends(String email) {
 

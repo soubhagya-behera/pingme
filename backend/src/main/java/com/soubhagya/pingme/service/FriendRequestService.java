@@ -10,23 +10,13 @@ import com.soubhagya.pingme.dto.response.FriendResponse;
 
 public interface FriendRequestService {
 
-    FriendRequestResponse sendRequest(
+    FriendRequestResponse sendRequest(FriendRequestDto request, String email);
 
-        FriendRequestDto request,
+List<FriendRequestResponse> getIncomingRequests(String email);
 
-        String email
+FriendRequestResponse acceptRequest(Long requestId, String email);
 
-);
+FriendRequestResponse rejectRequest(Long requestId, String email);
 
-    List<FriendRequestResponse> getIncomingRequests(String email);
-
-    FriendRequestResponse acceptRequest(
-
-        Long requestId,
-
-        String email
-
-);
-
-    List<FriendResponse> getFriends(String email);
+List<FriendResponse> getFriends(String email);
 }

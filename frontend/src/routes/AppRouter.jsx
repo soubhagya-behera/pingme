@@ -9,6 +9,7 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import AppLayout from "../layout/AppLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import Profile from "../pages/profile/Profile";
+import FriendRequests from "../pages/requests/FriendRequests";
 
 export default function AppRouter() {
   return (
@@ -100,6 +101,21 @@ export default function AppRouter() {
             <AppLayout>
 
                 <Profile/>
+
+            </AppLayout>
+
+        </ProtectedRoute>
+    }
+/>
+
+<Route
+    path="/requests"
+    element={
+        <ProtectedRoute>
+
+            <AppLayout>
+
+                <FriendRequests/>
 
             </AppLayout>
 

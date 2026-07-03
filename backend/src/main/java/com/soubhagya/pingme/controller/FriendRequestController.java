@@ -126,4 +126,30 @@ getFriends(Authentication authentication){
 
 }
 
+@PutMapping("/reject/{requestId}")
+public ResponseEntity<ApiResponse<FriendRequestResponse>>
+rejectRequest(
+        @PathVariable Long requestId,
+        Authentication authentication){
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Friend Request Rejected",
+
+                    friendRequestService.rejectRequest(
+
+                            requestId,
+
+                            authentication.getName()
+
+                    )
+
+            )
+
+    );
+
+}
+
 }

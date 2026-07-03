@@ -6,42 +6,47 @@ import {
     Settings
 } from "lucide-react";
 
+import { NavLink } from "react-router-dom";
+
 const menus = [
 
     {
         icon: LayoutDashboard,
-        label: "Dashboard"
+        label: "Dashboard",
+        path: "/"
     },
 
     {
         icon: MessageCircle,
-        label: "Chats"
+        label: "Chats",
+        path: "/chat"
     },
 
     {
         icon: Users,
-        label: "Friends"
+        label: "Friends",
+        path: "/friends"
     },
 
     {
         icon: Bell,
-        label: "Requests"
+        label: "Requests",
+        path: "/requests"
     },
 
     {
         icon: Settings,
-        label: "Settings"
+        label: "Settings",
+        path: "/settings"
     }
 
 ];
 
-export default function Sidebar() {
+export default function Sidebar(){
 
-    return (
+    return(
 
-        <aside
-            className="hidden lg:flex w-72 flex-col border-r border-slate-200 bg-white"
-        >
+        <aside className="hidden lg:flex w-72 flex-col border-r border-[var(--border)] bg-[var(--card)]">
 
             <div className="p-6">
 
@@ -57,21 +62,55 @@ export default function Sidebar() {
 
                 {
 
-                    menus.map((item) => (
+                    menus.map(item=>(
 
-                        <button
+                        <NavLink
 
                             key={item.label}
 
-                            className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-slate-700 transition-all hover:bg-indigo-50 hover:text-indigo-600"
+                            to={item.path}
+
+                            className={({isActive})=>
+
+                                `
+
+                                flex items-center gap-4
+
+                                rounded-xl
+
+                                px-4 py-3
+
+                                transition-all
+
+                                ${
+
+                                    isActive
+
+                                    ?
+
+                                    "bg-indigo-600 text-white shadow-lg"
+
+                                    :
+
+                                    "text-[var(--text)] hover:bg-indigo-50 dark:hover:bg-slate-800"
+
+                                }
+
+                                `
+
+                            }
 
                         >
 
                             <item.icon size={22}/>
 
-                            {item.label}
+                            <span>
 
-                        </button>
+                                {item.label}
+
+                            </span>
+
+                        </NavLink>
 
                     ))
 

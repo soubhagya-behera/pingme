@@ -54,21 +54,37 @@ export function AuthProvider({ children }) {
 
     }, [user]);
 
-    const login = (userData, jwtToken) => {
+    const login = (
 
-        setUser(userData);
+    userData,
 
-        setToken(jwtToken);
+    jwtToken
 
-    };
+)=>{
 
-    const logout = () => {
+    setUser(userData);
 
-        setUser(null);
+    setToken(jwtToken);
 
-        setToken(null);
+    localStorage.setItem(
 
-    };
+        "userId",
+
+        userData.id
+
+    );
+
+};
+
+    const logout = ()=>{
+
+    setUser(null);
+
+    setToken(null);
+
+    localStorage.removeItem("userId");
+
+};
 
     return (
 

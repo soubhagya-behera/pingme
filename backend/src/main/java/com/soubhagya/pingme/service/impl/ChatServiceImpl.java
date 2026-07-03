@@ -77,11 +77,11 @@ if (!areFriends) {
 
         Message savedMessage = messageRepository.save(message);
 
-messagingTemplate.convertAndSend(
+ChatMessage dto = ChatMessage.builder()
 
-        "/topic/messages/" + receiver.getId(),
+        .id(savedMessage.getId())
 
-        ChatMessage.builder()
+        .senderId(sender.getId())
 
         .receiverId(receiver.getId())
 
@@ -89,7 +89,21 @@ messagingTemplate.convertAndSend(
 
         .sentAt(savedMessage.getSentAt())
 
-        .build()
+        .build();
+
+messagingTemplate.convertAndSend(
+
+        "/topic/messages/" + receiver.getId(),
+
+        dto
+
+);
+
+messagingTemplate.convertAndSend(
+
+        "/topic/messages/" + sender.getId(),
+
+        dto
 
 );
 
