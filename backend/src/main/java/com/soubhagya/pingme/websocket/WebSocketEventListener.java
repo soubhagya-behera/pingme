@@ -4,22 +4,24 @@ import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import com.soubhagya.pingme.websocket.UserStatusMessage;
 
 @Component
 @RequiredArgsConstructor
 public class WebSocketEventListener {
 
     private final UserRepository userRepository;
+
     private final SimpMessagingTemplate messagingTemplate;
 
+    private final UserSessionTracker sessionTracker;
+
     @EventListener
-    public void handleConnect(SessionConnectEvent event){
+    public void handleConnect(SessionConnectEvent event) {
 
         StompHeaderAccessor accessor =
                 StompHeaderAccessor.wrap(event.getMessage());
@@ -27,48 +29,50 @@ public class WebSocketEventListener {
         Object emailObj =
                 accessor.getSessionAttributes().get("email");
 
-        if(emailObj == null){
-
+        if (emailObj == null) {
             return;
-
         }
 
         String email = emailObj.toString();
+
+        // Increase active session count
+        sessionTracker.connected(email);
 
         User user =
                 userRepository.findByEmail(email)
                         .orElse(null);
 
-        if(user != null){
-
-            user.setOnline(true);
-
-            userRepository.save(user);
-
-            messagingTemplate.convertAndSend(
-
-        "/topic/status",
-
-        UserStatusMessage.builder()
-
-                .userId(user.getId())
-
-                .fullName(user.getFullName())
-
-                .online(true)
-
-                .build()
-
-);
-
-            System.out.println(user.getFullName() + " is ONLINE");
-
+        if (user == null) {
+            return;
         }
 
+        System.out.println("CONNECT EVENT");
+
+        user.setOnline(true);
+
+        userRepository.save(user);
+
+        messagingTemplate.convertAndSend(
+
+                "/topic/status",
+
+                UserStatusMessage.builder()
+
+                        .userId(user.getId())
+
+                        .fullName(user.getFullName())
+
+                        .online(true)
+
+                        .build()
+
+        );
+
+        System.out.println(user.getFullName() + " is ONLINE");
     }
 
     @EventListener
-    public void handleDisconnect(SessionDisconnectEvent event){
+    public void handleDisconnect(SessionDisconnectEvent event) {
 
         StompHeaderAccessor accessor =
                 StompHeaderAccessor.wrap(event.getMessage());
@@ -76,44 +80,53 @@ public class WebSocketEventListener {
         Object emailObj =
                 accessor.getSessionAttributes().get("email");
 
-        if(emailObj == null){
+        if (emailObj == null) {
+            return;
+        }
+
+        String email = emailObj.toString();
+
+        System.out.println("DISCONNECT EVENT");
+
+        // If another WebSocket session is still active,
+        // don't mark the user offline.
+        if (!sessionTracker.disconnected(email)) {
+
+            System.out.println(email + " still has active sessions.");
 
             return;
 
         }
 
-        String email = emailObj.toString();
-
         User user =
                 userRepository.findByEmail(email)
                         .orElse(null);
 
-        if(user != null){
-
-            user.setOnline(false);
-
-            userRepository.save(user);
-
-            messagingTemplate.convertAndSend(
-
-        "/topic/status",
-
-        UserStatusMessage.builder()
-
-                .userId(user.getId())
-
-                .fullName(user.getFullName())
-
-                .online(false)
-
-                .build()
-
-);
-
-            System.out.println(user.getFullName() + " is OFFLINE");
-
+        if (user == null) {
+            return;
         }
 
+        user.setOnline(false);
+
+        userRepository.save(user);
+
+        messagingTemplate.convertAndSend(
+
+                "/topic/status",
+
+                UserStatusMessage.builder()
+
+                        .userId(user.getId())
+
+                        .fullName(user.getFullName())
+
+                        .online(false)
+
+                        .build()
+
+        );
+
+        System.out.println(user.getFullName() + " is OFFLINE");
     }
 
 }

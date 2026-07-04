@@ -17,7 +17,7 @@ public class MessageResponse {
 
     private Long receiverId;
 
-    private String message;
+    private String content;
 
     private String messageType;
 

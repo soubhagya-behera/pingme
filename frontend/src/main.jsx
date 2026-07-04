@@ -11,23 +11,16 @@ import { Toaster } from "react-hot-toast";
 
 createRoot(document.getElementById("root")).render(
 
-    <StrictMode>
+    <AuthProvider>
 
-        <AuthProvider>
+        <ThemeProvider>
 
-    <ThemeProvider>
-        <Toaster
+            <Toaster position="top-right" />
 
-position="top-right"
+            <App />
 
-/>
+        </ThemeProvider>
 
-        <App/>
-
-    </ThemeProvider>
-
-</AuthProvider>
-
-    </StrictMode>
+    </AuthProvider>
 
 );

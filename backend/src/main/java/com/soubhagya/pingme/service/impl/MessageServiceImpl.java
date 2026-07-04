@@ -67,7 +67,7 @@ public class MessageServiceImpl implements MessageService {
 
                         .receiverId(message.getReceiver().getId())
 
-                        .message(message.getContent())
+                        .content(message.getContent())
 
                         .messageType(message.getMessageType().name())
 

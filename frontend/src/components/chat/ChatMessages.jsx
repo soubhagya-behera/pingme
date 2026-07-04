@@ -1,22 +1,30 @@
+import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
-
 import { useAuth } from "../../context/AuthContext";
 
-export default function ChatMessages({
-
-    messages
-
-}){
+export default function ChatMessages({ messages }) {
 
     const { user } = useAuth();
 
-    return(
+    const bottomRef = useRef(null);
+
+    useEffect(() => {
+
+        bottomRef.current?.scrollIntoView({
+
+            behavior: "smooth"
+
+        });
+
+    }, [messages]);
+
+    return (
 
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
 
             {
 
-                messages.length===0 ?
+                messages.length === 0 ?
 
                 (
 
@@ -30,25 +38,23 @@ export default function ChatMessages({
 
                 :
 
-                messages.map(message=>(
+                messages.map(message => (
 
                     <MessageBubble
 
-    key={message.id}
+                        key={message.id}
 
-    mine={
+                        mine={message.senderId === user.id}
 
-        message.senderId===user.id
+                        text={message.content}
 
-    }
-
-    text={message.content}
-
-/>
+                    />
 
                 ))
 
             }
+
+            <div ref={bottomRef}></div>
 
         </div>
 

@@ -1,42 +1,20 @@
-import { useEffect, useState } from "react";
 
-import FriendService from "../../services/FriendService";
 
 export default function ChatSidebar({
 
     selectedFriend,
 
-    onSelect
+    onSelect,
+
+    friends,
+
+    setFriends
 
 }){
 
-    const [friends,setFriends]=useState([]);
+    
 
-    useEffect(()=>{
-
-        loadFriends();
-
-    },[]);
-
-    async function loadFriends(){
-
-        try{
-
-            const response=
-
-            await FriendService.getFriends();
-
-            setFriends(response.data.data);
-
-        }
-
-        catch(err){
-
-            console.log(err);
-
-        }
-
-    }
+    
 
     return(
 
