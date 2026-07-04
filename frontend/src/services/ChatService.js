@@ -1,8 +1,8 @@
 import api from "../api/axios";
 
-const ChatService={
+const ChatService = {
 
-    getHistory(friendId){
+    getHistory(friendId) {
 
         return api.get(
 
@@ -12,7 +12,17 @@ const ChatService={
 
     },
 
-    sendMessage(data){
+    getRecentChats() {
+
+        return api.get(
+
+            "/messages/recent"
+
+        );
+
+    },
+
+    sendMessage(data) {
 
         return api.post(
 

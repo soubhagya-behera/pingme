@@ -1,48 +1,96 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ChatSidebar from "../../components/chat/ChatSidebar";
 import ChatHeader from "../../components/chat/ChatHeader";
 import ChatMessages from "../../components/chat/ChatMessages";
 import ChatInput from "../../components/chat/ChatInput";
 import ChatService from "../../services/ChatService";
-import FriendService from "../../services/FriendService";
+
 import { connectSocket, disconnectSocket } from "../../websocket/socket";
 
 export default function Chat() {
     const [selectedFriend, setSelectedFriend] = useState(null);
+    const selectedFriendRef = useRef(null);
     const [messages, setMessages] = useState([]);
     const [friends, setFriends] = useState([]);
 
     useEffect(() => {
-        loadFriends();
-    }, []);
 
-    async function loadFriends() {
-        try {
-            const response = await FriendService.getFriends();
-            setFriends(response.data.data);
-        } catch (error) {
-            console.log(error);
-        }
+    loadRecentChats();
+
+}, []);
+
+useEffect(() => {
+
+    selectedFriendRef.current = selectedFriend;
+
+}, [selectedFriend]);
+
+    async function loadRecentChats() {
+
+    try {
+
+        const response =
+            await ChatService.getRecentChats();
+
+        setFriends(response.data.data);
+
     }
+
+    catch(error){
+
+        console.log(error);
+
+    }
+
+}
 
     useEffect(() => {
         connectSocket(
-            (incoming) => {
-                setMessages((prev) => {
-                    if (
-                        selectedFriend &&
-                        incoming.senderId !== selectedFriend.id &&
-                        incoming.receiverId !== selectedFriend.id
-                    ) {
-                        return prev;
-                    }
-                    const exists = prev.some((m) => m.id === incoming.id);
-                    if (exists) {
-                        return prev;
-                    }
-                    return [...prev, incoming];
-                });
-            },
+            async (incoming) => {
+
+   await loadRecentChats();
+
+    setMessages(prev => {
+
+       const currentFriend = selectedFriendRef.current;
+
+if (
+
+    currentFriend &&
+
+    incoming.senderId !== currentFriend.id &&
+
+    incoming.receiverId !== currentFriend.id
+
+){
+
+            return prev;
+
+        }
+
+        const exists = prev.some(
+
+            m => m.id === incoming.id
+
+        );
+
+        if (exists) {
+
+            return prev;
+
+        }
+
+        return [
+
+            ...prev,
+
+            incoming
+
+        ];
+
+    });
+
+},
             (status) => {
 
     console.log("Status update:", status);
@@ -91,10 +139,16 @@ export default function Chat() {
 
     // When user selects a friend
     async function selectFriend(friend) {
-        setSelectedFriend(friend);
-        setMessages([]);
-        await loadHistory(friend);
-    }
+
+    const selected = friend;
+
+    setSelectedFriend(selected);
+
+    setMessages([]);
+
+    await loadHistory(selected);
+
+}
 
     return (
         <div className="grid grid-cols-[320px_1fr] gap-6 h-[calc(100vh-140px)]">
@@ -108,7 +162,7 @@ export default function Chat() {
                     <>
                         <ChatHeader friend={selectedFriend} />
                         <ChatMessages messages={messages} />
-                        <ChatInput
+      <ChatInput
     friend={selectedFriend}
 />
                     </>

@@ -34,6 +34,23 @@ List<Message> getConversation(
 
 );
 
+@Query("""
+SELECT m
+FROM Message m
+WHERE
 
+m.sender = :user
+
+OR
+
+m.receiver = :user
+
+ORDER BY m.sentAt DESC
+""")
+List<Message> findRecentMessages(
+
+        @Param("user") User user
+
+);
 
 }

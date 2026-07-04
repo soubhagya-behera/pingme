@@ -2,7 +2,11 @@ import { useState } from "react";
 import { Send } from "lucide-react";
 import { sendSocketMessage } from "../../websocket/socket";
 
-export default function ChatInput({ friend }) {
+export default function ChatInput({
+
+    friend
+
+}) {
 
     const [message, setMessage] = useState("");
 
@@ -14,15 +18,19 @@ export default function ChatInput({ friend }) {
 
         try {
 
-            sendSocketMessage({
+            const text = message;
 
-                receiverId: friend.id,
+setMessage("");
 
-                content: message
+sendSocketMessage({
 
-            });
+    receiverId: friend.id,
 
-            setMessage("");
+    content: text
+
+});
+
+
 
         } catch (error) {
 

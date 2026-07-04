@@ -48,7 +48,7 @@ export default function ChatSidebar({
 
                         hover:bg-slate-100
 
-                        ${selectedFriend?.id===friend.id
+                        ${selectedFriend?.id===friend.Id
 
                         ?"bg-indigo-50"
 
@@ -86,23 +86,45 @@ export default function ChatSidebar({
 
                             </h3>
 
-                            <p
+    <p
+className="text-sm text-slate-500 truncate w-44"
+>
 
-                            className="text-sm text-slate-500"
+{
 
-                            >
+friend.lastMessage
 
-                                {
+}
 
-                                    friend.online
+</p>
 
-                                    ?"Online"
+<p
+className="text-xs text-slate-400"
+>
 
-                                    :"Offline"
+{
 
-                                }
+friend.lastMessageTime
 
-                            </p>
+?
+
+new Date(friend.lastMessageTime)
+
+.toLocaleTimeString([],{
+
+hour:"2-digit",
+
+minute:"2-digit"
+
+})
+
+:
+
+""
+
+}
+
+</p>
 
                         </div>
 

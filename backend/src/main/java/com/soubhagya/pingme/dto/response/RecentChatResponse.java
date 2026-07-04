@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 public class RecentChatResponse {
 
-    private Long friendId;
+    private Long id;
 
     private String fullName;
 
