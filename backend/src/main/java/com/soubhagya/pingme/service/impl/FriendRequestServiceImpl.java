@@ -120,6 +120,28 @@ if(reversePending){
 
 }
 
+boolean alreadyFriends =
+        friendRepository
+                .existsByUserOneAndUserTwoOrUserOneAndUserTwo(
+
+                        sender,
+
+                        receiver,
+
+                        receiver,
+
+                        sender
+
+                );
+
+if (alreadyFriends) {
+
+    throw new RuntimeException(
+            "You are already friends."
+    );
+
+}
+
 FriendRequest friendRequest =
         FriendRequest.builder()
 
@@ -216,11 +238,32 @@ public FriendRequestResponse acceptRequest(
 
     }
 
-    // Already processed?
+    // Request must still be pending
     if (request.getStatus() != FriendRequestStatus.PENDING) {
 
         throw new RuntimeException(
                 "Request already processed");
+
+    }
+
+    // Check if users are already friends
+    boolean alreadyFriends =
+            friendRepository
+                    .existsByUserOneAndUserTwoOrUserOneAndUserTwo(
+
+                            request.getSender(),
+                            request.getReceiver(),
+
+                            request.getReceiver(),
+                            request.getSender()
+
+                    );
+
+    if (alreadyFriends) {
+
+        throw new RuntimeException(
+                "Users are already friends."
+        );
 
     }
 
@@ -231,22 +274,34 @@ public FriendRequestResponse acceptRequest(
 
     // Create friendship
     Friend friend = Friend.builder()
+
             .userOne(request.getSender())
+
             .userTwo(request.getReceiver())
+
             .friendsSince(LocalDateTime.now())
+
             .build();
 
     friendRepository.save(friend);
 
     // Response
     return FriendRequestResponse.builder()
+
             .requestId(request.getId())
+
             .senderId(request.getSender().getId())
+
             .receiverId(request.getReceiver().getId())
+
             .senderName(request.getSender().getFullName())
+
             .receiverName(request.getReceiver().getFullName())
+
             .status(request.getStatus().name())
+
             .build();
+
 }
 
 @Transactional
@@ -280,6 +335,8 @@ public FriendRequestResponse rejectRequest(
         );
 
     }
+
+    
 
     request.setStatus(FriendRequestStatus.REJECTED);
 
