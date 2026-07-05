@@ -42,13 +42,17 @@ export default function ChatMessages({ messages }) {
 
                     <MessageBubble
 
-                        key={message.id}
+    key={message.id}
 
-                        mine={message.senderId === user.id}
+    mine={message.senderId===user.id}
 
-                        text={message.content}
+    text={message.content}
 
-                    />
+    time={message.sentAt}
+
+    status={message.status}
+
+/>
 
                 ))
 

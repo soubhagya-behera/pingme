@@ -3,44 +3,139 @@ import { Client } from "@stomp/stompjs";
 
 let stompClient = null;
 
-export function connectSocket(onMessage, onStatus) {
+export function connectSocket(
+
+    onMessage,
+
+    onUserStatus,
+
+    onMessageStatus
+
+) {
+
     const token = localStorage.getItem("token");
 
-    const socket = new SockJS(`http://localhost:8080/ws?token=${token}`);
+    const socket = new SockJS(
+
+        `http://localhost:8080/ws?token=${token}`
+
+    );
 
     stompClient = new Client({
+
         webSocketFactory: () => socket,
+
         reconnectDelay: 5000,
+
         onConnect: () => {
+
             console.log("Connected");
-            const userId = localStorage.getItem("userId");
 
-            // Subscribe to private messages
-            stompClient.subscribe(`/topic/messages/${userId}`, (message) => {
-                console.log("Socket Received:", message.body);
-                onMessage(JSON.parse(message.body));
-            });
+            const userId =
+                localStorage.getItem("userId");
 
-            // Subscribe to user online/offline status updates
-            stompClient.subscribe("/topic/status", (status) => {
-                console.log("Status Received:", status.body);
-                onStatus(JSON.parse(status.body));
-            });
+            // Private Messages
+
+            stompClient.subscribe(
+
+                `/topic/messages/${userId}`,
+
+                (message) => {
+
+                    console.log(
+
+                        "Socket Message:",
+
+                        message.body
+
+                    );
+
+                    onMessage(
+
+                        JSON.parse(message.body)
+
+                    );
+
+                }
+
+            );
+
+            // Online / Offline
+
+            stompClient.subscribe(
+
+                "/topic/status",
+
+                (status) => {
+
+                    console.log(
+
+                        "User Status:",
+
+                        status.body
+
+                    );
+
+                    onUserStatus(
+
+                        JSON.parse(status.body)
+
+                    );
+
+                }
+
+            );
+
+            // Delivered / Read
+
+            stompClient.subscribe(
+
+                `/topic/status/${userId}`,
+
+                (status) => {
+
+                    console.log(
+
+                        "Message Status:",
+
+                        status.body
+
+                    );
+
+                    onMessageStatus(
+
+                        JSON.parse(status.body)
+
+                    );
+
+                }
+
+            );
+
         }
+
     });
 
     stompClient.activate();
+
 }
 
 export function sendSocketMessage(message) {
+
     if (!stompClient) return;
 
     stompClient.publish({
+
         destination: "/app/chat.send",
+
         body: JSON.stringify(message)
+
     });
+
 }
 
 export function disconnectSocket() {
+
     stompClient?.deactivate();
+
 }

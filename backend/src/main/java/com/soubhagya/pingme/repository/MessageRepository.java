@@ -2,6 +2,8 @@ package com.soubhagya.pingme.repository;
 
 import com.soubhagya.pingme.entity.Message;
 import com.soubhagya.pingme.entity.User;
+import com.soubhagya.pingme.enums.MessageStatus;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -52,5 +54,13 @@ List<Message> findRecentMessages(
         @Param("user") User user
 
 );
+
+List<Message> findBySenderAndReceiverAndStatus(
+        User sender,
+        User receiver,
+        MessageStatus status
+);
+
+void deleteBySenderOrReceiver(User sender, User receiver);
 
 }

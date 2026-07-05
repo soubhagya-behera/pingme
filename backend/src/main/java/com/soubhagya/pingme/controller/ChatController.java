@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,27 +61,40 @@ public ResponseEntity<?> sendHttpMessage(
 
     
 
-    @PostMapping("/delivered")
+ @PostMapping("/delivered")
 public void markDelivered(
-
         @RequestBody UpdateMessageStatusRequest request){
 
-    chatService.markAsDelivered(
+    System.out.println("DELIVERED API CALLED : " + request.getMessageId());
 
-            request.getMessageId()
-
-    );
+    chatService.markAsDelivered(request.getMessageId());
 
 }
 
 @PostMapping("/read")
 public void markRead(
-
         @RequestBody UpdateMessageStatusRequest request){
 
-    chatService.markAsRead(
+    System.out.println("READ API CALLED : " + request.getMessageId());
 
-            request.getMessageId()
+    chatService.markAsRead(request.getMessageId());
+
+}
+
+@PostMapping("/read/{friendId}")
+public void markConversationRead(
+
+        @PathVariable Long friendId,
+
+        Authentication authentication
+
+){
+
+    chatService.markConversationAsRead(
+
+            friendId,
+
+            authentication.getName()
 
     );
 

@@ -48,7 +48,7 @@ const onSubmit = async (data) => {
 
         toast.success("Login Successful");
 
-        navigate("/");
+        navigate(result.role === "ADMIN" ? "/admin" : "/");
 
     } catch (error) {
 

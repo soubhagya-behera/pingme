@@ -2,6 +2,7 @@ package com.soubhagya.pingme.service.impl;
 
 import com.soubhagya.pingme.dto.request.RegisterRequest;
 import com.soubhagya.pingme.dto.response.UserResponse;
+import com.soubhagya.pingme.entity.PasswordResetToken;
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.enums.UserRole;
 import com.soubhagya.pingme.enums.UserStatus;
@@ -20,6 +21,8 @@ import com.soubhagya.pingme.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
+import com.soubhagya.pingme.service.TokenService;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -33,6 +36,8 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
 
 private final JwtService jwtService;
+
+private final TokenService tokenService;
 
     @Override
     public UserResponse register(RegisterRequest request) {
@@ -53,7 +58,17 @@ user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         user.setOnline(false);
 
+        user.setMustChangePassword(true);
+
+user.setEmailVerified(false);
+
         User savedUser = userRepository.save(user);
+
+        PasswordResetToken token = tokenService.createToken(savedUser);
+
+System.out.println("====================================");
+System.out.println("TOKEN : " + token.getToken());
+System.out.println("====================================");
 
         UserResponse response = UserResponse.builder()
         .id(savedUser.getId())

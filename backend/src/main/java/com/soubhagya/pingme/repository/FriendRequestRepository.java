@@ -28,4 +28,6 @@ public interface FriendRequestRepository
         FriendRequestStatus status
 );
 
+    void deleteBySenderOrReceiver(User sender, User receiver);
+
 }

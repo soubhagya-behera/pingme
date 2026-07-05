@@ -1,5 +1,7 @@
 package com.soubhagya.pingme.controller;
 
+import com.soubhagya.pingme.dto.response.AdminDashboardStatsResponse;
+import com.soubhagya.pingme.dto.response.AdminUserPageResponse;
 import com.soubhagya.pingme.dto.response.UserResponse;
 import com.soubhagya.pingme.payload.ApiResponse;
 import com.soubhagya.pingme.service.AdminService;
@@ -17,6 +19,32 @@ public class AdminController {
 
     private final AdminService adminService;
 
+    @GetMapping("/dashboard")
+    public ResponseEntity<ApiResponse<AdminDashboardStatsResponse>> getDashboardStats() {
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(
+                        "Admin Dashboard Statistics",
+                        adminService.getDashboardStats()
+                )
+        );
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<ApiResponse<AdminUserPageResponse>> getUsers(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(
+                        "Users Fetched Successfully",
+                        adminService.getUsers(status, search, page, size)
+                )
+        );
+    }
+
     @GetMapping("/pending-users")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getPendingUsers() {
 
@@ -28,40 +56,65 @@ public class AdminController {
         );
     }
 
+    @GetMapping("/users/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(
+                        "User Fetched Successfully",
+                        adminService.getUserById(id)
+                )
+        );
+    }
+
     @PutMapping("/approve/{id}")
-public ResponseEntity<ApiResponse<UserResponse>> approveUser(
-        @PathVariable Long id) {
+    public ResponseEntity<ApiResponse<UserResponse>> approveUser(
+            @PathVariable Long id) {
 
-    return ResponseEntity.ok(
+        return ResponseEntity.ok(
 
-            ResponseUtil.success(
+                ResponseUtil.success(
 
-                    "User Approved Successfully",
+                        "User Approved Successfully",
 
-                    adminService.approveUser(id)
+                        adminService.approveUser(id)
 
-            )
+                )
 
-    );
+        );
 
-}
+    }
 
-@PutMapping("/reject/{id}")
-public ResponseEntity<ApiResponse<UserResponse>> rejectUser(
-        @PathVariable Long id) {
+    @PutMapping("/reject/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> rejectUser(
+            @PathVariable Long id) {
 
-    return ResponseEntity.ok(
+        return ResponseEntity.ok(
 
-            ResponseUtil.success(
+                ResponseUtil.success(
 
-                    "User Rejected Successfully",
+                        "User Rejected Successfully",
 
-                    adminService.rejectUser(id)
+                        adminService.rejectUser(id)
 
-            )
+                )
 
-    );
+        );
 
-}
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
+
+        adminService.deleteUser(id);
+
+        return ResponseEntity.ok(
+                ResponseUtil.success(
+                        "User Deleted Successfully",
+                        null
+                )
+        );
+
+    }
 
 }

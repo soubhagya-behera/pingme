@@ -1,6 +1,9 @@
+import { useState } from "react";
+
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import PageContainer from "./PageContainer";
+import MobileSidebar from "./MobileSidebar";
 
 export default function AppLayout({
 
@@ -8,15 +11,17 @@ export default function AppLayout({
 
 }){
 
+    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
     return(
 
-        <div className="flex h-screen">
+        <div className="flex h-screen bg-[var(--background)] text-[var(--text)]">
 
             <Sidebar/>
 
             <div className="flex flex-1 flex-col">
 
-                <Navbar/>
+                <Navbar onMenuClick={() => setMobileSidebarOpen(true)}/>
 
                 <PageContainer>
 
@@ -25,6 +30,11 @@ export default function AppLayout({
                 </PageContainer>
 
             </div>
+
+            <MobileSidebar
+                open={mobileSidebarOpen}
+                onClose={() => setMobileSidebarOpen(false)}
+            />
 
         </div>
 

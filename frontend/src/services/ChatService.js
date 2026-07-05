@@ -32,7 +32,49 @@ const ChatService = {
 
         );
 
-    }
+    },
+
+    markDelivered(messageId) {
+
+    return api.post(
+
+        "/chat/delivered",
+
+        {
+
+            messageId
+
+        }
+
+    );
+
+},
+
+markRead(messageId) {
+
+    return api.post(
+
+        "/chat/read",
+
+        {
+
+            messageId
+
+        }
+
+    );
+
+},
+
+markConversationRead(friendId) {
+
+    return api.post(
+
+        `/chat/read/${friendId}`
+
+    );
+
+},
 
 };
 

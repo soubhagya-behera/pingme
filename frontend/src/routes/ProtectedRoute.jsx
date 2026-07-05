@@ -4,19 +4,29 @@ import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({
 
-    children
+    children,
+
+    roles
 
 }){
 
     const{
 
-        token
+        token,
+
+        user
 
     }=useAuth();
 
     if(!token){
 
         return <Navigate to="/login"/>;
+
+    }
+
+    if(roles && !roles.includes(user?.role)){
+
+        return <Navigate to={user?.role === "ADMIN" ? "/admin" : "/"} replace/>;
 
     }
 

@@ -21,4 +21,6 @@ public class ChatMessage {
 
     private LocalDateTime sentAt;
 
+    private String status;
+
 }

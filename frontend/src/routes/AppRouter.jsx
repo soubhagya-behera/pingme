@@ -2,10 +2,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import Dashboard from "../pages/dashboard/Dashboard";
+import AdminDashboard from "../pages/admin/AdminDashboard";
 import Chat from "../pages/chat/Chat";
 import Friends from "../pages/friends/Friends";
 import Settings from "../pages/settings/Settings";
-import AdminDashboard from "../pages/admin/AdminDashboard";
+
 import AppLayout from "../layout/AppLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import Profile from "../pages/profile/Profile";
@@ -81,7 +82,7 @@ export default function AppRouter() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute roles={["ADMIN"]}>
 
     <AppLayout>
 

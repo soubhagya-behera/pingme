@@ -21,6 +21,22 @@ public class UserResponse {
 
     private String phone;
 
+    private String role;
+
     private String status;
+
+    private Boolean online;
+
+    private Boolean emailVerified;
+
+    private Boolean mustChangePassword;
+
+    private String profilePicture;
+
+    private String createdAt;
+
+    private String updatedAt;
+
+    private String lastSeen;
 
 }

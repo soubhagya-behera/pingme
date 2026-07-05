@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import com.soubhagya.pingme.websocket.MessageStatusUpdate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -89,6 +90,8 @@ ChatMessage dto = ChatMessage.builder()
 
         .sentAt(savedMessage.getSentAt())
 
+        .status(savedMessage.getStatus().name())
+
         .build();
 
 messagingTemplate.convertAndSend(
@@ -111,15 +114,20 @@ System.out.println("Message Saved & Broadcast Successfully");
 
     }
 
-   @Override
+@Override
 public void markAsDelivered(Long messageId) {
 
-    Message message = messageRepository.findById(messageId)
+    System.out.println("DELIVER REQUEST : " + messageId);
 
+    Message message = messageRepository.findById(messageId)
             .orElseThrow(() ->
                     new RuntimeException("Message not found"));
 
-    if(message.getStatus() == MessageStatus.SENT){
+    System.out.println("Current Status : " + message.getStatus());
+
+    if (message.getStatus() == MessageStatus.SENT) {
+
+        System.out.println("Updating to DELIVERED");
 
         message.setStatus(MessageStatus.DELIVERED);
 
@@ -138,6 +146,8 @@ public void markAsDelivered(Long messageId) {
                         .build()
 
         );
+
+        System.out.println("DELIVERED EVENT SENT");
 
     }
 
@@ -160,6 +170,61 @@ public void markAsRead(Long messageId) {
         messagingTemplate.convertAndSend(
 
                 "/topic/status/" + message.getSender().getId(),
+
+                MessageStatusUpdate.builder()
+
+                        .messageId(message.getId())
+
+                        .status("READ")
+
+                        .build()
+
+        );
+
+    }
+
+}
+
+@Override
+public void markConversationAsRead(
+
+        Long friendId,
+
+        String email
+
+){
+
+    User receiver = userRepository.findByEmail(email)
+
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+    User sender = userRepository.findById(friendId)
+
+            .orElseThrow(() ->
+                    new RuntimeException("Friend not found"));
+
+    List<Message> unreadMessages =
+
+            messageRepository.findBySenderAndReceiverAndStatus(
+
+                    sender,
+
+                    receiver,
+
+                    MessageStatus.DELIVERED
+
+            );
+
+    for(Message message : unreadMessages){
+
+        message.setStatus(MessageStatus.READ);
+
+        messageRepository.save(message);
+
+        messagingTemplate.convertAndSend(
+
+                "/topic/status/" + sender.getId(),
 
                 MessageStatusUpdate.builder()
 

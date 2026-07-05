@@ -57,6 +57,14 @@ private String password;
 @Builder.Default
 private Boolean online = false;
 
+@Column(nullable = false)
+@Builder.Default
+private Boolean mustChangePassword = true;
+
+@Column(nullable = false)
+@Builder.Default
+private Boolean emailVerified = false;
+
     private LocalDateTime lastSeen;
 
     private LocalDateTime createdAt;

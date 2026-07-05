@@ -60,7 +60,7 @@ public class SecurityConfig {
 
         // Admin Only
         .requestMatchers("/api/admin/**")
-        .hasRole("ADMIN")
+        .hasAuthority("ADMIN")
 
         // Everything else needs login
         .anyRequest()

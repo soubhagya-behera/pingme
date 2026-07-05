@@ -41,6 +41,20 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<?>> illegalArgument(IllegalArgumentException ex) {
+
+        return ResponseEntity.badRequest().body(
+
+                ApiResponse.builder()
+                        .success(false)
+                        .message(ex.getMessage())
+                        .build()
+
+        );
+
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> exception(Exception ex){
 

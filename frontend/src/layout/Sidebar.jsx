@@ -3,12 +3,14 @@ import {
     MessageCircle,
     Users,
     Bell,
-    Settings
+    Settings,
+    ShieldCheck
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const menus = [
+const userMenus = [
 
     {
         icon: LayoutDashboard,
@@ -42,7 +44,27 @@ const menus = [
 
 ];
 
+const adminMenus = [
+
+    {
+        icon: ShieldCheck,
+        label: "Admin",
+        path: "/admin"
+    },
+
+    {
+        icon: Settings,
+        label: "Settings",
+        path: "/settings"
+    }
+
+];
+
 export default function Sidebar(){
+
+    const { user } = useAuth();
+
+    const menus = user?.role === "ADMIN" ? adminMenus : userMenus;
 
     return(
 

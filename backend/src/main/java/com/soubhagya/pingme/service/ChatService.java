@@ -13,4 +13,11 @@ void markAsDelivered(Long messageId);
 
 void markAsRead(Long messageId);
 
+void markConversationAsRead(
+        Long friendId,
+        String email
+);
+
+
+
 }
