@@ -144,15 +144,25 @@ Login
 
 <div className="login-footer">
 
-Don't have an account?
+    <span>
 
-{" "}
+        Don't have an account?
 
-<Link to="/register">
+    </span>
 
-Create Account
+    {" "}
 
-</Link>
+    <Link
+
+        to="/register"
+
+        className="register-link"
+
+    >
+
+        Create Account
+
+    </Link>
 
 </div>
 
