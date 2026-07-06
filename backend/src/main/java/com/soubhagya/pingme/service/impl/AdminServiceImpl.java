@@ -23,6 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.soubhagya.pingme.entity.PasswordResetToken;
+import com.soubhagya.pingme.service.TokenService;
+
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
@@ -34,6 +37,8 @@ public class AdminServiceImpl implements AdminService {
     private final FriendRequestRepository friendRequestRepository;
 
     private final FriendRepository friendRepository;
+
+    private final TokenService tokenService;
 
     @Override
     public AdminDashboardStatsResponse getDashboardStats() {
@@ -102,15 +107,26 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    @Transactional
-    public UserResponse approveUser(Long id) {
+@Transactional
+public UserResponse approveUser(Long id) {
 
-        User user = getManagedUser(id);
+    User user = getManagedUser(id);
 
-        user.setStatus(UserStatus.APPROVED);
+    user.setStatus(UserStatus.APPROVED);
 
-        return toUserResponse(userRepository.save(user));
-    }
+    User updatedUser = userRepository.save(user);
+
+    PasswordResetToken token =
+            tokenService.createToken(updatedUser);
+
+    System.out.println("=================================");
+    System.out.println("ACCOUNT ACTIVATION TOKEN");
+    System.out.println(token.getToken());
+    System.out.println("=================================");
+
+    return toUserResponse(updatedUser);
+
+}
 
     @Override
     @Transactional

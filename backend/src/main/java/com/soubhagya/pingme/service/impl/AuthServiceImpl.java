@@ -64,11 +64,7 @@ user.setEmailVerified(false);
 
         User savedUser = userRepository.save(user);
 
-        PasswordResetToken token = tokenService.createToken(savedUser);
-
-System.out.println("====================================");
-System.out.println("TOKEN : " + token.getToken());
-System.out.println("====================================");
+        
 
         UserResponse response = UserResponse.builder()
         .id(savedUser.getId())
