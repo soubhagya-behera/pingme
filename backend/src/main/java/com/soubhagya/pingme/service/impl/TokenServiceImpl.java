@@ -7,13 +7,14 @@ import com.soubhagya.pingme.repository.PasswordResetTokenRepository;
 import com.soubhagya.pingme.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TokenServiceImpl implements TokenService {
 
     private final PasswordResetTokenRepository tokenRepository;
@@ -21,14 +22,13 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public PasswordResetToken createToken(User user) {
 
-        tokenRepository.findByUserId(user.getId())
-                .ifPresent(existing -> tokenRepository.delete(existing));
+        PasswordResetToken token = tokenRepository
+                .findByUserId(user.getId())
+                .orElse(new PasswordResetToken());
 
-        PasswordResetToken token = PasswordResetToken.builder()
-                .token(UUID.randomUUID().toString())
-                .user(user)
-                .expiryDate(LocalDateTime.now().plusHours(24))
-                .build();
+        token.setUser(user);
+        token.setToken(UUID.randomUUID().toString());
+        token.setExpiryDate(LocalDateTime.now().plusHours(24));
 
         return tokenRepository.save(token);
     }
@@ -42,7 +42,6 @@ public class TokenServiceImpl implements TokenService {
                         new InvalidTokenException("Invalid activation link"));
 
         if (passwordResetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-
             throw new InvalidTokenException("Activation link has expired");
         }
 
@@ -51,9 +50,7 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public void deleteToken(Long userId) {
-
         tokenRepository.deleteByUserId(userId);
-
     }
 
 }

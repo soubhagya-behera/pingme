@@ -7,6 +7,7 @@ import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.enums.UserRole;
 import com.soubhagya.pingme.enums.UserStatus;
 import com.soubhagya.pingme.exception.ResourceAlreadyExistsException;
+import com.soubhagya.pingme.repository.PasswordResetTokenRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import com.soubhagya.pingme.service.TokenService;
+import com.soubhagya.pingme.dto.request.SetPasswordRequest;
+import com.soubhagya.pingme.entity.PasswordResetToken;
+import com.soubhagya.pingme.repository.PasswordResetTokenRepository;
+
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +39,8 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
 
     private final AuthenticationManager authenticationManager;
+
+    private final PasswordResetTokenRepository tokenRepository;
 
 private final JwtService jwtService;
 
@@ -108,6 +115,39 @@ public LoginResponse login(LoginRequest request) {
             .status(user.getStatus().name())
             .online(user.getOnline())
             .build();
+
+}
+
+@Override
+public boolean validateActivationToken(String token) {
+
+    tokenService.validateToken(token);
+
+    return true;
+
+}
+
+@Override
+public void setPassword(SetPasswordRequest request) {
+
+    PasswordResetToken resetToken =
+            tokenService.validateToken(request.getToken());
+
+    User user = resetToken.getUser();
+
+    user.setPassword(
+
+            passwordEncoder.encode(request.getPassword())
+
+    );
+
+    user.setEmailVerified(true);
+
+    user.setMustChangePassword(false);
+
+    userRepository.save(user);
+
+    tokenService.deleteToken(user.getId());
 
 }
 

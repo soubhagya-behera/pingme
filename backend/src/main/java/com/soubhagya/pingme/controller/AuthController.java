@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.soubhagya.pingme.dto.request.SetPasswordRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -51,6 +52,50 @@ public ResponseEntity<ApiResponse<LoginResponse>> login(
                     "Login Successful",
                     response
             )
+    );
+
+}
+
+@GetMapping("/activate")
+public ResponseEntity<ApiResponse<Boolean>> validateActivationToken(
+
+        @RequestParam String token){
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Token Valid",
+
+                    authService.validateActivationToken(token)
+
+            )
+
+    );
+
+}
+
+@PostMapping("/set-password")
+public ResponseEntity<ApiResponse<String>> setPassword(
+
+        @Valid
+
+        @RequestBody
+
+        SetPasswordRequest request){
+
+    authService.setPassword(request);
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Password Created Successfully",
+
+                    "Account Activated"
+
+            )
+
     );
 
 }
