@@ -11,6 +11,8 @@ import com.soubhagya.pingme.repository.FriendRequestRepository;
 import com.soubhagya.pingme.repository.MessageRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.AdminService;
+import com.soubhagya.pingme.service.EmailService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 
 import com.soubhagya.pingme.entity.PasswordResetToken;
 import com.soubhagya.pingme.service.TokenService;
+import com.soubhagya.pingme.service.EmailService;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +42,8 @@ public class AdminServiceImpl implements AdminService {
     private final FriendRepository friendRepository;
 
     private final TokenService tokenService;
+
+    private final EmailService emailService;
 
     @Override
     public AdminDashboardStatsResponse getDashboardStats() {
@@ -106,7 +111,7 @@ public class AdminServiceImpl implements AdminService {
 
     }
 
-    @Override
+  @Override
 @Transactional
 public UserResponse approveUser(Long id) {
 
@@ -119,10 +124,13 @@ public UserResponse approveUser(Long id) {
     PasswordResetToken token =
             tokenService.createToken(updatedUser);
 
-    System.out.println("=================================");
-    System.out.println("ACCOUNT ACTIVATION TOKEN");
-    System.out.println(token.getToken());
-    System.out.println("=================================");
+    emailService.sendActivationEmail(
+
+            updatedUser,
+
+            token.getToken()
+
+    );
 
     return toUserResponse(updatedUser);
 
