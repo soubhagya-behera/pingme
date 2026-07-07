@@ -344,13 +344,25 @@ function AdminTab({ active, icon: Icon, label, onClick }) {
 
 function UserRow({ user, selected, actionLoading, onSelect, onAction }) {
   return (
-    <tr className={`border-b border-[var(--border)] transition ${selected ? "bg-indigo-50 dark:bg-slate-800" : "hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
+   <tr
+    className={`
+        border-b border-[var(--border)]
+        transition-colors duration-200
+        ${
+            selected
+                ? "selected-user-row"
+                : "user-row"
+        }
+    `}
+>
       <td className="px-5 py-4">
         <button className="flex items-center gap-3 text-left" onClick={onSelect} type="button">
           <UserAvatar name={user.fullName} />
           <span>
-            <span className="block font-semibold">{user.fullName}</span>
-            <span className="block text-sm text-[var(--text-secondary)]">{user.email}</span>
+            <span className="block font-semibold text-[var(--text)]">{user.fullName}</span>
+            <span className="block text-sm text-[var(--text-secondary)]">
+    {user.email}
+</span>
           </span>
         </button>
       </td>

@@ -1,27 +1,70 @@
 :root{
 
+/* ===============================
+   PRIMARY COLORS
+================================ */
+
 --primary:#6366F1;
 --primary-hover:#4F46E5;
-
 --secondary:#8B5CF6;
 
 --success:#22C55E;
 --danger:#EF4444;
 --warning:#F59E0B;
 
+/* ===============================
+   BACKGROUND
+================================ */
+
 --background:#F8FAFC;
+
 --card:#FFFFFF;
 
---card-secondary:#F1F5F9;
+--card-secondary:#F8FAFC;
+
+/* ===============================
+   TABLE ROWS
+================================ */
+
+--row-hover:#EDFDF4;
+
+--row-selected:#E8F8EC;
+
+/* ===============================
+   TEXT
+================================ */
 
 --text:#0F172A;
+
 --text-secondary:#64748B;
 
+/* ===============================
+   INPUTS
+================================ */
+
+--input-bg:#FFFFFF;
+
+--input-border:#E2E8F0;
+
+--input-placeholder:#94A3B8;
+
+/* ===============================
+   BORDER
+================================ */
+
 --border:#E2E8F0;
+
+/* ===============================
+   SHADOW
+================================ */
 
 --shadow:0 12px 40px rgba(15,23,42,.08);
 
 }
+
+/* =====================================================
+                    DARK MODE
+===================================================== */
 
 .dark{
 
@@ -31,37 +74,57 @@
 
 --card-secondary:#1E293B;
 
+/* Table */
+
+--row-hover:#172033;
+
+--row-selected:#1B2942;
+
+/* Text */
+
 --text:#F8FAFC;
 
 --text-secondary:#CBD5E1;
 
+/* Inputs */
+
+--input-bg:#111827;
+
+--input-border:#334155;
+
+--input-placeholder:#94A3B8;
+
+/* Border */
+
 --border:#334155;
+
+/* Shadow */
 
 --shadow:none;
 
 }
 
+/* =====================================================
+                    GLOBAL
+===================================================== */
+
 html,
 body,
 #root{
+
+min-height:100%;
+
+margin:0;
 
 background:var(--background);
 
 color:var(--text);
 
-transition:
-background .25s,
-color .25s;
-
-min-height:100%;
-
-}
-
-body{
-
-margin:0;
-
 font-family:Inter,sans-serif;
+
+transition:
+background .25s ease,
+color .25s ease;
 
 }
 
@@ -71,27 +134,86 @@ box-sizing:border-box;
 
 }
 
+/* =====================================================
+                    INPUTS
+===================================================== */
+
 input,
 textarea,
 select{
 
-background:var(--card);
+background:var(--input-bg);
 
 color:var(--text);
 
-border:1px solid var(--border);
+border:1px solid var(--input-border);
+
+transition:.25s;
 
 }
 
 input::placeholder,
 textarea::placeholder{
 
-color:var(--text-secondary);
+color:var(--input-placeholder);
 
 }
+
+input:focus,
+textarea:focus,
+select:focus{
+
+outline:none;
+
+border-color:var(--primary);
+
+}
+
+/* =====================================================
+                    BUTTON
+===================================================== */
 
 button{
 
 transition:.2s;
+
+}
+
+/* =====================================================
+                    TABLE ROWS
+===================================================== */
+
+.user-row{
+
+background:var(--card);
+
+transition:
+background .2s ease;
+
+}
+
+.user-row:hover{
+
+background:var(--row-hover);
+
+}
+
+.selected-user-row{
+
+background:var(--row-selected);
+
+}
+
+/* =====================================================
+                    CARD
+===================================================== */
+
+.app-card{
+
+background:var(--card);
+
+border:1px solid var(--border);
+
+box-shadow:var(--shadow);
 
 }
