@@ -117,4 +117,23 @@ public class AdminController {
 
     }
 
+    @PutMapping("/resend-activation/{id}")
+public ResponseEntity<?> resendActivationEmail(
+        @PathVariable Long id
+) {
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Activation email sent successfully",
+
+                    adminService.resendActivationEmail(id)
+
+            )
+
+    );
+
+}
+
 }

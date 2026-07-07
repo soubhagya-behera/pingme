@@ -24,6 +24,10 @@ const AdminService = {
     return api.put(`/admin/reject/${id}`);
   },
 
+  resendActivationEmail(id) {
+    return api.put(`/admin/resend-activation/${id}`);
+},
+
   deleteUser(id) {
     return api.delete(`/admin/users/${id}`);
   },

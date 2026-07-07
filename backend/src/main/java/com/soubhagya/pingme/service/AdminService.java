@@ -21,4 +21,6 @@ public interface AdminService {
     UserResponse rejectUser(Long id);
 
     void deleteUser(Long id);
+
+    UserResponse resendActivationEmail(Long id);
 }

@@ -144,6 +144,36 @@ public UserResponse approveUser(Long id) {
 
 }
 
+@Override
+@Transactional
+public UserResponse resendActivationEmail(Long id) {
+
+    User user = getManagedUser(id);
+
+    if (user.getStatus() != UserStatus.APPROVED) {
+        throw new IllegalArgumentException(
+                "Only approved users can receive activation email."
+        );
+    }
+
+    if (Boolean.TRUE.equals(user.getEmailVerified())) {
+        throw new IllegalArgumentException(
+                "Account is already activated."
+        );
+    }
+
+    PasswordResetToken token =
+            tokenService.createToken(user);
+
+    emailService.sendActivationEmail(
+            user,
+            token.getToken()
+    );
+
+    return toUserResponse(user);
+
+}
+
     @Override
     @Transactional
     public UserResponse rejectUser(Long id) {

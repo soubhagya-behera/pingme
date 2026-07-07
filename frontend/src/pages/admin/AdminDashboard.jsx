@@ -144,6 +144,10 @@ export default function AdminDashboard() {
       if (action === "delete") {
         response = await AdminService.deleteUser(user.id);
       }
+      
+      if (action === "resend") {
+        response = await AdminService.resendActivationEmail(user.id);
+      }
 
       await refreshAdminData();
       setSelectedUser(action === "delete" ? null : response.data.data);
@@ -355,17 +359,30 @@ function UserRow({ user, selected, actionLoading, onSelect, onAction }) {
       <td className="px-5 py-4 text-sm text-[var(--text-secondary)]">{formatDate(user.createdAt)}</td>
       <td className="px-5 py-4">
         <div className="flex justify-end gap-2">
-          {user.status !== "APPROVED" && (
-            <IconButton title="Approve user" loading={actionLoading === `approve-${user.id}`} onClick={() => onAction(user, "approve")}>
+          {user.status === "PENDING" && (
+            <>
+              <IconButton title="Approve User" loading={actionLoading === `approve-${user.id}`} onClick={() => onAction(user, "approve")}>
+                <CheckCircle2 size={17} />
+              </IconButton>
+              <IconButton title="Reject User" loading={actionLoading === `reject-${user.id}`} onClick={() => onAction(user, "reject")}>
+                <XCircle size={17} />
+              </IconButton>
+            </>
+          )}
+
+          {user.status === "APPROVED" && !user.emailVerified && (
+            <IconButton title="Resend Activation Email" loading={actionLoading === `resend-${user.id}`} onClick={() => onAction(user, "resend")}>
+              <Mail size={17} />
+            </IconButton>
+          )}
+
+          {user.status === "REJECTED" && (
+            <IconButton title="Approve User" loading={actionLoading === `approve-${user.id}`} onClick={() => onAction(user, "approve")}>
               <CheckCircle2 size={17} />
             </IconButton>
           )}
-          {user.status !== "REJECTED" && (
-            <IconButton title="Reject user" loading={actionLoading === `reject-${user.id}`} onClick={() => onAction(user, "reject")}>
-              <XCircle size={17} />
-            </IconButton>
-          )}
-          <IconButton danger title="Delete user" loading={actionLoading === `delete-${user.id}`} onClick={() => onAction(user, "delete")}>
+
+          <IconButton danger title="Delete User" loading={actionLoading === `delete-${user.id}`} onClick={() => onAction(user, "delete")}>
             <Trash2 size={17} />
           </IconButton>
         </div>
@@ -406,14 +423,37 @@ function ProfilePanel({ user, actionLoading, onAction }) {
         <ProfileField label="Online" value={user.online ? "Online" : "Offline"} />
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <Button className="flex items-center justify-center gap-2 px-4 py-2" disabled={actionLoading === `approve-${user.id}`} onClick={() => onAction(user, "approve")}>
-          <CheckCircle2 size={17} />
-          Approve
-        </Button>
-        <Button variant="danger" className="flex items-center justify-center gap-2 px-4 py-2" disabled={actionLoading === `reject-${user.id}`} onClick={() => onAction(user, "reject")}>
-          <XCircle size={17} />
-          Reject
+      <div className="mt-6 grid gap-3">
+        {user.status === "PENDING" && (
+          <>
+            <Button className="flex items-center justify-center gap-2" disabled={actionLoading === `approve-${user.id}`} onClick={() => onAction(user, "approve")}>
+              <CheckCircle2 size={18} />
+              Approve
+            </Button>
+            <Button variant="danger" className="flex items-center justify-center gap-2" disabled={actionLoading === `reject-${user.id}`} onClick={() => onAction(user, "reject")}>
+              <XCircle size={18} />
+              Reject
+            </Button>
+          </>
+        )}
+
+        {user.status === "APPROVED" && !user.emailVerified && (
+          <Button className="flex items-center justify-center gap-2" disabled={actionLoading === `resend-${user.id}`} onClick={() => onAction(user, "resend")}>
+            <Mail size={18} />
+            Resend Activation Email
+          </Button>
+        )}
+
+        {user.status === "REJECTED" && (
+          <Button className="flex items-center justify-center gap-2" disabled={actionLoading === `approve-${user.id}`} onClick={() => onAction(user, "approve")}>
+            <CheckCircle2 size={18} />
+            Approve User
+          </Button>
+        )}
+
+        <Button variant="danger" className="flex items-center justify-center gap-2" disabled={actionLoading === `delete-${user.id}`} onClick={() => onAction(user, "delete")}>
+          <Trash2 size={18} />
+          Delete User
         </Button>
       </div>
     </Card>
