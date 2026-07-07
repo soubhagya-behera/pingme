@@ -196,7 +196,16 @@ export default function AdminDashboard() {
       </section>
 
       {activeView === "users" && (
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <section
+className="
+grid
+gap-6
+
+grid-cols-1
+
+xl:grid-cols-[minmax(0,1fr)_380px]
+"
+>
           <Card className="rounded-lg">
             <div className="border-b border-[var(--border)] p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -327,7 +336,13 @@ px-4 py-3
             </div>
           </Card>
 
-          <ProfilePanel user={selectedUser} actionLoading={actionLoading} onAction={handleAction} />
+          <div className="hidden xl:block">
+    <ProfilePanel
+        user={selectedUser}
+        actionLoading={actionLoading}
+        onAction={handleAction}
+    />
+</div>
         </section>
       )}
 
