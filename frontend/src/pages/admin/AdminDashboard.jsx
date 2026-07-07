@@ -214,21 +214,44 @@ export default function AdminDashboard() {
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                   />
-                  <div className="flex items-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-                    <Filter size={18} />
-                    <select
-                      className="bg-transparent text-sm outline-none"
-                      value={status}
-                      onChange={(event) => {
-                        setStatus(event.target.value);
-                        setPage(0);
-                      }}
-                    >
-                      {statuses.map((item) => (
-                        <option key={item} value={item}>{item}</option>
-                      ))}
-                    </select>
-                  </div>
+                 <div
+className="
+flex items-center gap-2
+rounded-2xl
+border border-[var(--border)]
+bg-[var(--card)]
+px-4 py-3
+"
+>
+    <Filter
+        size={18}
+        className="text-[var(--text-secondary)]"
+    />
+
+    <select
+        className="
+        bg-transparent
+        text-[var(--text)]
+        outline-none
+        border-0
+        "
+        value={status}
+        onChange={(e)=>{
+            setStatus(e.target.value);
+            setPage(0);
+        }}
+    >
+        {statuses.map(item=>(
+            <option
+                key={item}
+                value={item}
+            >
+                {item}
+            </option>
+        ))}
+    </select>
+
+</div>
                 </div>
               </div>
             </div>
@@ -414,16 +437,32 @@ function ProfilePanel({ user, actionLoading, onAction }) {
 
   return (
     <Card className="rounded-lg p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <UserAvatar name={user.fullName} size="large" />
-          <div>
-            <h2 className="text-xl font-semibold">{user.fullName}</h2>
-            <p className="text-sm text-[var(--text-secondary)]">{user.email}</p>
-          </div>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+
+    <div className="flex min-w-0 flex-1 items-center gap-4">
+
+        <UserAvatar
+            name={user.fullName}
+            size="large"
+        />
+
+        <div className="min-w-0">
+
+            <h2 className="truncate text-xl font-semibold">
+                {user.fullName}
+            </h2>
+
+            <p className="truncate text-sm text-[var(--text-secondary)]">
+                {user.email}
+            </p>
+
         </div>
-        <StatusBadge status={user.status} />
-      </div>
+
+    </div>
+
+    <StatusBadge status={user.status} />
+
+</div>
 
       <div className="mt-6 space-y-4 text-sm">
         <ProfileField label="Profession" value={user.profession || "Not provided"} />
@@ -519,7 +558,18 @@ function IconButton({ children, danger = false, loading = false, title, onClick 
 
 function StatusBadge({ status }) {
   return (
-    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[status] || "bg-slate-100 text-slate-700"}`}>
+    <span
+className={`
+inline-flex
+shrink-0
+rounded-full
+px-3
+py-1
+text-xs
+font-semibold
+${statusStyles[status]}
+`}
+>
       {status || "UNKNOWN"}
     </span>
   );
