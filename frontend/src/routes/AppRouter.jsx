@@ -12,6 +12,7 @@ import FriendRequests from "../pages/requests/FriendRequests";
 
 import AppLayout from "../layout/AppLayout";
 import ProtectedRoute from "./ProtectedRoute";
+import ActivateAccount from "../pages/auth/ActivateAccount";
 
 export default function AppRouter() {
   return (
@@ -21,6 +22,7 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/register-success" element={<RegisterSuccess />} />
+        <Route path="/activate" element={<ActivateAccount />} />
 
         {/* Protected Routes */}
         <Route

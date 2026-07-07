@@ -1,30 +1,22 @@
 import api from "../api/axios";
 
-const AuthService={
+const AuthService = {
 
-login(data){
+    login(data) {
+        return api.post("/auth/login", data);
+    },
 
-    return api.post(
+    register(data) {
+        return api.post("/auth/register", data);
+    },
 
-        "/auth/login",
+    validateActivationToken(token) {
+        return api.get(`/auth/activate?token=${token}`);
+    },
 
-        data
-
-    );
-
-},
-
-register(data){
-
-    return api.post(
-
-        "/auth/register",
-
-        data
-
-    );
-
-}
+    setPassword(data) {
+        return api.post("/auth/set-password", data);
+    }
 
 };
 

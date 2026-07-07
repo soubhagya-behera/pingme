@@ -1,0 +1,63 @@
+.activate-page{
+
+    min-height:100vh;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:#f8fafc;
+
+    padding:20px;
+
+}
+
+.activate-card{
+
+    width:100%;
+
+    max-width:460px;
+
+    padding:40px;
+
+}
+
+.activate-card h1{
+
+    font-size:32px;
+
+    margin-bottom:10px;
+
+}
+
+.activate-card p{
+
+    color:#64748b;
+
+    margin-bottom:25px;
+
+}
+
+.form-group{
+
+    margin-bottom:18px;
+
+}
+
+@media(max-width:768px){
+
+.activate-card{
+
+padding:25px;
+
+}
+
+.activate-card h1{
+
+font-size:26px;
+
+}
+
+}
