@@ -9,6 +9,7 @@ import com.soubhagya.pingme.enums.UserStatus;
 import com.soubhagya.pingme.repository.FriendRepository;
 import com.soubhagya.pingme.repository.FriendRequestRepository;
 import com.soubhagya.pingme.repository.MessageRepository;
+import com.soubhagya.pingme.repository.PasswordResetTokenRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.AdminService;
 import com.soubhagya.pingme.service.EmailService;
@@ -41,10 +42,13 @@ public class AdminServiceImpl implements AdminService {
 
     private final FriendRepository friendRepository;
 
+    private final PasswordResetTokenRepository tokenRepository;
+
     private final TokenService tokenService;
 
     private final EmailService emailService;
 
+    
     @Override
     public AdminDashboardStatsResponse getDashboardStats() {
 
@@ -117,6 +121,10 @@ public UserResponse approveUser(Long id) {
 
     User user = getManagedUser(id);
 
+    if (user.getStatus() == UserStatus.APPROVED) {
+    throw new IllegalArgumentException("User is already approved.");
+}
+
     user.setStatus(UserStatus.APPROVED);
 
     User updatedUser = userRepository.save(user);
@@ -148,18 +156,27 @@ public UserResponse approveUser(Long id) {
 
     }
 
-    @Override
     @Transactional
-    public void deleteUser(Long id) {
+public void deleteUser(Long id) {
 
-        User user = getManagedUser(id);
+    User user = getManagedUser(id);
 
-        messageRepository.deleteBySenderOrReceiver(user, user);
-        friendRequestRepository.deleteBySenderOrReceiver(user, user);
-        friendRepository.deleteByUserOneOrUserTwo(user, user);
-        userRepository.delete(user);
+    // Delete activation/reset token first
+    tokenRepository.deleteByUserId(user.getId());
 
-    }
+    // Delete chats
+    messageRepository.deleteBySenderOrReceiver(user, user);
+
+    // Delete friend requests
+    friendRequestRepository.deleteBySenderOrReceiver(user, user);
+
+    // Delete friendships
+    friendRepository.deleteByUserOneOrUserTwo(user, user);
+
+    // Finally delete user
+    userRepository.delete(user);
+
+}
 
     private User getManagedUser(Long id) {
 
