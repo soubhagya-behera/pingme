@@ -50,7 +50,11 @@ private final TokenService tokenService;
 
         User user = modelMapper.map(request,User.class);
 
-user.setPassword(passwordEncoder.encode(request.getPassword()));
+user.setPassword(
+        passwordEncoder.encode(
+                "TEMP_PASSWORD_" + java.util.UUID.randomUUID()
+        )
+);
 
         user.setRole(UserRole.USER);
 

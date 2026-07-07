@@ -15,18 +15,10 @@ export default function Register() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm();
 
-  const password = watch("password");
-
   const onSubmit = async (data) => {
-    if (data.password !== data.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
     try {
       setLoading(true);
       await AuthService.register({
@@ -35,7 +27,6 @@ export default function Register() {
         profession: data.profession,
         phone: data.phone,
         bio: data.bio,
-        password: data.password,
       });
       toast.success("Registration Successful");
       navigate("/register-success");
@@ -119,29 +110,6 @@ export default function Register() {
             <div className="form-group">
               <Input placeholder="Bio" {...register("bio")} />
             </div>
-            <div className="form-group">
-              <Input
-                placeholder="Password"
-                type="password"
-                {...register("password", {
-                  required: "Password required",
-                  minLength: { value: 8, message: "Minimum 8 characters" },
-                })}
-                error={errors.password?.message}
-              />
-            </div>
-            <div className="form-group">
-              <Input
-                placeholder="Confirm Password"
-                type="password"
-                {...register("confirmPassword", {
-                  validate: (value) => value === password || "Passwords do not match",
-                })}
-                error={errors.confirmPassword?.message}
-              />
-            </div>
-
-            <PasswordStrength password={password} />
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creating Account..." : "Create Account"}
@@ -154,31 +122,6 @@ export default function Register() {
           </div>
         </Card>
       </div>
-    </div>
-  );
-}
-
-function PasswordStrength({ password }) {
-  if (!password) {
-    return null;
-  }
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-  const labels = ["Very Weak", "Weak", "Good", "Strong"];
-  return (
-    <div className="password-strength">
-      <div className="strength-bar">
-        <div
-          className={`strength-fill strength-${score}`}
-          style={{ width: `${score * 25}%` }}
-        ></div>
-      </div>
-      <p>
-        Password Strength : <b> {labels[score - 1] || "Very Weak"}</b>
-      </p>
     </div>
   );
 }
