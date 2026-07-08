@@ -3,8 +3,7 @@ import {
     MessageCircle,
     Users,
     Bell,
-    Settings,
-    ShieldCheck
+    Settings
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -47,15 +46,27 @@ const userMenus = [
 const adminMenus = [
 
     {
-        icon: ShieldCheck,
-        label: "Admin",
-        path: "/admin"
+        icon: LayoutDashboard,
+        label: "Dashboard",
+        path: "/admin/dashboard"
+    },
+
+    {
+        icon: Users,
+        label: "Users",
+        path: "/admin/users"
+    },
+
+    {
+        icon: MessageCircle,
+        label: "Queries",
+        path: "/admin/queries"
     },
 
     {
         icon: Settings,
         label: "Settings",
-        path: "/settings"
+        path: "/admin/settings"
     }
 
 ];

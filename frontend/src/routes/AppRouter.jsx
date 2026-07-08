@@ -3,7 +3,14 @@ import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import RegisterSuccess from "../pages/auth/RegisterSuccess";
 import Dashboard from "../pages/dashboard/Dashboard";
-import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminOverview from "../pages/admin/AdminOverview";
+import UsersPage from "../pages/admin/UsersPage";
+import QueriesPage from "../pages/admin/QueriesPage";
+import AdminSettings from "../pages/admin/SettingsPage";
+
+import AdminLayout from "../layout/AdminLayout";
+
+import { Navigate } from "react-router-dom";
 import Chat from "../pages/chat/Chat";
 import Friends from "../pages/friends/Friends";
 import Settings from "../pages/settings/Settings";
@@ -91,17 +98,41 @@ export default function AppRouter() {
           }
         />
 
-        {/* Admin Route */}
         <Route
-          path="/admin"
-          element={
-            <ProtectedRoute roles={["ADMIN"]}>
-              <AppLayout>
-                <AdminDashboard />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
+    path="/admin"
+    element={
+        <ProtectedRoute roles={["ADMIN"]}>
+            <AdminLayout />
+        </ProtectedRoute>
+    }
+>
+
+    <Route
+        index
+        element={<Navigate to="dashboard" replace />}
+    />
+
+    <Route
+        path="dashboard"
+        element={<AdminOverview />}
+    />
+
+    <Route
+        path="users"
+        element={<UsersPage />}
+    />
+
+    <Route
+        path="queries"
+        element={<QueriesPage />}
+    />
+
+    <Route
+        path="settings"
+        element={<AdminSettings />}
+    />
+
+</Route>
       </Routes>
     </BrowserRouter>
   );
