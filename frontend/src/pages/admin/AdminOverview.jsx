@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { Users, Clock3, CheckCircle2, Wifi } from "lucide-react";
 import Card from "../../components/ui/Card";
+import AdminHeader from "../../components/admin/dashboard/AdminHeader";
+import StatCard from "../../components/admin/dashboard/StatCard";
 import AdminService from "../../services/AdminService";
+import QuickActions from "../../components/admin/dashboard/QuickActions";
+import RecentUsers from "../../components/admin/dashboard/RecentUsers";
 
-export default function Dashboard() {
+export default function AdminOverview() {
     const [stats, setStats] = useState(null);
+    const [recentUsers, setRecentUsers] = useState([]);
 
     useEffect(() => {
         loadDashboard();
@@ -12,8 +17,17 @@ export default function Dashboard() {
 
     async function loadDashboard() {
         try {
-            const response = await AdminService.getDashboardStats();
-            setStats(response.data.data);
+            const [statsResponse, usersResponse] = await Promise.all([
+    AdminService.getDashboardStats(),
+    AdminService.getUsers({
+        page: 0,
+        size: 5
+    })
+]);
+
+setStats(statsResponse.data.data);
+
+setRecentUsers(usersResponse.data.data.users);
         } catch (error) {
             console.log(error);
         }
@@ -44,42 +58,26 @@ export default function Dashboard() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <p className="text-sm font-semibold text-indigo-600 uppercase">
-                    Admin Dashboard
-                </p>
-                <h1 className="mt-2 text-3xl font-bold">
-                    Welcome Administrator 👋
-                </h1>
-                <p className="text-[var(--text-secondary)] mt-2">
-                    Monitor PingMe from one place.
-                </p>
-            </div>
+
+            <AdminHeader />
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                 {statCards.map((item) => (
-                    <Card key={item.title} className="p-6">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-sm text-[var(--text-secondary)]">
-                                    {item.title}
-                                </p>
-                                <h2 className="mt-4 text-4xl font-bold">
-                                    {item.value}
-                                </h2>
-                            </div>
-                            <item.icon
-                                className="text-indigo-600"
-                                size={30}
-                            />
-                        </div>
-                    </Card>
-                ))}
-            </div>
 
-            <Card className="p-8">
-                Recent Activity Coming Soon...
-            </Card>
+    <StatCard
+        key={item.title}
+        title={item.title}
+        value={item.value}
+        icon={item.icon}
+    />
+
+))}
+            </div>
+            <QuickActions />
+
+            <RecentUsers
+    users={recentUsers}
+/>
         </div>
     );
 }

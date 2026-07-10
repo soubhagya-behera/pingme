@@ -17,15 +17,15 @@ import AdminService from "../../services/AdminService";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 
-import EmptyState from "../../components/admin/users/EmptyState";
+
 import ProfilePanel from "../../components/admin/users/ProfilePanel";
-import UserRow from "../../components/admin/users/UserRow";
 import UsersToolbar from "../../components/admin/users/UsersToolbar";
 import Pagination from "../../components/admin/users/Pagination";
+import UsersTable from "../../components/admin/users/UsersTable";
 
 const statuses = ["ALL", "PENDING", "APPROVED", "REJECTED", "SUSPENDED"];
 
-export default function AdminDashboard() {
+export default function UsersPage() {
   const [stats, setStats] = useState(null);
   const [usersPage, setUsersPage] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -177,37 +177,21 @@ export default function AdminDashboard() {
               statuses={statuses}
             />
 
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left">
-                <thead className="border-b border-[var(--border)] text-xs uppercase text-[var(--text-secondary)]">
-                  <tr>
-                    <th className="px-5 py-4 font-semibold">User</th>
-                    <th className="px-5 py-4 font-semibold">Profession</th>
-                    <th className="px-5 py-4 font-semibold">Status</th>
-                    <th className="px-5 py-4 font-semibold">Joined</th>
-                    <th className="px-5 py-4 text-right font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usersLoading && (
-                    <tr><td colSpan="5" className="px-5 py-10 text-center text-[var(--text-secondary)]">Loading users...</td></tr>
-                  )}
-                  {!usersLoading && users.length === 0 && (
-                    <tr><td colSpan="5" className="px-5 py-14"><EmptyState icon={Inbox} title="No users found" description="Try another status filter or search term." /></td></tr>
-                  )}
-                  {!usersLoading && users.map((user) => (
-                    <UserRow
-                      key={user.id}
-                      user={user}
-                      selected={selectedUser?.id === user.id}
-                      actionLoading={actionLoading}
-                      onSelect={() => setSelectedUser(user)}
-                      onAction={handleAction}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <UsersTable
+
+users={users}
+
+usersLoading={usersLoading}
+
+selectedUser={selectedUser}
+
+actionLoading={actionLoading}
+
+onSelect={setSelectedUser}
+
+onAction={handleAction}
+
+/>
 
             <Pagination 
               usersPage={usersPage} 
