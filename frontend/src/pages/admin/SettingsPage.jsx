@@ -1,20 +1,74 @@
-export default function SettingsPage(){
+import { useEffect, useState } from "react";
 
-    return(
+import AdminService from "../../services/AdminService";
 
-        <div>
+import AdminProfileCard from "../../components/admin/settings/AdminProfileCard";
+import SecurityCard from "../../components/admin/settings/SecurityCard";
+
+export default function SettingsPage() {
+
+    const [settings, setSettings] = useState(null);
+
+    useEffect(() => {
+
+        loadSettings();
+
+    }, []);
+
+    async function loadSettings() {
+
+        try {
+
+            const response =
+                await AdminService.getSettings();
+
+            setSettings(response.data.data);
+
+        }
+
+        catch (error) {
+
+            console.log(error);
+
+        }
+
+    }
+
+    if (!settings) {
+
+        return (
+
+            <div className="p-8">
+
+                Loading...
+
+            </div>
+
+        );
+
+    }
+
+    return (
+
+        <div className="space-y-8">
 
             <h1 className="text-3xl font-bold">
 
-                Admin Settings
+                Settings
 
             </h1>
 
-            <p>
+            <div className="grid gap-6 lg:grid-cols-2">
 
-                Coming Soon...
+    <AdminProfileCard
+        settings={settings}
+    />
 
-            </p>
+    <SecurityCard
+        settings={settings}
+    />
+
+</div>
 
         </div>
 

@@ -1,8 +1,10 @@
 package com.soubhagya.pingme.service;
 
 import com.soubhagya.pingme.dto.response.AdminDashboardStatsResponse;
+import com.soubhagya.pingme.dto.response.AdminSettingsResponse;
 import com.soubhagya.pingme.dto.response.AdminUserPageResponse;
 import com.soubhagya.pingme.dto.response.UserResponse;
+import com.soubhagya.pingme.dto.response.AdminSettingsResponse;
 
 import java.util.List;
 
@@ -23,4 +25,6 @@ public interface AdminService {
     void deleteUser(Long id);
 
     UserResponse resendActivationEmail(Long id);
+
+    AdminSettingsResponse getSettings();
 }

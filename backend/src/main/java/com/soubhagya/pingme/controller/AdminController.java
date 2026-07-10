@@ -1,6 +1,7 @@
 package com.soubhagya.pingme.controller;
 
 import com.soubhagya.pingme.dto.response.AdminDashboardStatsResponse;
+import com.soubhagya.pingme.dto.response.AdminSettingsResponse;
 import com.soubhagya.pingme.dto.response.AdminUserPageResponse;
 import com.soubhagya.pingme.dto.response.UserResponse;
 import com.soubhagya.pingme.payload.ApiResponse;
@@ -9,6 +10,7 @@ import com.soubhagya.pingme.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.soubhagya.pingme.dto.response.AdminSettingsResponse;
 
 import java.util.List;
 
@@ -129,6 +131,23 @@ public ResponseEntity<?> resendActivationEmail(
                     "Activation email sent successfully",
 
                     adminService.resendActivationEmail(id)
+
+            )
+
+    );
+
+}
+
+@GetMapping("/settings")
+public ResponseEntity<ApiResponse<AdminSettingsResponse>> getSettings() {
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Settings Loaded",
+
+                    adminService.getSettings()
 
             )
 

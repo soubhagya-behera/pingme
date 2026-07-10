@@ -30,6 +30,8 @@ import com.soubhagya.pingme.entity.PasswordResetToken;
 import com.soubhagya.pingme.service.TokenService;
 import com.soubhagya.pingme.service.EmailService;
 
+import com.soubhagya.pingme.dto.response.AdminSettingsResponse;
+
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
@@ -313,5 +315,44 @@ public void deleteUser(Long id) {
                 .build();
 
     }
+
+    @Override
+public AdminSettingsResponse getSettings() {
+
+    return AdminSettingsResponse.builder()
+
+            // Admin
+            .adminName("PingMe Administrator")
+            .adminEmail("admin@pingme.com")
+            .role("ADMIN")
+
+            // Security
+            .jwtEnabled(true)
+            .adminApprovalEnabled(true)
+            .emailVerificationEnabled(true)
+            .httpsEnabled(false)
+
+            // System
+            .applicationName("PingMe")
+            .applicationVersion("1.0.0")
+            .javaVersion(System.getProperty("java.version"))
+            .springBootVersion("3.5.6")
+            .database("PostgreSQL")
+            .serverTime(java.time.LocalDateTime.now().toString())
+
+            // Database Statistics
+            .totalUsers(userRepository.countByRole(UserRole.USER))
+            .totalFriends(friendRepository.count())
+            .totalMessages(messageRepository.count())
+            .totalFriendRequests(friendRequestRepository.count())
+
+            // About
+            .developer("Soubhagya Kumar Behera")
+            .framework("Spring Boot + React")
+            .license("MIT")
+
+            .build();
+
+}
 
 }

@@ -16,6 +16,10 @@ const AdminService = {
     });
   },
 
+  getSettings() {
+    return api.get("/admin/settings");
+},
+
   approveUser(id) {
     return api.put(`/admin/approve/${id}`);
   },
