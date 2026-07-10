@@ -18,11 +18,11 @@ import AdminService from "../../services/AdminService";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 
-
 import ProfilePanel from "../../components/admin/users/ProfilePanel";
 import UsersToolbar from "../../components/admin/users/UsersToolbar";
 import Pagination from "../../components/admin/users/Pagination";
 import UsersTable from "../../components/admin/users/UsersTable";
+import DeleteUserModal from "../../components/admin/users/DeleteUserModal";
 
 const statuses = ["ALL", "PENDING", "APPROVED", "REJECTED", "SUSPENDED"];
 
@@ -38,6 +38,10 @@ export default function UsersPage() {
   const [usersLoading, setUsersLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const [activeView, setActiveView] = useState("users");
+  
+  // Modal state variables
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteUser, setDeleteUser] = useState(null);
 
   const users = usersPage?.users || [];
   const userCount = usersPage?.totalElements || 0;
@@ -57,18 +61,12 @@ export default function UsersPage() {
   }, []);
 
   useEffect(() => {
-
     setSearchParams({
-
         status,
-
         page
-
     });
-
     loadUsers();
-
-}, [status, page]);
+  }, [status, page]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -80,14 +78,11 @@ export default function UsersPage() {
   }, [search]);
 
   useEffect(() => {
-
     const urlStatus = searchParams.get("status");
-
     if (urlStatus && urlStatus !== status) {
         setStatus(urlStatus);
     }
-
-}, [searchParams]);
+  }, [searchParams]);
 
   async function loadInitialData() {
     setLoading(true);
@@ -142,7 +137,14 @@ export default function UsersPage() {
       let response;
       if (action === "approve") response = await AdminService.approveUser(user.id);
       if (action === "reject") response = await AdminService.rejectUser(user.id);
-      if (action === "delete") response = await AdminService.deleteUser(user.id);
+      
+      if (action === "delete") {
+        setDeleteUser(user);
+        setDeleteModalOpen(true);
+        setActionLoading(null);
+        return;
+      }
+      
       if (action === "resend") response = await AdminService.resendActivationEmail(user.id);
 
       await refreshAdminData();
@@ -152,6 +154,24 @@ export default function UsersPage() {
       toast.error(error.response?.data?.message || "Action failed");
     } finally {
       setActionLoading(null);
+    }
+  }
+
+  async function confirmDelete() {
+    try {
+        setActionLoading(`delete-${deleteUser.id}`);
+        await AdminService.deleteUser(deleteUser.id);
+        toast.success("User deleted successfully");
+        await refreshAdminData();
+        setDeleteModalOpen(false);
+        setDeleteUser(null);
+    } catch (error) {
+        toast.error(
+            error.response?.data?.message ||
+            "Delete failed"
+        );
+    } finally {
+        setActionLoading(null);
     }
   }
 
@@ -188,38 +208,27 @@ export default function UsersPage() {
       {activeView === "users" && (
         <section className="grid gap-6 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px]">
           <Card className="rounded-lg">
-            
             <UsersToolbar
               search={search}
               setSearch={setSearch}
               status={status}
               setStatus={(value) => {
-
-    setPage(0);
-
-    setStatus(value);
-
-}}
+                setPage(0);
+                setStatus(value);
+              }}
               setPage={setPage}
               userCount={userCount}
               statuses={statuses}
             />
 
             <UsersTable
-
-users={users}
-
-usersLoading={usersLoading}
-
-selectedUser={selectedUser}
-
-actionLoading={actionLoading}
-
-onSelect={setSelectedUser}
-
-onAction={handleAction}
-
-/>
+              users={users}
+              usersLoading={usersLoading}
+              selectedUser={selectedUser}
+              actionLoading={actionLoading}
+              onSelect={setSelectedUser}
+              onAction={handleAction}
+            />
 
             <Pagination 
               usersPage={usersPage} 
@@ -235,6 +244,18 @@ onAction={handleAction}
 
       {activeView === "queries" && <FuturePanel icon={Mail} title="Query and contact management" description="This area is ready for support tickets." />}
       {activeView === "settings" && <FuturePanel icon={ShieldCheck} title="Admin settings" description="Future operational controls can live here." />}
+
+      {/* Delete Confirmation Modal Overlay */}
+      <DeleteUserModal
+        open={deleteModalOpen}
+        user={deleteUser}
+        loading={actionLoading === `delete-${deleteUser?.id}`}
+        onClose={() => {
+            setDeleteModalOpen(false);
+            setDeleteUser(null);
+        }}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
