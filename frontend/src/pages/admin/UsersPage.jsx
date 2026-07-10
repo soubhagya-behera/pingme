@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   CheckCircle2,
@@ -30,7 +31,8 @@ export default function UsersPage() {
   const [usersPage, setUsersPage] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("ALL");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [status, setStatus] = useState(searchParams.get("status") || "ALL");
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(false);
@@ -55,8 +57,18 @@ export default function UsersPage() {
   }, []);
 
   useEffect(() => {
+
+    setSearchParams({
+
+        status,
+
+        page
+
+    });
+
     loadUsers();
-  }, [status, page]);
+
+}, [status, page]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -66,6 +78,16 @@ export default function UsersPage() {
 
     return () => clearTimeout(timeout);
   }, [search]);
+
+  useEffect(() => {
+
+    const urlStatus = searchParams.get("status");
+
+    if (urlStatus && urlStatus !== status) {
+        setStatus(urlStatus);
+    }
+
+}, [searchParams]);
 
   async function loadInitialData() {
     setLoading(true);
@@ -171,7 +193,13 @@ export default function UsersPage() {
               search={search}
               setSearch={setSearch}
               status={status}
-              setStatus={setStatus}
+              setStatus={(value) => {
+
+    setPage(0);
+
+    setStatus(value);
+
+}}
               setPage={setPage}
               userCount={userCount}
               statuses={statuses}

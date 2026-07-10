@@ -36,27 +36,36 @@ setRecentUsers(usersResponse.data.data.users);
     }
 
     const statCards = [
-        {
-            title: "Total Users",
-            value: stats?.totalUsers ?? 0,
-            icon: Users
-        },
-        {
-            title: "Pending Users",
-            value: stats?.pendingUsers ?? 0,
-            icon: Clock3
-        },
-        {
-            title: "Approved Users",
-            value: stats?.approvedUsers ?? 0,
-            icon: CheckCircle2
-        },
-        {
-            title: "Online Users",
-            value: stats?.onlineUsers ?? 0,
-            icon: Wifi
-        }
-    ];
+
+    {
+        title: "Total Users",
+        value: stats?.totalUsers ?? 0,
+        icon: Users,
+        path: "/admin/users"
+    },
+
+    {
+        title: "Pending Users",
+        value: stats?.pendingUsers ?? 0,
+        icon: Clock3,
+        path: "/admin/users?status=PENDING"
+    },
+
+    {
+        title: "Approved Users",
+        value: stats?.approvedUsers ?? 0,
+        icon: CheckCircle2,
+        path: "/admin/users?status=APPROVED"
+    },
+
+    {
+        title: "Online Users",
+        value: stats?.onlineUsers ?? 0,
+        icon: Wifi,
+        path: "/admin/users"
+    }
+
+];
 
     return (
         <div className="space-y-8">
@@ -67,11 +76,18 @@ setRecentUsers(usersResponse.data.data.users);
                 {statCards.map((item) => (
 
     <StatCard
-        key={item.title}
-        title={item.title}
-        value={item.value}
-        icon={item.icon}
-    />
+
+    key={item.title}
+
+    title={item.title}
+
+    value={item.value}
+
+    icon={item.icon}
+
+    path={item.path}
+
+/>
 
 ))}
             </div>
