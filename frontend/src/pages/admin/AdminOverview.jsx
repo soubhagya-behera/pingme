@@ -6,6 +6,8 @@ import StatCard from "../../components/admin/dashboard/StatCard";
 import AdminService from "../../services/AdminService";
 import QuickActions from "../../components/admin/dashboard/QuickActions";
 import RecentUsers from "../../components/admin/dashboard/RecentUsers";
+import SystemHealth from "../../components/admin/dashboard/SystemHealth";
+import RecentActivity from "../../components/admin/dashboard/RecentActivity";
 
 export default function AdminOverview() {
     const [stats, setStats] = useState(null);
@@ -75,9 +77,16 @@ setRecentUsers(usersResponse.data.data.users);
             </div>
             <QuickActions />
 
-            <RecentUsers
-    users={recentUsers}
-/>
+<div className="grid gap-6 lg:grid-cols-2">
+
+    <RecentUsers
+        users={recentUsers}
+    />
+
+    <SystemHealth />
+
+</div>
+<RecentActivity />
         </div>
     );
 }
