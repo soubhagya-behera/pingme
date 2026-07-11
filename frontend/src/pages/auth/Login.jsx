@@ -126,6 +126,17 @@ type="password"
 
 />
 
+<div className="mt-2 flex justify-end">
+
+    <Link
+        to="/forgot-password"
+        className="text-sm text-indigo-600 hover:underline"
+    >
+        Forgot Password?
+    </Link>
+
+</div>
+
 </div>
 
 <Button
