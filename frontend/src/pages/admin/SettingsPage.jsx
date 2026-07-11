@@ -6,6 +6,7 @@ import AdminProfileCard from "../../components/admin/settings/AdminProfileCard";
 import SecurityCard from "../../components/admin/settings/SecurityCard";
 import SystemInformationCard from "../../components/admin/settings/SystemInformationCard";
 import DatabaseStatisticsCard from "../../components/admin/settings/DatabaseStatisticsCard";
+import AboutPingMeCard from "../../components/admin/settings/AboutPingMeCard";
 
 export default function SettingsPage() {
 
@@ -78,6 +79,10 @@ export default function SettingsPage() {
     />
 
     <DatabaseStatisticsCard
+        settings={settings}
+    />
+
+    <AboutPingMeCard
         settings={settings}
     />
 

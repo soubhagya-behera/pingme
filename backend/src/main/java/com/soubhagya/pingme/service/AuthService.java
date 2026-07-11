@@ -15,4 +15,5 @@ public interface AuthService {
     boolean validateActivationToken(String token);
 
 void setPassword(SetPasswordRequest request);
+
 }

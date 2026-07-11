@@ -12,6 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.soubhagya.pingme.dto.response.AdminSettingsResponse;
 
+import com.soubhagya.pingme.dto.request.ChangePasswordRequest;
+import com.soubhagya.pingme.dto.request.SendPasswordOtpRequest;
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 @RestController
@@ -148,6 +152,66 @@ public ResponseEntity<ApiResponse<AdminSettingsResponse>> getSettings() {
                     "Settings Loaded",
 
                     adminService.getSettings()
+
+            )
+
+    );
+
+}
+
+@PostMapping("/send-password-otp")
+public ResponseEntity<?> sendPasswordOtp(
+
+        @Valid
+        @RequestBody
+        SendPasswordOtpRequest request
+
+) {
+
+    adminService.sendPasswordOtp(
+            request.getEmail()
+    );
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "OTP sent successfully",
+
+                    null
+
+            )
+
+    );
+
+}
+
+@PostMapping("/change-password")
+public ResponseEntity<?> changePassword(
+
+        @Valid
+        @RequestBody
+        ChangePasswordRequest request
+
+) {
+
+    adminService.changePassword(
+
+            request.getEmail(),
+
+            request.getOtp(),
+
+            request.getNewPassword()
+
+    );
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Password changed successfully",
+
+                    null
 
             )
 

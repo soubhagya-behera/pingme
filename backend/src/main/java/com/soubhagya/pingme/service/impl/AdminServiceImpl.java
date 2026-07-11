@@ -30,6 +30,10 @@ import com.soubhagya.pingme.entity.PasswordResetToken;
 import com.soubhagya.pingme.service.TokenService;
 import com.soubhagya.pingme.service.EmailService;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import java.time.LocalDateTime;
+import java.util.Random;
+
 import com.soubhagya.pingme.dto.response.AdminSettingsResponse;
 
 @Service
@@ -49,6 +53,8 @@ public class AdminServiceImpl implements AdminService {
     private final TokenService tokenService;
 
     private final EmailService emailService;
+
+    private final PasswordEncoder passwordEncoder;
 
     
     @Override
@@ -176,6 +182,165 @@ public UserResponse resendActivationEmail(Long id) {
 
 }
 
+@Override
+@Transactional
+public void sendPasswordOtp(String email) {
+
+    User user = userRepository.findByEmail(email)
+
+            .orElseThrow(() ->
+                    new IllegalArgumentException("Admin not found."));
+
+    if (user.getRole() != UserRole.ADMIN) {
+
+        throw new IllegalArgumentException(
+
+                "Only admin can change password."
+
+        );
+
+    }
+
+    tokenRepository.deleteByUserId(user.getId());
+
+    String otp = generateOtp();
+
+    PasswordResetToken token = PasswordResetToken.builder()
+
+            .token(otp)
+
+            .user(user)
+
+            .expiryDate(
+
+                    LocalDateTime.now()
+
+                            .plusMinutes(10)
+
+            )
+
+            .build();
+
+    tokenRepository.save(token);
+
+    emailService.sendSimpleEmail(
+
+            user.getEmail(),
+
+            "PingMe Admin Password Reset OTP",
+
+            """
+
+            Hello %s,
+
+            Your OTP is:
+
+            %s
+
+            This OTP will expire in 10 minutes.
+
+            If you didn't request this,
+
+            please ignore this email.
+
+            """.formatted(
+
+                    user.getFullName(),
+
+                    otp
+
+            )
+
+    );
+
+}
+
+@Override
+@Transactional
+public void changePassword(
+
+        String email,
+
+        String otp,
+
+        String newPassword
+
+) {
+
+    User user = userRepository.findByEmail(email)
+
+            .orElseThrow(() ->
+
+                    new IllegalArgumentException(
+
+                            "Admin not found."
+
+                    )
+
+            );
+
+    if (user.getRole() != UserRole.ADMIN) {
+
+        throw new IllegalArgumentException(
+
+                "Only admin can change password."
+
+        );
+
+    }
+
+    PasswordResetToken token = tokenRepository
+
+            .findByToken(otp)
+
+            .orElseThrow(() ->
+
+                    new IllegalArgumentException(
+
+                            "Invalid OTP."
+
+                    )
+
+            );
+
+    if (!token.getUser().getId().equals(user.getId())) {
+
+        throw new IllegalArgumentException(
+
+                "OTP does not belong to this account."
+
+        );
+
+    }
+
+    if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+
+        tokenRepository.delete(token);
+
+        throw new IllegalArgumentException(
+
+                "OTP has expired."
+
+        );
+
+    }
+
+    user.setPassword(
+
+            passwordEncoder.encode(
+
+                    newPassword
+
+            )
+
+    );
+
+    userRepository.save(user);
+
+    tokenRepository.delete(token);
+
+}
+
     @Override
     @Transactional
     public UserResponse rejectUser(Long id) {
@@ -293,6 +458,18 @@ public void deleteUser(Long id) {
         };
 
     }
+
+    private String generateOtp() {
+
+    Random random = new Random();
+
+    return String.valueOf(
+
+            100000 + random.nextInt(900000)
+
+    );
+
+}
 
     private UserResponse toUserResponse(User user) {
 

@@ -85,4 +85,49 @@ public void sendActivationEmail(User user, String token) {
 
     }
 
+    @Override
+public void sendSimpleEmail(
+
+        String to,
+
+        String subject,
+
+        String body
+
+) {
+
+    try {
+
+        MimeMessage message =
+                mailSender.createMimeMessage();
+
+        MimeMessageHelper helper =
+                new MimeMessageHelper(message, true);
+
+        helper.setFrom("sanjaypallai076@gmail.com");
+
+        helper.setTo(to);
+
+        helper.setSubject(subject);
+
+        helper.setText(body);
+
+        mailSender.send(message);
+
+    }
+
+    catch (Exception e) {
+
+        throw new RuntimeException(
+
+                "Unable to send email",
+
+                e
+
+        );
+
+    }
+
+}
+
 }

@@ -27,4 +27,12 @@ public interface AdminService {
     UserResponse resendActivationEmail(Long id);
 
     AdminSettingsResponse getSettings();
+
+    void sendPasswordOtp(String email);
+
+void changePassword(
+        String email,
+        String otp,
+        String newPassword
+);
 }
