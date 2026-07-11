@@ -4,6 +4,8 @@ import AdminService from "../../services/AdminService";
 
 import AdminProfileCard from "../../components/admin/settings/AdminProfileCard";
 import SecurityCard from "../../components/admin/settings/SecurityCard";
+import SystemInformationCard from "../../components/admin/settings/SystemInformationCard";
+import DatabaseStatisticsCard from "../../components/admin/settings/DatabaseStatisticsCard";
 
 export default function SettingsPage() {
 
@@ -65,6 +67,17 @@ export default function SettingsPage() {
     />
 
     <SecurityCard
+        settings={settings}
+    />
+
+</div>
+<div className="grid gap-6 lg:grid-cols-2">
+
+    <SystemInformationCard
+        settings={settings}
+    />
+
+    <DatabaseStatisticsCard
         settings={settings}
     />
 
