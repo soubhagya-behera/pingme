@@ -496,12 +496,17 @@ public void deleteUser(Long id) {
     @Override
 public AdminSettingsResponse getSettings() {
 
+    User admin = userRepository
+            .findByRole(UserRole.ADMIN)
+            .orElseThrow(() ->
+                    new IllegalArgumentException("Admin not found"));
+
     return AdminSettingsResponse.builder()
 
-            // Admin
-            .adminName("PingMe Administrator")
-            .adminEmail("admin@pingme.com")
-            .role("ADMIN")
+    // Admin
+.adminName(admin.getFullName())
+.adminEmail(admin.getEmail())
+.role(admin.getRole().name())
 
             // Security
             .jwtEnabled(true)

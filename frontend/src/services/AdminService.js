@@ -35,6 +35,22 @@ const AdminService = {
   deleteUser(id) {
     return api.delete(`/admin/users/${id}`);
   },
+
+  sendPasswordOtp(email) {
+    return api.post(
+        "/admin/send-password-otp",
+        {
+            email
+        }
+    );
+},
+
+changePassword(data) {
+    return api.post(
+        "/admin/change-password",
+        data
+    );
+},
 };
 
 export default AdminService;

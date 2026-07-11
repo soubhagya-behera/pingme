@@ -1,13 +1,128 @@
 import { useState } from "react";
-import Card from "../../ui/Card";
+import toast from "react-hot-toast";
 import Button from "../../ui/Button";
 import Input from "../../ui/Input";
+import Card from "../../ui/Card";
+import AdminService from "../../../services/AdminService";
 
 export default function ChangePasswordCard({ email }) {
 
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [otp, setOtp] = useState("");
+    const [sendingOtp, setSendingOtp] = useState(false);
+
+const [changingPassword, setChangingPassword] = useState(false);
+
+async function handleSendOtp() {
+
+    try {
+
+        setSendingOtp(true);
+
+        await AdminService.sendPasswordOtp(email);
+
+        toast.success("OTP sent successfully.");
+
+    }
+
+    catch (error) {
+
+        toast.error(
+
+            error.response?.data?.message ||
+
+            "Unable to send OTP."
+
+        );
+
+    }
+
+    finally {
+
+        setSendingOtp(false);
+
+    }
+
+}
+
+async function handleChangePassword() {
+
+    if (!newPassword.trim()) {
+
+        toast.error("Please enter a new password.");
+
+        return;
+
+    }
+
+    if (newPassword.length < 8) {
+
+        toast.error("Password must be at least 8 characters.");
+
+        return;
+
+    }
+
+    if (newPassword !== confirmPassword) {
+
+        toast.error("Passwords do not match.");
+
+        return;
+
+    }
+
+    if (!otp.trim()) {
+
+        toast.error("Please enter OTP.");
+
+        return;
+
+    }
+
+    try {
+
+        setChangingPassword(true);
+
+        await AdminService.changePassword({
+
+            email,
+
+            otp,
+
+            newPassword
+
+        });
+
+        toast.success("Password updated successfully.");
+
+        setNewPassword("");
+
+        setConfirmPassword("");
+
+        setOtp("");
+
+    }
+
+    catch (error) {
+
+        toast.error(
+
+            error.response?.data?.message ||
+
+            "Unable to update password."
+
+        );
+
+    }
+
+    finally {
+
+        setChangingPassword(false);
+
+    }
+
+}
 
     return (
 
@@ -54,21 +169,42 @@ export default function ChangePasswordCard({ email }) {
 
                     <div className="flex items-end">
 
-                        <Button>
+                        <Button
+    onClick={handleSendOtp}
+    disabled={sendingOtp}
+>
 
-                            Send OTP
+    {sendingOtp
+        ? "Sending..."
+        : "Send OTP"}
 
-                        </Button>
+</Button>
 
                     </div>
 
                 </div>
 
-                <Button className="w-full">
+                <Button
+    className="w-full"
+    onClick={handleChangePassword}
+    disabled={changingPassword}
+>
 
-                    Update Password
+    {
 
-                </Button>
+        changingPassword
+
+        ?
+
+        "Updating..."
+
+        :
+
+        "Update Password"
+
+    }
+
+</Button>
 
             </div>
 
