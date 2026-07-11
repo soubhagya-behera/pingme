@@ -16,7 +16,15 @@ const AuthService = {
 
     setPassword(data) {
         return api.post("/auth/set-password", data);
-    }
+    },
+
+    forgotPassword(data) {
+    return api.post("/auth/forgot-password", data);
+},
+
+resetPassword(data) {
+    return api.post("/auth/reset-password", data);
+}
 
 };
 
