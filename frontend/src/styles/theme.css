@@ -142,11 +142,17 @@ input,
 textarea,
 select{
 
-background:var(--input-bg);
+background:transparent;
 
 color:var(--text);
 
-border:1px solid var(--input-border);
+border:none;
+
+outline:none;
+
+box-shadow:none;
+
+appearance:none;
 
 transition:.25s;
 
@@ -165,7 +171,7 @@ select:focus{
 
 outline:none;
 
-border-color:var(--primary);
+box-shadow:none;
 
 }
 

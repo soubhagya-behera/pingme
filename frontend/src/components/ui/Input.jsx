@@ -37,14 +37,21 @@ export default function Input({
         )}
 
         <input
-          className={clsx(
-            "w-full",
-            "bg-transparent",
-            "text-[var(--text)]",
-            "placeholder:text-[var(--text-secondary)]",
-            "outline-none",
-            className
-          )}
+className={clsx(
+    "w-full",
+    "bg-transparent",
+    "border-0",
+    "outline-none",
+    "ring-0",
+    "shadow-none",
+    "appearance-none",
+    "focus:border-0",
+    "focus:outline-none",
+    "focus:ring-0",
+    "text-[var(--text)]",
+    "placeholder:text-[var(--text-secondary)]",
+    className
+)}
           {...props}
         />
       </div>
