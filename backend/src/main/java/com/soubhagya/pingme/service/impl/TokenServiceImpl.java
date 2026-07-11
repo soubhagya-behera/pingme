@@ -27,8 +27,13 @@ public class TokenServiceImpl implements TokenService {
                 .orElse(new PasswordResetToken());
 
         token.setUser(user);
-        token.setToken(UUID.randomUUID().toString());
-        token.setExpiryDate(LocalDateTime.now().plusHours(24));
+        String otp = String.format(
+        "%06d",
+        new java.util.Random().nextInt(1000000)
+);
+
+token.setToken(otp);
+        token.setExpiryDate(LocalDateTime.now().plusMinutes(10));
 
         return tokenRepository.save(token);
     }

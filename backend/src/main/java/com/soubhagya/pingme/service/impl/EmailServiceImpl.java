@@ -79,11 +79,67 @@ public void sendActivationEmail(User user, String token) {
 }
 
     @Override
-    public void sendForgotPasswordEmail(User user, String token) {
+public void sendForgotPasswordEmail(
+        User user,
+        String token
+) {
 
-        // We'll implement this later.
+    String html = """
+            <h2>PingMe Password Reset</h2>
+
+            <p>Hello %s,</p>
+
+            <p>Use the OTP below to reset your password.</p>
+
+            <h1
+style="
+font-size:38px;
+letter-spacing:10px;
+color:#4f46e5;
+font-weight:bold;
+margin:30px 0;">
+%s
+</h1>
+
+            <p>This OTP expires in 24 hours.</p>
+
+            <p>If you didn't request this, simply ignore this email.</p>
+            """
+            .formatted(
+                    user.getFullName(),
+                    token
+            );
+
+    try {
+
+        MimeMessage message =
+                mailSender.createMimeMessage();
+
+        MimeMessageHelper helper =
+                new MimeMessageHelper(message, true);
+
+        helper.setFrom("soubhagyabatisahoo@gmail.com");
+
+        helper.setTo(user.getEmail());
+
+        helper.setSubject("PingMe Password Reset OTP");
+
+        helper.setText(html, true);
+
+        mailSender.send(message);
 
     }
+
+    catch (Exception e) {
+
+        throw new RuntimeException(
+                "Unable to send forgot password email",
+                e
+        );
+
+    }
+
+}
 
     @Override
 public void sendSimpleEmail(

@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.soubhagya.pingme.dto.request.SetPasswordRequest;
+import com.soubhagya.pingme.dto.request.ForgotPasswordRequest;
+import com.soubhagya.pingme.dto.request.ResetPasswordRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -93,6 +95,62 @@ public ResponseEntity<ApiResponse<String>> setPassword(
                     "Password Created Successfully",
 
                     "Account Activated"
+
+            )
+
+    );
+
+}
+
+@PostMapping("/forgot-password")
+public ResponseEntity<ApiResponse<String>> forgotPassword(
+
+        @Valid
+        @RequestBody
+        ForgotPasswordRequest request
+) {
+
+    authService.forgotPassword(request.getEmail());
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Password reset OTP sent successfully.",
+
+                    "OTP Sent"
+
+            )
+
+    );
+
+}
+
+@PostMapping("/reset-password")
+public ResponseEntity<ApiResponse<String>> resetPassword(
+
+        @Valid
+        @RequestBody
+        ResetPasswordRequest request
+) {
+
+    authService.resetPassword(
+
+            request.getEmail(),
+
+            request.getOtp(),
+
+            request.getNewPassword()
+
+    );
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Password reset successful.",
+
+                    "Password Updated"
 
             )
 

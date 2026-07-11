@@ -10,6 +10,8 @@ import com.soubhagya.pingme.exception.ResourceAlreadyExistsException;
 import com.soubhagya.pingme.repository.PasswordResetTokenRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.AuthService;
+import com.soubhagya.pingme.service.EmailService;
+
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,6 +47,8 @@ public class AuthServiceImpl implements AuthService {
 private final JwtService jwtService;
 
 private final TokenService tokenService;
+
+private final EmailService emailService;
 
     @Override
     public UserResponse register(RegisterRequest request) {
@@ -144,6 +148,59 @@ public void setPassword(SetPasswordRequest request) {
     user.setEmailVerified(true);
 
     user.setMustChangePassword(false);
+
+    userRepository.save(user);
+
+    tokenService.deleteToken(user.getId());
+
+}
+
+@Override
+public void forgotPassword(String email) {
+
+    User user = userRepository.findByEmail(email)
+
+            .orElseThrow(() ->
+
+                    new IllegalArgumentException("No account found with this email."));
+
+    PasswordResetToken token =
+            tokenService.createToken(user);
+
+    emailService.sendForgotPasswordEmail(
+            user,
+            token.getToken()
+    );
+
+}
+
+@Override
+public void resetPassword(
+        String email,
+        String otp,
+        String newPassword
+) {
+
+    User user = userRepository.findByEmail(email)
+
+            .orElseThrow(() ->
+
+                    new IllegalArgumentException("No account found with this email."));
+
+    PasswordResetToken token =
+            tokenService.validateToken(otp);
+
+    if (!token.getUser().getId().equals(user.getId())) {
+
+        throw new IllegalArgumentException("Invalid OTP.");
+
+    }
+
+    user.setPassword(
+
+            passwordEncoder.encode(newPassword)
+
+    );
 
     userRepository.save(user);
 

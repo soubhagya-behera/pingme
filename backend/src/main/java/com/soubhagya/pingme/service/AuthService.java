@@ -16,4 +16,12 @@ public interface AuthService {
 
 void setPassword(SetPasswordRequest request);
 
+void forgotPassword(String email);
+
+void resetPassword(
+        String email,
+        String otp,
+        String newPassword
+);
+
 }
