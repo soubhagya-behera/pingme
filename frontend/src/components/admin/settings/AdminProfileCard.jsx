@@ -60,27 +60,6 @@ export default function AdminProfileCard({ settings }) {
 
             </div>
 
-            <Button
-    className="w-full mt-6"
->
-
-    Change Password
-
-</Button>
-
-<p
-    className="
-    mt-3
-    text-center
-    text-xs
-    text-[var(--text-secondary)]
-    "
->
-
-    A verification code will be sent to your registered email.
-
-</p>
-
         </Card>
 
     );

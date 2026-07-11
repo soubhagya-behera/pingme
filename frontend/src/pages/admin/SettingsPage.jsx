@@ -7,6 +7,7 @@ import SecurityCard from "../../components/admin/settings/SecurityCard";
 import SystemInformationCard from "../../components/admin/settings/SystemInformationCard";
 import DatabaseStatisticsCard from "../../components/admin/settings/DatabaseStatisticsCard";
 import AboutPingMeCard from "../../components/admin/settings/AboutPingMeCard";
+import ChangePasswordCard from "../../components/admin/settings/ChangePasswordCard";
 
 export default function SettingsPage() {
 
@@ -82,11 +83,15 @@ export default function SettingsPage() {
         settings={settings}
     />
 
-    <AboutPingMeCard
-        settings={settings}
-    />
-
 </div>
+
+<AboutPingMeCard
+    settings={settings}
+/>
+
+<ChangePasswordCard
+    email={settings.adminEmail}
+/>
 
         </div>
 
