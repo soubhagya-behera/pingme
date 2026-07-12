@@ -8,6 +8,7 @@ import com.soubhagya.pingme.enums.FriendRequestStatus;
 import com.soubhagya.pingme.enums.UserStatus;
 import com.soubhagya.pingme.repository.FriendRequestRepository;
 import com.soubhagya.pingme.repository.UserRepository;
+import com.soubhagya.pingme.service.DashboardRealtimeService;
 import com.soubhagya.pingme.service.FriendRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class FriendRequestServiceImpl implements FriendRequestService {
 
     private final UserRepository userRepository;
 
+    private final DashboardRealtimeService dashboardRealtimeService;
     
 
     @Override
@@ -158,6 +160,12 @@ FriendRequest friendRequest =
 FriendRequest saved =
         friendRequestRepository.save(friendRequest);
 
+        dashboardRealtimeService.sendDashboardUpdate(
+
+        receiver.getId()
+
+);
+
         return FriendRequestResponse.builder()
 
         .requestId(saved.getId())
@@ -272,6 +280,12 @@ public FriendRequestResponse acceptRequest(
 
     friendRequestRepository.save(request);
 
+    dashboardRealtimeService.sendDashboardUpdate(
+
+        request.getReceiver().getId()
+
+);
+
     // Create friendship
     Friend friend = Friend.builder()
 
@@ -284,6 +298,18 @@ public FriendRequestResponse acceptRequest(
             .build();
 
     friendRepository.save(friend);
+
+    dashboardRealtimeService.sendDashboardUpdate(
+
+        request.getSender().getId()
+
+);
+
+dashboardRealtimeService.sendDashboardUpdate(
+
+        request.getReceiver().getId()
+
+);
 
     // Response
     return FriendRequestResponse.builder()

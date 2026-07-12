@@ -3,17 +3,17 @@ import { Client } from "@stomp/stompjs";
 
 let stompClient = null;
 
-export function connectSocket(
+export function connectSocket(onConnected) {
 
-    onMessage,
+    if (
+        stompClient &&
+        stompClient.connected
+    ) {
+        return;
+    }
 
-    onUserStatus,
-
-    onMessageStatus
-
-) {
-
-    const token = localStorage.getItem("token");
+    const token =
+        localStorage.getItem("token");
 
     const socket = new SockJS(
 
@@ -27,90 +27,19 @@ export function connectSocket(
 
         reconnectDelay: 5000,
 
+        debug: () => {},
+
         onConnect: () => {
 
-            console.log("Connected");
+            console.log("WebSocket Connected");
 
-            const userId =
-                localStorage.getItem("userId");
+            onConnected?.();
 
-            // Private Messages
+        },
 
-            stompClient.subscribe(
+        onStompError: frame => {
 
-                `/topic/messages/${userId}`,
-
-                (message) => {
-
-                    console.log(
-
-                        "Socket Message:",
-
-                        message.body
-
-                    );
-
-                    onMessage(
-
-                        JSON.parse(message.body)
-
-                    );
-
-                }
-
-            );
-
-            // Online / Offline
-
-            stompClient.subscribe(
-
-                "/topic/status",
-
-                (status) => {
-
-                    console.log(
-
-                        "User Status:",
-
-                        status.body
-
-                    );
-
-                    onUserStatus(
-
-                        JSON.parse(status.body)
-
-                    );
-
-                }
-
-            );
-
-            // Delivered / Read
-
-            stompClient.subscribe(
-
-                `/topic/status/${userId}`,
-
-                (status) => {
-
-                    console.log(
-
-                        "Message Status:",
-
-                        status.body
-
-                    );
-
-                    onMessageStatus(
-
-                        JSON.parse(status.body)
-
-                    );
-
-                }
-
-            );
+            console.error(frame);
 
         }
 
@@ -120,22 +49,14 @@ export function connectSocket(
 
 }
 
-export function sendSocketMessage(message) {
-
-    if (!stompClient) return;
-
-    stompClient.publish({
-
-        destination: "/app/chat.send",
-
-        body: JSON.stringify(message)
-
-    });
-
-}
-
 export function disconnectSocket() {
 
     stompClient?.deactivate();
+
+}
+
+export function getSocketClient() {
+
+    return stompClient;
 
 }
