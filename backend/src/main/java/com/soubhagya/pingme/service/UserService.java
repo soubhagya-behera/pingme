@@ -11,7 +11,13 @@ public interface UserService {
 
     List<User> getAllUsers();
 
-    UserSearchResponse searchUser(String email);
+    List<UserSearchResponse> searchUsers(
+
+        String keyword,
+
+        String loggedInEmail
+
+);
 
     ProfileResponse getProfile(String email);
 

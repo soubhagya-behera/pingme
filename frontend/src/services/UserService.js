@@ -2,14 +2,30 @@ import api from "../api/axios";
 
 const UserService = {
 
-    searchUser(email) {
-        return api.get(`/user/search?email=${email}`);
+    searchUsers(keyword) {
+
+        return api.get(
+
+            `/user/search?keyword=${encodeURIComponent(keyword)}`
+
+        );
+
     },
 
     sendFriendRequest(receiverId) {
-        return api.post("/friend-request/send", {
-            receiverId: receiverId
-        });
+
+        return api.post(
+
+            "/friend-request/send",
+
+            {
+
+                receiverId
+
+            }
+
+        );
+
     }
 
 };

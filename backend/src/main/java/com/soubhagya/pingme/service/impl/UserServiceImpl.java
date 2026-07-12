@@ -14,11 +14,20 @@ import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.dto.request.UpdateProfileRequest;
 import com.soubhagya.pingme.dto.response.ProfileResponse;
 
+import com.soubhagya.pingme.entity.FriendRequest;
+import com.soubhagya.pingme.enums.RelationshipStatus;
+import com.soubhagya.pingme.enums.FriendRequestStatus;
+import com.soubhagya.pingme.repository.FriendRepository;
+import com.soubhagya.pingme.repository.FriendRequestRepository;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final FriendRepository friendRepository;
+
+private final FriendRequestRepository friendRequestRepository;
 
     @Override
     public List<User> getAllUsers() {
@@ -27,27 +36,174 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    @Override
-public UserSearchResponse searchUser(String email) {
+ @Override
+public List<UserSearchResponse> searchUsers(
 
-    User user = userRepository.findByEmail(email)
+        String keyword,
+
+        String loggedInEmail
+
+) {
+
+    User currentUser = userRepository
+
+            .findByEmail(loggedInEmail)
+
             .orElseThrow(() ->
-                    new RuntimeException("User not found"));
 
-    if(user.getStatus() != UserStatus.APPROVED){
+                    new RuntimeException(
 
-        throw new RuntimeException("User is not approved");
+                            "User not found"
 
-    }
+                    )
 
-    return UserSearchResponse.builder()
-            .id(user.getId())
-            .fullName(user.getFullName())
-            .email(user.getEmail())
-            .profession(user.getProfession())
-            .profilePicture(user.getProfilePicture())
-            .online(user.getOnline())
-            .build();
+            );
+
+    List<User> users =
+
+            userRepository.searchUsers(
+
+                    currentUser.getId(),
+
+                    keyword
+
+            );
+
+    return users.stream()
+
+            .map(user -> {
+
+                RelationshipStatus relationshipStatus;
+
+Long requestId = null;
+
+                boolean areFriends =
+
+                        friendRepository
+
+                                .existsByUserOneAndUserTwoOrUserOneAndUserTwo(
+
+                                        currentUser,
+
+                                        user,
+
+                                        user,
+
+                                        currentUser
+
+                                );
+
+                if (areFriends) {
+
+                    relationshipStatus =
+
+                            RelationshipStatus.FRIENDS;
+
+                }
+
+                else {
+
+                    FriendRequest sentRequest =
+
+                            friendRequestRepository
+
+                                    .findBySenderAndReceiver(
+
+                                            currentUser,
+
+                                            user
+
+                                    )
+
+                                    .orElse(null);
+
+                    FriendRequest receivedRequest =
+
+                            friendRequestRepository
+
+                                    .findBySenderAndReceiver(
+
+                                            user,
+
+                                            currentUser
+
+                                    )
+
+                                    .orElse(null);
+
+                    if (
+
+        sentRequest != null &&
+
+        sentRequest.getStatus()
+
+                == FriendRequestStatus.PENDING
+
+) {
+
+    relationshipStatus =
+
+            RelationshipStatus.PENDING_SENT;
+
+    requestId = sentRequest.getId();
+
+}
+
+                    else if (
+
+        receivedRequest != null &&
+
+        receivedRequest.getStatus()
+
+                == FriendRequestStatus.PENDING
+
+) {
+
+    relationshipStatus =
+
+            RelationshipStatus.PENDING_RECEIVED;
+
+    requestId = receivedRequest.getId();
+
+}
+
+                    else {
+
+                        relationshipStatus =
+
+                                RelationshipStatus.NOT_FRIEND;
+
+                    }
+
+                }
+
+                return UserSearchResponse.builder()
+
+        .id(user.getId())
+
+        .fullName(user.getFullName())
+
+        .email(user.getEmail())
+
+        .profession(user.getProfession())
+
+        .profilePicture(user.getProfilePicture())
+
+        .online(user.getOnline())
+
+        .relationshipStatus(
+
+                relationshipStatus
+
+        )
+
+        .requestId(requestId)
+
+        .build();
+
+            })
+
+            .toList();
 
 }
 

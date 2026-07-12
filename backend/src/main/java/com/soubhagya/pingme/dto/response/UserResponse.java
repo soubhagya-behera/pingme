@@ -39,4 +39,6 @@ public class UserResponse {
 
     private String lastSeen;
 
+    private Long requestId;
+
 }

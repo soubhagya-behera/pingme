@@ -1,5 +1,6 @@
 package com.soubhagya.pingme.dto.response;
 
+import com.soubhagya.pingme.enums.RelationshipStatus;
 import lombok.*;
 
 @Getter
@@ -20,5 +21,9 @@ public class UserSearchResponse {
     private String profilePicture;
 
     private Boolean online;
+
+    private RelationshipStatus relationshipStatus;
+
+    private Long requestId;
 
 }
