@@ -29,4 +29,8 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
 
     void deleteByUserOneOrUserTwo(User userOne, User userTwo);
 
+
+    long countByUserOne(User user);
+
+long countByUserTwo(User user);
 }

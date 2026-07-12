@@ -63,4 +63,9 @@ List<Message> findBySenderAndReceiverAndStatus(
 
 void deleteBySenderOrReceiver(User sender, User receiver);
 
+long countByReceiverAndStatus(
+        User receiver,
+        MessageStatus status
+);
+
 }

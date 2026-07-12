@@ -30,4 +30,9 @@ public interface FriendRequestRepository
 
     void deleteBySenderOrReceiver(User sender, User receiver);
 
+    long countByReceiverAndStatus(
+        User receiver,
+        FriendRequestStatus status
+);
+
 }

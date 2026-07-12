@@ -7,12 +7,9 @@ import PendingRequests from "../../components/dashboard/PendingRequests";
 
 import DashboardService from "../../services/DashboardService";
 
-
 export default function Dashboard() {
 
-    const [friends, setFriends] = useState([]);
-
-    const [requests, setRequests] = useState([]);
+    const [dashboard, setDashboard] = useState(null);
 
     useEffect(() => {
 
@@ -24,15 +21,10 @@ export default function Dashboard() {
 
         try {
 
-            const friendResponse =
-                await DashboardService.getFriends();
+            const response =
+                await DashboardService.getDashboard();
 
-            const requestResponse =
-                await DashboardService.getIncomingRequests();
-
-            setFriends(friendResponse.data.data);
-
-            setRequests(requestResponse.data.data);
+            setDashboard(response.data.data);
 
         } catch (error) {
 
@@ -42,23 +34,31 @@ export default function Dashboard() {
 
     }
 
+    if (!dashboard) {
+
+        return (
+
+            <div className="flex justify-center items-center h-96">
+
+                Loading Dashboard...
+
+            </div>
+
+        );
+
+    }
+
     return (
 
         <>
 
-            <DashboardHeader/>
+            <DashboardHeader />
 
-            <StatsCards
+            <StatsCards stats={dashboard.stats} />
 
-                friends={friends.length}
+            <RecentChats chats={dashboard.recentChats} />
 
-                requests={requests.length}
-
-            />
-
-            <RecentChats/>
-
-            <PendingRequests/>
+            <PendingRequests requests={dashboard.pendingRequests} />
 
         </>
 
