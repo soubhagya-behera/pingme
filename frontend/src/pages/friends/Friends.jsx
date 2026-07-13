@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
 import FriendService from "../../services/FriendService";
+import {
+    connectSocket,
+    disconnectSocket
+} from "../../websocket/socket";
+
+import {
+    subscribeFriendRequests
+} from "../../websocket/subscriptions";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
@@ -12,8 +20,52 @@ export default function Friends() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+
     loadFriends();
-  }, []);
+
+    let friendRequestSubscription;
+
+    connectSocket(() => {
+
+        friendRequestSubscription =
+
+            subscribeFriendRequests(
+
+                async (event) => {
+
+                    console.log(
+
+                        "Friend Request Event",
+
+                        event
+
+                    );
+
+                    if (
+
+                        event.type === "ACCEPTED"
+
+                    ) {
+
+                        await loadFriends();
+
+                    }
+
+                }
+
+            );
+
+    });
+
+    return () => {
+
+        friendRequestSubscription?.unsubscribe();
+
+        disconnectSocket();
+
+    };
+
+}, []);
 
   async function loadFriends() {
     try {
@@ -43,13 +95,55 @@ export default function Friends() {
 
       <div className="friends-list">
         {filteredFriends.map((friend) => (
-          <Card key={friend.id} className="friend-card" hover>
-            <div>
-              <h3>{friend.fullName}</h3>
-              <p>{friend.profession}</p>
-            </div>
-            <Button>Message</Button>
-          </Card>
+          <Card
+    key={friend.id}
+    className="friend-card"
+    hover
+>
+
+    <div className="friend-info">
+
+        <div className="friend-avatar">
+
+            {friend.fullName.charAt(0).toUpperCase()}
+
+            <span
+                className={`online-dot ${
+                    friend.online
+                        ? "online"
+                        : "offline"
+                }`}
+            />
+
+        </div>
+
+        <div>
+
+            <h3>{friend.fullName}</h3>
+
+            <p>
+
+                {
+
+                    friend.profession ||
+
+                    "No Profession"
+
+                }
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <Button>
+
+        Message
+
+    </Button>
+
+</Card>
         ))}
       </div>
 

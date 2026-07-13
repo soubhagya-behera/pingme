@@ -88,3 +88,25 @@ export function subscribeDashboard(callback) {
     );
 
 }
+
+export function subscribeFriendRequests(callback) {
+
+    const userId = localStorage.getItem("userId");
+
+    return getSocketClient().subscribe(
+
+        `/topic/friend-request/${userId}`,
+
+        message => {
+
+            callback(
+
+                JSON.parse(message.body)
+
+            );
+
+        }
+
+    );
+
+}

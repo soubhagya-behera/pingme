@@ -1,5 +1,19 @@
 import { useEffect, useState } from "react";
 
+import {
+
+    connectSocket,
+
+    disconnectSocket
+
+} from "../../websocket/socket";
+
+import {
+
+    subscribeFriendRequests
+
+} from "../../websocket/subscriptions";
+
 import FriendService from "../../services/FriendService";
 
 import Card from "../../components/ui/Card";
@@ -10,11 +24,39 @@ export default function FriendRequests(){
 
     const [requests,setRequests]=useState([]);
 
-    useEffect(()=>{
+    useEffect(() => {
 
-        loadRequests();
+    loadRequests();
 
-    },[]);
+    connectSocket(() => {
+
+        const subscription =
+
+            subscribeFriendRequests(
+
+                async () => {
+
+                    await loadRequests();
+
+                }
+
+            );
+
+        return () => {
+
+            subscription.unsubscribe();
+
+        };
+
+    });
+
+    return () => {
+
+        disconnectSocket();
+
+    };
+
+}, []);
 
     async function loadRequests(){
 

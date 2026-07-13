@@ -7,15 +7,63 @@ import PendingRequests from "../../components/dashboard/PendingRequests";
 
 import DashboardService from "../../services/DashboardService";
 
+import {
+    connectSocket,
+    disconnectSocket
+} from "../../websocket/socket";
+
+import {
+    subscribeDashboard,
+    subscribeFriendRequests
+} from "../../websocket/subscriptions";
+
 export default function Dashboard() {
 
     const [dashboard, setDashboard] = useState(null);
 
     useEffect(() => {
 
-        loadDashboard();
+    loadDashboard();
 
-    }, []);
+    let dashboardSubscription;
+
+    let friendRequestSubscription;
+
+    connectSocket(() => {
+
+        dashboardSubscription =
+
+            subscribeDashboard(async () => {
+
+                console.log("Dashboard Update");
+
+                await loadDashboard();
+
+            });
+
+        friendRequestSubscription =
+
+            subscribeFriendRequests(async () => {
+
+                console.log("Friend Request Update");
+
+                await loadDashboard();
+
+            });
+
+    });
+
+    return () => {
+
+        dashboardSubscription?.unsubscribe();
+
+        friendRequestSubscription?.unsubscribe();
+
+        disconnectSocket();
+
+    };
+
+}, []);
 
     async function loadDashboard() {
 
