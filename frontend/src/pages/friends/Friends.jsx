@@ -6,13 +6,16 @@ import {
 } from "../../websocket/socket";
 
 import {
-    subscribeFriendRequests
+    subscribeFriendRequests,
+    subscribeFriends
 } from "../../websocket/subscriptions";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import AddFriendModal from "../../components/friends/AddFriendModal";
 import "./Friends.css";
+
+import toast from "react-hot-toast";
 
 export default function Friends() {
   const [friends, setFriends] = useState([]);
@@ -24,6 +27,9 @@ export default function Friends() {
     loadFriends();
 
     let friendRequestSubscription;
+
+let friendsSubscription;
+    
 
     connectSocket(() => {
 
@@ -55,15 +61,31 @@ export default function Friends() {
 
             );
 
+            friendsSubscription =
+
+    subscribeFriends(
+
+        async () => {
+
+            console.log("Friend List Updated");
+
+            await loadFriends();
+
+        }
+
+    );
+
     });
 
     return () => {
 
-        friendRequestSubscription?.unsubscribe();
+    friendRequestSubscription?.unsubscribe();
 
-        disconnectSocket();
+    friendsSubscription?.unsubscribe();
 
-    };
+    disconnectSocket();
+
+};
 
 }, []);
 
@@ -79,6 +101,49 @@ export default function Friends() {
   const filteredFriends = friends.filter((friend) =>
     friend.fullName.toLowerCase().includes(search.toLowerCase())
   );
+
+  async function removeFriend(friendId) {
+
+    const confirmed = window.confirm(
+
+        "Are you sure you want to remove this friend?"
+
+    );
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+    try {
+
+        await FriendService.unfriend(friendId);
+
+        // Instantly update UI
+        setFriends(prev =>
+
+            prev.filter(
+
+                friend => friend.id !== friendId
+
+            )
+
+        );
+
+    } catch (error) {
+
+        toast.error(
+
+    error.response?.data?.message ||
+
+    "Unable to remove friend"
+
+);
+
+    }
+
+}
 
   return (
     <div className="friends-page">
@@ -137,11 +202,27 @@ export default function Friends() {
 
     </div>
 
+    <div className="flex gap-2">
+
     <Button>
 
         Message
 
     </Button>
+
+    <Button
+
+        variant="danger"
+
+        onClick={() => removeFriend(friend.id)}
+
+    >
+
+        Remove
+
+    </Button>
+
+</div>
 
 </Card>
         ))}

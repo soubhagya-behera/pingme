@@ -41,4 +41,35 @@ public class FriendController {
 
     }
 
+    @DeleteMapping("/{friendId}")
+public ResponseEntity<ApiResponse<Void>> unfriend(
+
+        @PathVariable Long friendId,
+
+        Authentication authentication
+
+) {
+
+    friendService.unfriend(
+
+            friendId,
+
+            authentication.getName()
+
+    );
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Friend Removed",
+
+                    null
+
+            )
+
+    );
+
+}
+
 }

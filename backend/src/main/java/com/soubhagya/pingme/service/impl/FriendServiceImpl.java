@@ -10,6 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.soubhagya.pingme.dto.websocket.FriendSocketEvent;
+import com.soubhagya.pingme.service.DashboardRealtimeService;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +24,10 @@ public class FriendServiceImpl implements FriendService {
     private final FriendRepository friendRepository;
 
     private final UserRepository userRepository;
+
+    private final SimpMessagingTemplate messagingTemplate;
+
+private final DashboardRealtimeService dashboardRealtimeService;
 
     @Override
     public List<FriendResponse> getFriends(String email) {
@@ -115,6 +123,50 @@ public class FriendServiceImpl implements FriendService {
                         new RuntimeException("Friendship not found"));
 
         friendRepository.delete(friendship);
+
+        messagingTemplate.convertAndSend(
+
+        "/topic/friends/" + me.getId(),
+
+        FriendSocketEvent.builder()
+
+                .userId(me.getId())
+
+                .friendId(friend.getId())
+
+                .type("UNFRIENDED")
+
+                .build()
+
+);
+
+messagingTemplate.convertAndSend(
+
+        "/topic/friends/" + friend.getId(),
+
+        FriendSocketEvent.builder()
+
+                .userId(friend.getId())
+
+                .friendId(me.getId())
+
+                .type("UNFRIENDED")
+
+                .build()
+
+);
+
+dashboardRealtimeService.sendDashboardUpdate(
+
+        me.getId()
+
+);
+
+dashboardRealtimeService.sendDashboardUpdate(
+
+        friend.getId()
+
+);
 
     }
 

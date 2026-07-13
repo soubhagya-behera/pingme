@@ -22,7 +22,17 @@ const FriendService = {
 
 rejectRequest(id) {
     return api.put(`/friend-request/reject/${id}`);
-}
+},
+
+unfriend(friendId){
+
+    return api.delete(
+
+        `/friends/${friendId}`
+
+    );
+
+},
 
 };
 

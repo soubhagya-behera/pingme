@@ -110,3 +110,25 @@ export function subscribeFriendRequests(callback) {
     );
 
 }
+
+export function subscribeFriends(callback){
+
+    const userId = localStorage.getItem("userId");
+
+    return getSocketClient().subscribe(
+
+        `/topic/friends/${userId}`,
+
+        message=>{
+
+            callback(
+
+                JSON.parse(message.body)
+
+            );
+
+        }
+
+    );
+
+}
