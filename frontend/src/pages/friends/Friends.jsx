@@ -17,10 +17,14 @@ import "./Friends.css";
 
 import toast from "react-hot-toast";
 
+import ConfirmModal from "../../components/ui/ConfirmModal";
+
 export default function Friends() {
   const [friends, setFriends] = useState([]);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [removeFriend, setRemoveFriend] = useState(null);
+  const [removing, setRemoving] = useState(false);
 
   useEffect(() => {
 
@@ -102,44 +106,47 @@ let friendsSubscription;
     friend.fullName.toLowerCase().includes(search.toLowerCase())
   );
 
-  async function removeFriend(friendId) {
+  async function confirmRemoveFriend() {
 
-    const confirmed = window.confirm(
-
-        "Are you sure you want to remove this friend?"
-
-    );
-
-    if (!confirmed) {
-
-        return;
-
-    }
+    if (!removeFriend) return;
 
     try {
 
-        await FriendService.unfriend(friendId);
+      setRemoving(true);
+        await FriendService.unfriend(removeFriend.id);
 
-        // Instantly update UI
         setFriends(prev =>
 
             prev.filter(
 
-                friend => friend.id !== friendId
+                friend =>
+
+                    friend.id !== removeFriend.id
 
             )
 
         );
+        toast.success(
+    `${removeFriend.fullName} has been removed from your friends.`
+);
+
+        setRemoveFriend(null);
 
     } catch (error) {
 
-        toast.error(
+    toast.error(
 
-    error.response?.data?.message ||
+        error.response?.data?.message ||
 
-    "Unable to remove friend"
+        "Unable to remove friend"
 
-);
+    );
+
+    setRemoveFriend(null);
+
+} finally {
+
+        setRemoving(false);
 
     }
 
@@ -210,17 +217,13 @@ let friendsSubscription;
 
     </Button>
 
-    <Button
-
-        variant="danger"
-
-        onClick={() => removeFriend(friend.id)}
-
-    >
-
-        Remove
-
-    </Button>
+      <Button
+    variant="danger"
+    disabled={removing}
+    onClick={() => setRemoveFriend(friend)}
+>
+    Remove
+</Button>   
 
 </div>
 
@@ -229,7 +232,25 @@ let friendsSubscription;
       </div>
 
       <AddFriendModal open={open} onClose={() => setOpen(false)} />
+      <ConfirmModal
 
+    open={removeFriend !== null}
+
+    title="Remove Friend"
+
+    message={`Are you sure you want to remove ${removeFriend?.fullName} from your friends? You can always send another friend request later.`}
+
+    confirmText={removing ? "Removing..." : "Remove"}
+
+    cancelText="Cancel"
+
+    loading={removing}
+
+    onCancel={() => !removing && setRemoveFriend(null)}
+
+    onConfirm={confirmRemoveFriend}
+
+/>
     </div>
   );
 }

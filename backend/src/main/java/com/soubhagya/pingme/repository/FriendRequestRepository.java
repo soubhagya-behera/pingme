@@ -12,10 +12,10 @@ import java.util.List;
 public interface FriendRequestRepository
         extends JpaRepository<FriendRequest,Long> {
 
-    Optional<FriendRequest> findBySenderAndReceiver(
-            User sender,
-            User receiver
-    );
+    Optional<FriendRequest> findTopBySenderAndReceiverOrderByCreatedAtDesc(
+        User sender,
+        User receiver
+);
 
     boolean existsBySenderAndReceiverAndStatus(
             User sender,

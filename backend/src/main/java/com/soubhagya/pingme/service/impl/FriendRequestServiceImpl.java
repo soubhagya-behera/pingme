@@ -300,9 +300,7 @@ public FriendRequestResponse acceptRequest(
     }
 
     // Accept request
-    request.setStatus(FriendRequestStatus.ACCEPTED);
-
-    friendRequestRepository.save(request);
+    friendRequestRepository.delete(request);
 
 
     // Create friendship
@@ -403,9 +401,7 @@ public FriendRequestResponse rejectRequest(
 
     
 
-    request.setStatus(FriendRequestStatus.REJECTED);
-
-    friendRequestRepository.save(request);
+    friendRequestRepository.delete(request);
 
     dashboardRealtimeService.sendDashboardUpdate(
         request.getSender().getId()

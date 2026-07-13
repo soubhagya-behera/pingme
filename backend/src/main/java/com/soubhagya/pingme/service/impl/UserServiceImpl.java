@@ -16,7 +16,6 @@ import com.soubhagya.pingme.dto.response.ProfileResponse;
 
 import com.soubhagya.pingme.entity.FriendRequest;
 import com.soubhagya.pingme.enums.RelationshipStatus;
-import com.soubhagya.pingme.enums.FriendRequestStatus;
 import com.soubhagya.pingme.repository.FriendRepository;
 import com.soubhagya.pingme.repository.FriendRequestRepository;
 
@@ -104,76 +103,42 @@ Long requestId = null;
                 else {
 
                     FriendRequest sentRequest =
-
-                            friendRequestRepository
-
-                                    .findBySenderAndReceiver(
-
-                                            currentUser,
-
-                                            user
-
-                                    )
-
-                                    .orElse(null);
+        friendRequestRepository
+                .findTopBySenderAndReceiverOrderByCreatedAtDesc(
+                        currentUser,
+                        user
+                )
+                .orElse(null);
 
                     FriendRequest receivedRequest =
+        friendRequestRepository
+                .findTopBySenderAndReceiverOrderByCreatedAtDesc(
+                        user,
+                        currentUser
+                )
+                .orElse(null);
 
-                            friendRequestRepository
+                    if (sentRequest != null) {
 
-                                    .findBySenderAndReceiver(
-
-                                            user,
-
-                                            currentUser
-
-                                    )
-
-                                    .orElse(null);
-
-                    if (
-
-        sentRequest != null &&
-
-        sentRequest.getStatus()
-
-                == FriendRequestStatus.PENDING
-
-) {
-
-    relationshipStatus =
-
-            RelationshipStatus.PENDING_SENT;
+    relationshipStatus = RelationshipStatus.PENDING_SENT;
 
     requestId = sentRequest.getId();
 
 }
 
-                    else if (
+else if (receivedRequest != null) {
 
-        receivedRequest != null &&
-
-        receivedRequest.getStatus()
-
-                == FriendRequestStatus.PENDING
-
-) {
-
-    relationshipStatus =
-
-            RelationshipStatus.PENDING_RECEIVED;
+    relationshipStatus = RelationshipStatus.PENDING_RECEIVED;
 
     requestId = receivedRequest.getId();
 
 }
 
-                    else {
+else {
 
-                        relationshipStatus =
+    relationshipStatus = RelationshipStatus.NOT_FRIEND;
 
-                                RelationshipStatus.NOT_FRIEND;
-
-                    }
+}
 
                 }
 
