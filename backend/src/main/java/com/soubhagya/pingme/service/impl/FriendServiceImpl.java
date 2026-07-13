@@ -1,6 +1,7 @@
 package com.soubhagya.pingme.service.impl;
 
 import com.soubhagya.pingme.dto.response.FriendResponse;
+import com.soubhagya.pingme.dto.response.FriendStatsResponse;
 import com.soubhagya.pingme.entity.Friend;
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.repository.FriendRepository;
@@ -169,5 +170,28 @@ dashboardRealtimeService.sendDashboardUpdate(
 );
 
     }
+
+    @Override
+public FriendStatsResponse getFriendStats(String email) {
+
+    List<FriendResponse> friends = getFriends(email);
+
+    long online = friends.stream()
+
+            .filter(FriendResponse::getOnline)
+
+            .count();
+
+    return FriendStatsResponse.builder()
+
+            .totalFriends(friends.size())
+
+            .onlineFriends(online)
+
+            .offlineFriends(friends.size() - online)
+
+            .build();
+
+}
 
 }

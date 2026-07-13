@@ -1,6 +1,7 @@
 package com.soubhagya.pingme.controller;
 
 import com.soubhagya.pingme.dto.response.FriendResponse;
+import com.soubhagya.pingme.dto.response.FriendStatsResponse;
 import com.soubhagya.pingme.payload.ApiResponse;
 import com.soubhagya.pingme.service.FriendService;
 import com.soubhagya.pingme.util.ResponseUtil;
@@ -40,6 +41,28 @@ public class FriendController {
         );
 
     }
+
+    @GetMapping("/stats")
+public ResponseEntity<ApiResponse<FriendStatsResponse>>
+getFriendStats(Authentication authentication){
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Friend Statistics",
+
+                    friendService.getFriendStats(
+
+                            authentication.getName()
+
+                    )
+
+            )
+
+    );
+
+}
 
     @DeleteMapping("/{friendId}")
 public ResponseEntity<ApiResponse<Void>> unfriend(
