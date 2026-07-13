@@ -13,9 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import com.soubhagya.pingme.dto.response.FriendResponse;
-import java.util.List;
-
 import org.springframework.security.core.Authentication;
 
 @RestController
@@ -104,28 +101,6 @@ acceptRequest(
 
 }
 
-@GetMapping("/friends")
-public ResponseEntity<ApiResponse<List<FriendResponse>>>
-getFriends(Authentication authentication){
-
-    return ResponseEntity.ok(
-
-            ResponseUtil.success(
-
-                    "Friends List",
-
-                    friendRequestService.getFriends(
-
-        authentication.getName()
-
-)
-
-            )
-
-    );
-
-}
-
 @PutMapping("/reject/{requestId}")
 public ResponseEntity<ApiResponse<FriendRequestResponse>>
 rejectRequest(
@@ -139,6 +114,35 @@ rejectRequest(
                     "Friend Request Rejected",
 
                     friendRequestService.rejectRequest(
+
+                            requestId,
+
+                            authentication.getName()
+
+                    )
+
+            )
+
+    );
+
+}
+
+@DeleteMapping("/cancel/{requestId}")
+public ResponseEntity<ApiResponse<FriendRequestResponse>> cancelRequest(
+
+        @PathVariable Long requestId,
+
+        Authentication authentication
+
+){
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Friend Request Cancelled",
+
+                    friendRequestService.cancelRequest(
 
                             requestId,
 

@@ -3,8 +3,8 @@ import api from "../api/axios";
 const FriendService = {
 
     getFriends() {
-        return api.get("/friend-request/friends");
-    },
+    return api.get("/friends");
+},
 
     getRecentChats() {
 
@@ -17,12 +17,12 @@ const FriendService = {
     },
 
     acceptRequest(id) {
-        return api.post(`/friend-request/accept/${id}`);
-    },
+    return api.put(`/friend-request/accept/${id}`);
+},
 
-    rejectRequest(id) {
-        return api.post(`/friend-request/reject/${id}`);
-    }
+rejectRequest(id) {
+    return api.put(`/friend-request/reject/${id}`);
+}
 
 };
 

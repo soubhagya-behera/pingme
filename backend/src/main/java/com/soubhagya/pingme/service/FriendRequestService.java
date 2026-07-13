@@ -18,5 +18,11 @@ FriendRequestResponse acceptRequest(Long requestId, String email);
 
 FriendRequestResponse rejectRequest(Long requestId, String email);
 
-List<FriendResponse> getFriends(String email);
+FriendRequestResponse cancelRequest(
+
+        Long requestId,
+
+        String email
+
+);
 }

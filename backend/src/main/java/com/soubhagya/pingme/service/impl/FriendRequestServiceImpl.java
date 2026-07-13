@@ -386,77 +386,102 @@ public FriendRequestResponse rejectRequest(
 
 }
 
+@Transactional
 @Override
-public List<FriendResponse> getFriends(String email) {
+public FriendRequestResponse cancelRequest(
 
-    User user = userRepository.findByEmail(email)
+        Long requestId,
 
-        .orElseThrow(() ->
+        String email
 
-                new RuntimeException("User not found"));
-            
+){
 
-    List<FriendResponse> friends = new ArrayList<>();
+    User loggedInUser =
 
-    List<Friend> userOneFriends =
-            friendRepository.findByUserOne(user);
+            userRepository.findByEmail(email)
 
-    for(Friend friend : userOneFriends){
+                    .orElseThrow(() ->
 
-        User f = friend.getUserTwo();
+                            new RuntimeException(
 
-        friends.add(
+                                    "User not found"
 
-                FriendResponse.builder()
+                            )
 
-                        .id(f.getId())
+                    );
 
-                        .fullName(f.getFullName())
+    FriendRequest request =
 
-                        .email(f.getEmail())
+            friendRequestRepository.findById(requestId)
 
-                        .profession(f.getProfession())
+                    .orElseThrow(() ->
 
-                        .profilePicture(f.getProfilePicture())
+                            new RuntimeException(
 
-                        .online(f.getOnline())
+                                    "Friend request not found"
 
-                        .build()
+                            )
 
-        );
+                    );
 
-    }
+    if(
 
-    List<Friend> userTwoFriends =
-            friendRepository.findByUserTwo(user);
+            !request.getSender().getId()
 
-    for(Friend friend : userTwoFriends){
+                    .equals(loggedInUser.getId())
 
-        User f = friend.getUserOne();
+    ){
 
-        friends.add(
+        throw new RuntimeException(
 
-                FriendResponse.builder()
-
-                        .id(f.getId())
-
-                        .fullName(f.getFullName())
-
-                        .email(f.getEmail())
-
-                        .profession(f.getProfession())
-
-                        .profilePicture(f.getProfilePicture())
-
-                        .online(f.getOnline())
-
-                        .build()
+                "You cannot cancel this request"
 
         );
 
     }
 
-    return friends;
+    if(
+
+            request.getStatus()
+
+            !=
+
+            FriendRequestStatus.PENDING
+
+    ){
+
+        throw new RuntimeException(
+
+                "Request already processed"
+
+        );
+
+    }
+
+    friendRequestRepository.delete(request);
+
+    dashboardRealtimeService.sendDashboardUpdate(
+
+            request.getReceiver().getId()
+
+    );
+
+    return FriendRequestResponse.builder()
+
+            .requestId(requestId)
+
+            .senderId(request.getSender().getId())
+
+            .receiverId(request.getReceiver().getId())
+
+            .senderName(request.getSender().getFullName())
+
+            .receiverName(request.getReceiver().getFullName())
+
+            .status("CANCELLED")
+
+            .build();
 
 }
+
 }

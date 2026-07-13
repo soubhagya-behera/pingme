@@ -26,6 +26,36 @@ const UserService = {
 
         );
 
+    },
+
+    acceptRequest(requestId){
+
+        return api.put(
+
+            `/friend-request/accept/${requestId}`
+
+        );
+
+    },
+
+    rejectRequest(requestId){
+
+        return api.put(
+
+            `/friend-request/reject/${requestId}`
+
+        );
+
+    },
+
+    cancelRequest(requestId){
+
+        return api.delete(
+
+            `/friend-request/cancel/${requestId}`
+
+        );
+
     }
 
 };

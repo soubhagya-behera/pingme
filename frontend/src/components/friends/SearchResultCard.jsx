@@ -1,4 +1,4 @@
-import Button from "../ui/Button";
+import RelationshipButton from "./RelationshipButton";
 
 export default function SearchResultCard({
 
@@ -6,111 +6,48 @@ export default function SearchResultCard({
 
     sending,
 
-    onSend
+    onSend,
+
+    onAccept,
+
+    onReject,
+
+    onCancel
 
 }) {
 
-    function renderButton() {
-
-        switch (user.relationshipStatus) {
-
-            case "NOT_FRIEND":
-
-                return (
-
-                    <Button
-
-                        disabled={sending}
-
-                        onClick={() => onSend(user)}
-
-                    >
-
-                        Add Friend
-
-                    </Button>
-
-                );
-
-            case "PENDING_SENT":
-
-                return (
-
-                    <Button
-
-                        variant="secondary"
-
-                        disabled
-
-                    >
-
-                        Pending
-
-                    </Button>
-
-                );
-
-            case "PENDING_RECEIVED":
-
-                return (
-
-                    <Button>
-
-                        Accept
-
-                    </Button>
-
-                );
-
-            case "FRIENDS":
-
-                return (
-
-                    <Button
-
-                        variant="ghost"
-
-                    >
-
-                        Friends
-
-                    </Button>
-
-                );
-
-            default:
-
-                return null;
-
-        }
-
-    }
-
     return (
 
-        <div className="flex items-center justify-between p-4 border rounded-2xl">
+        <div className="flex items-center justify-between gap-4 p-4 border rounded-2xl hover:bg-slate-50 transition">
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0">
 
-                <div
+                <div className="relative">
 
-                    className="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-bold"
+                    <div
+                        className="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-bold"
+                    >
+                        {user.fullName.charAt(0).toUpperCase()}
+                    </div>
 
-                >
-
-                    {user.fullName.charAt(0)}
-
+                    <span
+                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                            user.online
+                                ? "bg-green-500"
+                                : "bg-gray-400"
+                        }`}
+                    />
                 </div>
 
-                <div>
+                <div className="min-w-0">
 
-                    <h3 className="font-semibold">
+                    <h3 className="font-semibold truncate">
 
                         {user.fullName}
 
                     </h3>
 
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-500 truncate">
 
                         {user.profession || "No Profession"}
 
@@ -120,7 +57,21 @@ export default function SearchResultCard({
 
             </div>
 
-            {renderButton()}
+            <RelationshipButton
+
+                user={user}
+
+                sending={sending}
+
+                onSend={onSend}
+
+                onAccept={onAccept}
+
+                onReject={onReject}
+
+                onCancel={onCancel}
+
+            />
 
         </div>
 
