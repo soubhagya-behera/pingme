@@ -11,6 +11,8 @@ import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.DashboardRealtimeService;
 import com.soubhagya.pingme.service.FriendRequestService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,10 +22,9 @@ import com.soubhagya.pingme.entity.Friend;
 import com.soubhagya.pingme.repository.FriendRepository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.soubhagya.pingme.dto.response.FriendResponse;
+import com.soubhagya.pingme.dto.websocket.FriendRequestSocketEvent;
 
-import java.util.ArrayList;
-import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +37,8 @@ public class FriendRequestServiceImpl implements FriendRequestService {
     private final UserRepository userRepository;
 
     private final DashboardRealtimeService dashboardRealtimeService;
+
+    private final SimpMessagingTemplate messagingTemplate;
     
 
     @Override
@@ -160,6 +163,27 @@ FriendRequest friendRequest =
 FriendRequest saved =
         friendRequestRepository.save(friendRequest);
 
+        messagingTemplate.convertAndSend(
+
+        "/topic/friend-request/" + receiver.getId(),
+
+        FriendRequestSocketEvent.builder()
+
+                .requestId(saved.getId())
+
+                .senderId(sender.getId())
+
+                .senderName(sender.getFullName())
+
+                .senderProfilePicture(sender.getProfilePicture())
+
+                .type("NEW_REQUEST")
+
+                .build()
+
+);
+
+
         dashboardRealtimeService.sendDashboardUpdate(
 
         receiver.getId()
@@ -280,11 +304,6 @@ public FriendRequestResponse acceptRequest(
 
     friendRequestRepository.save(request);
 
-    dashboardRealtimeService.sendDashboardUpdate(
-
-        request.getReceiver().getId()
-
-);
 
     // Create friendship
     Friend friend = Friend.builder()
@@ -298,6 +317,26 @@ public FriendRequestResponse acceptRequest(
             .build();
 
     friendRepository.save(friend);
+
+    messagingTemplate.convertAndSend(
+
+        "/topic/friend-request/" + request.getSender().getId(),
+
+        FriendRequestSocketEvent.builder()
+
+                .requestId(request.getId())
+
+                .senderId(request.getReceiver().getId())
+
+                .senderName(request.getReceiver().getFullName())
+
+                .senderProfilePicture(request.getReceiver().getProfilePicture())
+
+                .type("ACCEPTED")
+
+                .build()
+
+);
 
     dashboardRealtimeService.sendDashboardUpdate(
 
@@ -367,6 +406,34 @@ public FriendRequestResponse rejectRequest(
     request.setStatus(FriendRequestStatus.REJECTED);
 
     friendRequestRepository.save(request);
+
+    dashboardRealtimeService.sendDashboardUpdate(
+        request.getSender().getId()
+);
+
+dashboardRealtimeService.sendDashboardUpdate(
+        request.getReceiver().getId()
+);
+
+    messagingTemplate.convertAndSend(
+
+        "/topic/friend-request/" + request.getSender().getId(),
+
+        FriendRequestSocketEvent.builder()
+
+                .requestId(request.getId())
+
+                .senderId(request.getReceiver().getId())
+
+                .senderName(request.getReceiver().getFullName())
+
+                .senderProfilePicture(request.getReceiver().getProfilePicture())
+
+                .type("REJECTED")
+
+                .build()
+
+);
 
     return FriendRequestResponse.builder()
 
@@ -459,6 +526,30 @@ public FriendRequestResponse cancelRequest(
     }
 
     friendRequestRepository.delete(request);
+
+    messagingTemplate.convertAndSend(
+
+        "/topic/friend-request/" + request.getReceiver().getId(),
+
+        FriendRequestSocketEvent.builder()
+
+                .requestId(request.getId())
+
+                .senderId(request.getSender().getId())
+
+                .senderName(request.getSender().getFullName())
+
+                .senderProfilePicture(request.getSender().getProfilePicture())
+
+                .type("CANCELLED")
+
+                .build()
+
+);
+
+dashboardRealtimeService.sendDashboardUpdate(
+        request.getSender().getId()
+);
 
     dashboardRealtimeService.sendDashboardUpdate(
 
