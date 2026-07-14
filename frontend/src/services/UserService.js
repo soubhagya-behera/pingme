@@ -58,6 +58,17 @@ const UserService = {
 
     },
 
+    getProfile(){
+
+    return api.get(
+
+        "/user/profile"
+
+    );
+
+},
+
+
     changePassword(data) {
     return api.put(
         "/user/change-password",
