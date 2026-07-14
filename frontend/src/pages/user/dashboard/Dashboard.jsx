@@ -1,21 +1,21 @@
 import { useEffect, useState } from "react";
 
-import DashboardHeader from "../../components/user/dashboard/DashboardHeader";
-import StatsCards from "../../components/user/dashboard/StatsCards";
-import RecentChats from "../../components/user/dashboard/RecentChats";
-import PendingRequests from "../../components/user/dashboard/PendingRequests";
+import DashboardHeader from "../../../components/user/dashboard/DashboardHeader";
+import StatsCards from "../../../components/user/dashboard/StatsCards";
+import RecentChats from "../../../components/user/dashboard/RecentChats";
+import PendingRequests from "../../../components/user/dashboard/PendingRequests";
 
-import DashboardService from "../../services/DashboardService";
+import DashboardService from "../../../services/DashboardService";
 
 import {
     connectSocket,
     disconnectSocket
-} from "../../websocket/socket";
+} from "../../../websocket/socket";
 
 import {
     subscribeDashboard,
     subscribeFriendRequests
-} from "../../websocket/subscriptions";
+} from "../../../websocket/subscriptions";
 
 export default function Dashboard() {
 

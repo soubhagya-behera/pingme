@@ -1,23 +1,23 @@
 import { useEffect, useState } from "react";
-import FriendService from "../../services/FriendService";
+import FriendService from "../../../services/FriendService";
 
 // STEP 1: Added subscribePresence to imports
-import { whenSocketConnected } from "../../websocket/socket";
+import { whenSocketConnected } from "../../../websocket/socket";
 import {
     subscribeFriendRequests,
     subscribeFriends,
     subscribePresence
-} from "../../websocket/subscriptions";
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
-import AddFriendModal from "../../components/user/friends/AddFriendModal";
+} from "../../../websocket/subscriptions";
+import Card from "../../../components/ui/Card";
+import Button from "../../../components/ui/Button";
+import Input from "../../../components/ui/Input";
+import AddFriendModal from "../../../components/user/friends/AddFriendModal";
 import "./Friends.css";
 
 import toast from "react-hot-toast";
 
-import ConfirmModal from "../../components/ui/ConfirmModal";
-import FriendStats from "../../components/user/friends/FriendStats";
+import ConfirmModal from "../../../components/ui/ConfirmModal";
+import FriendStats from "../../../components/user/friends/FriendStats";
 
 export default function Friends() {
   const [friends, setFriends] = useState([]);

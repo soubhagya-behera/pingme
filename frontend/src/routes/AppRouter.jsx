@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import RegisterSuccess from "../pages/auth/RegisterSuccess";
-import Dashboard from "../pages/dashboard/Dashboard";
+import Dashboard from "../pages/user/dashboard/Dashboard";
 import AdminOverview from "../pages/admin/AdminOverview";
 import UsersPage from "../pages/admin/UsersPage";
 import QueriesPage from "../pages/admin/QueriesPage";
@@ -11,11 +11,11 @@ import AdminSettings from "../pages/admin/SettingsPage";
 import AdminLayout from "../layout/AdminLayout";
 
 import { Navigate } from "react-router-dom";
-import Chat from "../pages/chat/Chat";
-import Friends from "../pages/friends/Friends";
-import Settings from "../pages/settings/Settings";
-import Profile from "../pages/profile/Profile";
-import FriendRequests from "../pages/requests/FriendRequests";
+import Chat from "../pages/user/chat/Chat";
+import Friends from "../pages/user/friends/Friends";
+import Settings from "../pages/user/settings/Settings";
+import Profile from "../pages/user/profile/Profile";
+import FriendRequests from "../pages/user/requests/FriendRequests";
 
 import AppLayout from "../layout/AppLayout";
 import ProtectedRoute from "./ProtectedRoute";

@@ -2,10 +2,10 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Input from "../../components/ui/Input";
-import ProfileService from "../../services/ProfileService";
+import Card from "../../../components/ui/Card";
+import Button from "../../../components/ui/Button";
+import Input from "../../../components/ui/Input";
+import ProfileService from "../../../services/ProfileService";
 
 export default function Profile() {
   const { register, handleSubmit, reset } = useForm();

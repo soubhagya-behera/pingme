@@ -2,17 +2,17 @@ import { useEffect, useState } from "react";
 import {
     connectSocket,
     disconnectSocket
-} from "../../websocket/socket";
+} from "../../../websocket/socket";
 import {
     subscribeFriendRequests
-} from "../../websocket/subscriptions";
-import FriendService from "../../services/FriendService";
+} from "../../../websocket/subscriptions";
+import FriendService from "../../../services/FriendService";
 
 // Step 1: Added premium modular components and removed old Card/Button imports
-import Input from "../../components/ui/Input";
-import RequestStats from "../../components/user/requests/RequestStats";
-import RequestCard from "../../components/user/requests/RequestCard";
-import EmptyRequests from "../../components/user/requests/EmptyRequests";
+import Input from "../../../components/ui/Input";
+import RequestStats from "../../../components/user/requests/RequestStats";
+import RequestCard from "../../../components/user/requests/RequestCard";
+import EmptyRequests from "../../../components/user/requests/EmptyRequests";
 
 export default function FriendRequests() {
     // Step 2: Added stats and search states alongside requests state

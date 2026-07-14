@@ -1,7 +1,7 @@
-import SettingsHeader from "../../components/user/settings/SettingsHeader";
-import SettingsSection from "../../components/user/settings/SettingsSection";
-import PasswordCard from "../../components/user/settings/PasswordCard";
-import AccountCard from "../../components/user/settings/AccountCard";
+import SettingsHeader from "../../../components/user/settings/SettingsHeader";
+import SettingsSection from "../../../components/user/settings/SettingsSection";
+import PasswordCard from "../../../components/user/settings/PasswordCard";
+import AccountCard from "../../../components/user/settings/AccountCard";
 
 export default function Settings() {
   return (
