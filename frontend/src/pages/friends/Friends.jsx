@@ -18,9 +18,11 @@ import "./Friends.css";
 import toast from "react-hot-toast";
 
 import ConfirmModal from "../../components/ui/ConfirmModal";
+import FriendStats from "../../components/friends/FriendStats";
 
 export default function Friends() {
   const [friends, setFriends] = useState([]);
+  const [stats, setStats] = useState(null);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [removeFriend, setRemoveFriend] = useState(null);
@@ -28,7 +30,13 @@ export default function Friends() {
 
   useEffect(() => {
 
-    loadFriends();
+    async function initialize() {
+
+    await loadFriends();
+
+}
+
+initialize();
 
     let friendRequestSubscription;
 
@@ -93,10 +101,35 @@ let friendsSubscription;
 
 }, []);
 
+
+
   async function loadFriends() {
     try {
-      const response = await FriendService.getFriends();
-      setFriends(response.data.data);
+      const [
+
+    friendsResponse,
+
+    statsResponse
+
+] = await Promise.all([
+
+    FriendService.getFriends(),
+
+    FriendService.getFriendStats()
+
+]);
+
+setFriends(
+
+    friendsResponse.data.data
+
+);
+
+setStats(
+
+    statsResponse.data.data
+
+);
     } catch (error) {
       console.log(error);
     }
@@ -158,6 +191,18 @@ let friendsSubscription;
         <h1>Friends</h1>
         <Button onClick={() => setOpen(true)}>+ Add Friend</Button>
       </div>
+
+      {
+
+    stats &&
+
+    <FriendStats
+
+        stats={stats}
+
+    />
+
+}
 
       <Input
         placeholder="Search Friend..."

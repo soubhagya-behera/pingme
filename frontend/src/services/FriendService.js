@@ -6,6 +6,11 @@ const FriendService = {
     return api.get("/friends");
 },
 
+getFriendStats(){
+
+    return api.get("/friends/stats");
+},
+
     getRecentChats() {
 
         return api.get("/messages/recent");
