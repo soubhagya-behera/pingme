@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function ChatMessages({ messages }) {
 

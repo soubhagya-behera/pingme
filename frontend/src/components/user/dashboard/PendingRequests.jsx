@@ -1,6 +1,6 @@
-import Card from "../ui/Card";
-import Button from "../ui/Button";
-import FriendService from "../../services/FriendService";
+import Card from "../../ui/Card";
+import Button from "../../ui/Button";
+import FriendService from "../../../services/FriendService";
 
 export default function PendingRequests({
 

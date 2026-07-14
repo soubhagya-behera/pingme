@@ -1,4 +1,4 @@
-import Card from "../ui/Card";
+import Card from "../../ui/Card";
 import { Inbox } from "lucide-react";
 
 export default function EmptyRequests() {

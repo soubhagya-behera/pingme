@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import ChatSidebar from "../../components/chat/ChatSidebar";
-import ChatHeader from "../../components/chat/ChatHeader";
-import ChatMessages from "../../components/chat/ChatMessages";
-import ChatInput from "../../components/chat/ChatInput";
+import ChatSidebar from "../../components/user/chat/ChatSidebar";
+import ChatHeader from "../../components/user/chat/ChatHeader";
+import ChatMessages from "../../components/user/chat/ChatMessages";
+import ChatInput from "../../components/user/chat/ChatInput";
 import ChatService from "../../services/ChatService";
 import { connectSocket, disconnectSocket } from "../../websocket/socket";
 import { subscribeMessages, subscribePresence, subscribeMessageStatus } from "../../websocket/subscriptions";

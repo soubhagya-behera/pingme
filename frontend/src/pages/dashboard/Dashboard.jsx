@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
-import DashboardHeader from "../../components/dashboard/DashboardHeader";
-import StatsCards from "../../components/dashboard/StatsCards";
-import RecentChats from "../../components/dashboard/RecentChats";
-import PendingRequests from "../../components/dashboard/PendingRequests";
+import DashboardHeader from "../../components/user/dashboard/DashboardHeader";
+import StatsCards from "../../components/user/dashboard/StatsCards";
+import RecentChats from "../../components/user/dashboard/RecentChats";
+import PendingRequests from "../../components/user/dashboard/PendingRequests";
 
 import DashboardService from "../../services/DashboardService";
 

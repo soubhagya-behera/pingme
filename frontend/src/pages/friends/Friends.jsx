@@ -11,13 +11,13 @@ import {
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
-import AddFriendModal from "../../components/friends/AddFriendModal";
+import AddFriendModal from "../../components/user/friends/AddFriendModal";
 import "./Friends.css";
 
 import toast from "react-hot-toast";
 
 import ConfirmModal from "../../components/ui/ConfirmModal";
-import FriendStats from "../../components/friends/FriendStats";
+import FriendStats from "../../components/user/friends/FriendStats";
 
 export default function Friends() {
   const [friends, setFriends] = useState([]);

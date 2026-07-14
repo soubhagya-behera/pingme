@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-import Card from "../ui/Card";
-import Button from "../ui/Button";
+import Card from "../../ui/Card";
+import Button from "../../ui/Button";
 import SearchInput from "./SearchInput";
 import SearchResultCard from "./SearchResultCard";
-import useDebounce from "../../hooks/useDebounce";
-import UserService from "../../services/UserService";
+import useDebounce from "../../../hooks/useDebounce";
+import UserService from "../../../services/UserService";
 import "./AddFriendModal.css";
 
 export default function AddFriendModal({ open, onClose }) {
