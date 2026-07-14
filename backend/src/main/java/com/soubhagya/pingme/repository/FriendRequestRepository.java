@@ -6,7 +6,7 @@ import com.soubhagya.pingme.enums.FriendRequestStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
-
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface FriendRequestRepository
@@ -34,5 +34,17 @@ public interface FriendRequestRepository
         User receiver,
         FriendRequestStatus status
 );
+
+ long countByReceiver(User receiver);
+
+    long countByReceiverAndCreatedAtAfter(
+
+            User receiver,
+
+            LocalDateTime createdAt
+
+    );
+
+    long countBySender(User sender);
 
 }

@@ -18,8 +18,8 @@ export default function RequestStats({ stats }) {
         },
 
         {
-            title: "Accepted",
-            value: stats.accepted,
+            title: "Sent",
+            value: stats.sent,
             icon: <CheckCircle2 size={24} />,
         },
 

@@ -2,11 +2,13 @@ package com.soubhagya.pingme.service;
 
 import com.soubhagya.pingme.dto.request.FriendRequestDto;
 import com.soubhagya.pingme.dto.response.FriendRequestResponse;
+import com.soubhagya.pingme.dto.response.FriendRequestStatsResponse;
 
 import java.util.List;
 
 import java.util.List;
 import com.soubhagya.pingme.dto.response.FriendResponse;
+
 
 public interface FriendRequestService {
 
@@ -25,4 +27,6 @@ FriendRequestResponse cancelRequest(
         String email
 
 );
+
+FriendRequestStatsResponse getStats(String email);
 }

@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.soubhagya.pingme.dto.websocket.FriendRequestSocketEvent;
 
+import com.soubhagya.pingme.dto.response.FriendRequestStatsResponse;
 
 
 @Service
@@ -581,4 +582,68 @@ dashboardRealtimeService.sendDashboardUpdate(
 
 }
 
+@Override
+public FriendRequestStatsResponse getStats(
+
+        String email
+
+) {
+
+    User user =
+
+            userRepository.findByEmail(email)
+
+                    .orElseThrow(() ->
+
+                            new RuntimeException(
+
+                                    "User not found"
+
+                            )
+
+                    );
+
+    long pending =
+
+            friendRequestRepository.countByReceiver(
+
+                    user
+
+            );
+
+    long today =
+
+            friendRequestRepository
+
+                    .countByReceiverAndCreatedAtAfter(
+
+                            user,
+
+                            LocalDateTime.now()
+
+                                    .toLocalDate()
+
+                                    .atStartOfDay()
+
+                    );
+
+    long sent =
+
+            friendRequestRepository.countBySender(
+
+                    user
+
+            );
+
+    return FriendRequestStatsResponse.builder()
+
+            .pending(pending)
+
+            .today(today)
+
+            .sent(sent)
+
+            .build();
+
+}
 }

@@ -39,6 +39,16 @@ unfriend(friendId){
 
 },
 
+getRequestStats(){
+
+    return api.get(
+
+        "/friend-request/stats"
+
+    );
+
+},
+
 };
 
 export default FriendService;

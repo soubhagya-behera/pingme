@@ -2,6 +2,7 @@ package com.soubhagya.pingme.controller;
 
 import com.soubhagya.pingme.dto.request.FriendRequestDto;
 import com.soubhagya.pingme.dto.response.FriendRequestResponse;
+import com.soubhagya.pingme.dto.response.FriendRequestStatsResponse;
 import com.soubhagya.pingme.dto.response.FriendResponse;
 import com.soubhagya.pingme.payload.ApiResponse;
 import com.soubhagya.pingme.service.FriendRequestService;
@@ -156,4 +157,28 @@ public ResponseEntity<ApiResponse<FriendRequestResponse>> cancelRequest(
 
 }
 
+@GetMapping("/stats")
+public ResponseEntity<ApiResponse<FriendRequestStatsResponse>> getStats(
+
+        Authentication authentication
+
+) {
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Friend Request Statistics",
+
+                    friendRequestService.getStats(
+
+                            authentication.getName()
+
+                    )
+
+            )
+
+    );
+
+}
 }
