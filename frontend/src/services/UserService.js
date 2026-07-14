@@ -68,6 +68,12 @@ const UserService = {
 
 },
 
+updateProfile(data) {
+
+        return api.put("/user/profile", data);
+
+    },
+
 
     changePassword(data) {
     return api.put(
