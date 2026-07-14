@@ -12,6 +12,11 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
+import org.springframework.transaction.annotation.Transactional;
+
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
     Optional<User> findByEmail(String email);
@@ -68,5 +73,10 @@ List<User> searchUsers(
         @Param("keyword") String keyword
 
 );
+
+@Modifying
+@Transactional
+@Query("UPDATE User u SET u.online = false")
+void resetAllUsersOffline();
 
 }
