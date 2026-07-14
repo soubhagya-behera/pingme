@@ -20,56 +20,70 @@ public class WebSocketEventListener {
 
     private final UserSessionTracker sessionTracker;
 
-    @EventListener
-    public void handleConnect(SessionConnectEvent event) {
+   @EventListener
+public void handleConnect(SessionConnectEvent event) {
 
-        StompHeaderAccessor accessor =
-                StompHeaderAccessor.wrap(event.getMessage());
+    System.out.println("========== CONNECT EVENT ==========");
 
-        Object emailObj =
-                accessor.getSessionAttributes().get("email");
+    StompHeaderAccessor accessor =
+            StompHeaderAccessor.wrap(event.getMessage());
 
-        if (emailObj == null) {
-            return;
-        }
+    System.out.println("Session Attributes : " + accessor.getSessionAttributes());
 
-        String email = emailObj.toString();
+    Object emailObj = null;
 
-        // Increase active session count
-        sessionTracker.connected(email);
-
-        User user =
-                userRepository.findByEmail(email)
-                        .orElse(null);
-
-        if (user == null) {
-            return;
-        }
-
-        System.out.println("CONNECT EVENT");
-
-        user.setOnline(true);
-
-        userRepository.save(user);
-
-        messagingTemplate.convertAndSend(
-
-                "/topic/status",
-
-                UserStatusMessage.builder()
-
-                        .userId(user.getId())
-
-                        .fullName(user.getFullName())
-
-                        .online(true)
-
-                        .build()
-
-        );
-
-        System.out.println(user.getFullName() + " is ONLINE");
+    if (accessor.getSessionAttributes() != null) {
+        emailObj = accessor.getSessionAttributes().get("email");
     }
+
+    System.out.println("Email : " + emailObj);
+
+    if (emailObj == null) {
+
+        System.out.println("Email is NULL");
+
+        return;
+    }
+
+    String email = emailObj.toString();
+
+    sessionTracker.connected(email);
+
+    User user =
+            userRepository.findByEmail(email)
+                    .orElse(null);
+
+    System.out.println("User From DB : " + user);
+
+    if (user == null) {
+
+        System.out.println("USER NOT FOUND");
+
+        return;
+    }
+
+    user.setOnline(true);
+
+    userRepository.save(user);
+
+    System.out.println("Saved user online=true");
+
+    messagingTemplate.convertAndSend(
+
+            "/topic/status",
+
+            UserStatusMessage.builder()
+
+                    .userId(user.getId())
+
+                    .fullName(user.getFullName())
+
+                    .online(true)
+
+                    .build()
+
+    );
+}
 
     @EventListener
     public void handleDisconnect(SessionDisconnectEvent event) {

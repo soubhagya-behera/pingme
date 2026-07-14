@@ -228,19 +228,29 @@ public List<FriendRequestResponse> getIncomingRequests(String email) {
 
             .map(request -> FriendRequestResponse.builder()
 
-                    .requestId(request.getId())
+        .requestId(request.getId())
 
-                    .senderId(request.getSender().getId())
+        .senderId(request.getSender().getId())
 
-                    .receiverId(request.getReceiver().getId())
+        .receiverId(request.getReceiver().getId())
 
-                    .senderName(request.getSender().getFullName())
+        .senderName(request.getSender().getFullName())
 
-                    .receiverName(request.getReceiver().getFullName())
+        .senderEmail(request.getSender().getEmail())
 
-                    .status(request.getStatus().name())
+        .senderProfession(request.getSender().getProfession())
 
-                    .build())
+        .senderProfilePicture(request.getSender().getProfilePicture())
+
+        .senderOnline(request.getSender().getOnline())
+
+        .receiverName(request.getReceiver().getFullName())
+
+        .status(request.getStatus().name())
+
+        .createdAt(request.getCreatedAt())
+
+        .build())
 
             .toList();
 
