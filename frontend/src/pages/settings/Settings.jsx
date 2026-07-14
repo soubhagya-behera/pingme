@@ -1,13 +1,31 @@
+import SettingsHeader from "../../components/user/settings/SettingsHeader";
+
+import SettingsSection from "../../components/user/settings/SettingsSection";
+
+import PasswordCard from "../../components/user/settings/PasswordCard";
+
 export default function Settings(){
 
-    return(
+return(
 
-        <h1 className="text-4xl font-bold">
+<div>
 
-            Settings Page
+<SettingsHeader/>
 
-        </h1>
+<SettingsSection
 
-    );
+title="Security"
+
+description="Update your password regularly to keep your account secure."
+
+>
+
+<PasswordCard/>
+
+</SettingsSection>
+
+</div>
+
+);
 
 }

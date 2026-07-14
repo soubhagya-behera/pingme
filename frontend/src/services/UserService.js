@@ -56,7 +56,14 @@ const UserService = {
 
         );
 
-    }
+    },
+
+    changePassword(data) {
+    return api.put(
+        "/user/change-password",
+        data
+    );
+},
 
 };
 
