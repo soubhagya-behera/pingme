@@ -1,9 +1,13 @@
 package com.soubhagya.pingme.dto.response;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
-@Data
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ProfileResponse {
 
@@ -20,5 +24,15 @@ public class ProfileResponse {
     private String phone;
 
     private String profilePicture;
+
+    // NEW
+
+    private String role;
+
+    private Boolean emailVerified;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime lastSeen;
 
 }

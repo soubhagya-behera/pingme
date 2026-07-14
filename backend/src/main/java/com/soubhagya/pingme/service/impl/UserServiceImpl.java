@@ -185,14 +185,32 @@ public ProfileResponse getProfile(String email) {
                     new RuntimeException("User not found"));
 
     return ProfileResponse.builder()
-            .id(user.getId())
-            .fullName(user.getFullName())
-            .email(user.getEmail())
-            .profession(user.getProfession())
-            .bio(user.getBio())
-            .phone(user.getPhone())
-            .profilePicture(user.getProfilePicture())
-            .build();
+
+        .id(user.getId())
+
+        .fullName(user.getFullName())
+
+        .email(user.getEmail())
+
+        .profession(user.getProfession())
+
+        .bio(user.getBio())
+
+        .phone(user.getPhone())
+
+        .profilePicture(user.getProfilePicture())
+
+        // NEW
+
+        .role(user.getRole().name())
+
+        .emailVerified(user.getEmailVerified())
+
+        .createdAt(user.getCreatedAt())
+
+        .lastSeen(user.getLastSeen())
+
+        .build();
 
 }
 
