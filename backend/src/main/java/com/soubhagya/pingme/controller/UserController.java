@@ -1,11 +1,14 @@
 package com.soubhagya.pingme.controller;
 
+import com.soubhagya.pingme.dto.request.PasswordChangeRequest;
 import com.soubhagya.pingme.dto.request.UpdateProfileRequest;
 import com.soubhagya.pingme.dto.response.ProfileResponse;
 import com.soubhagya.pingme.dto.response.UserSearchResponse;
 import com.soubhagya.pingme.payload.ApiResponse;
 import com.soubhagya.pingme.service.UserService;
 import com.soubhagya.pingme.util.ResponseUtil;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -87,5 +90,30 @@ public class UserController {
         );
 
     }
+
+    @PutMapping("/change-password")
+public ResponseEntity<ApiResponse<Void>> changePassword(
+        @RequestBody @Valid PasswordChangeRequest request,
+        Authentication authentication
+) {
+
+    userService.changePassword(
+            authentication.getName(),
+            request
+    );
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Password changed successfully",
+
+                    null
+
+            )
+
+    );
+
+}
 
 }

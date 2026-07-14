@@ -5,12 +5,15 @@ import com.soubhagya.pingme.enums.UserStatus;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.UserService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 import com.soubhagya.pingme.dto.response.UserSearchResponse;
 import com.soubhagya.pingme.entity.User;
+import com.soubhagya.pingme.dto.request.PasswordChangeRequest;
 import com.soubhagya.pingme.dto.request.UpdateProfileRequest;
 import com.soubhagya.pingme.dto.response.ProfileResponse;
 
@@ -27,6 +30,8 @@ public class UserServiceImpl implements UserService {
     private final FriendRepository friendRepository;
 
 private final FriendRequestRepository friendRequestRepository;
+
+private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<User> getAllUsers() {
@@ -221,6 +226,48 @@ public ProfileResponse updateProfile(
             .phone(savedUser.getPhone())
             .profilePicture(savedUser.getProfilePicture())
             .build();
+
+}
+
+@Override
+public void changePassword(
+        String email,
+        PasswordChangeRequest request
+) {
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+    if (!passwordEncoder.matches(
+            request.getCurrentPassword(),
+            user.getPassword())) {
+
+        throw new RuntimeException(
+                "Current password is incorrect");
+    }
+
+    if (!request.getNewPassword()
+            .equals(request.getConfirmPassword())) {
+
+        throw new RuntimeException(
+                "Passwords do not match");
+    }
+
+    if (request.getNewPassword().length() < 8) {
+
+        throw new RuntimeException(
+                "Password must be at least 8 characters");
+    }
+
+    user.setPassword(
+
+            passwordEncoder.encode(
+                    request.getNewPassword())
+
+    );
+
+    userRepository.save(user);
 
 }
 

@@ -1,5 +1,6 @@
 package com.soubhagya.pingme.service;
 
+import com.soubhagya.pingme.dto.request.PasswordChangeRequest;
 import com.soubhagya.pingme.dto.request.UpdateProfileRequest;
 import com.soubhagya.pingme.dto.response.ProfileResponse;
 import com.soubhagya.pingme.dto.response.UserSearchResponse;
@@ -25,5 +26,10 @@ public interface UserService {
             String email,
             UpdateProfileRequest request
     );
+
+    void changePassword(
+        String email,
+        PasswordChangeRequest request
+);
 
 }
