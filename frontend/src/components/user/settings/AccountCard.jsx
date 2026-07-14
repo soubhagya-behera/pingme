@@ -56,27 +56,70 @@ if (!profile) {
 }
 
     return (
-        <div className="grid grid-cols-2 gap-6">
-            <Input
-                label="Full Name"
-                value={profile.fullName}
-                disabled
-            />
-            <Input
-                label="Email"
-                value={profile.email}
-                disabled
-            />
-            <Input
-                label="Profession"
-                value={profile.profession || ""}
-                disabled
-            />
-            <Input
-                label="Phone"
-                value={profile.phone || ""}
-                disabled
-            />
-        </div>
-    );
+
+    <div className="grid md:grid-cols-2 gap-6">
+
+        <Input
+            label="Full Name"
+            value={profile.fullName}
+            disabled
+        />
+
+        <Input
+            label="Email"
+            value={profile.email}
+            disabled
+        />
+
+        <Input
+            label="Profession"
+            value={profile.profession || ""}
+            disabled
+        />
+
+        <Input
+            label="Phone"
+            value={profile.phone || ""}
+            disabled
+        />
+
+        <Input
+            label="Role"
+            value={profile.role}
+            disabled
+        />
+
+        <Input
+            label="Email Verified"
+            value={
+                profile.emailVerified
+                    ? "Verified"
+                    : "Not Verified"
+            }
+            disabled
+        />
+
+        <Input
+            label="Member Since"
+            value={
+                profile.createdAt
+                    ? new Date(profile.createdAt).toLocaleDateString()
+                    : "-"
+            }
+            disabled
+        />
+
+        <Input
+            label="Last Seen"
+            value={
+                profile.lastSeen
+                    ? new Date(profile.lastSeen).toLocaleString()
+                    : "Currently Online"
+            }
+            disabled
+        />
+
+    </div>
+
+);
 }
