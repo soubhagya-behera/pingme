@@ -7,19 +7,25 @@ import App from "./App";
 
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
+import { SocketProvider } from "./context/SocketProvider";
+
 import { Toaster } from "react-hot-toast";
 
 createRoot(document.getElementById("root")).render(
 
     <AuthProvider>
 
-        <ThemeProvider>
+        <SocketProvider>
 
-            <Toaster position="top-right" />
+            <ThemeProvider>
 
-            <App />
+                <Toaster position="top-right" />
 
-        </ThemeProvider>
+                <App />
+
+            </ThemeProvider>
+
+        </SocketProvider>
 
     </AuthProvider>
 

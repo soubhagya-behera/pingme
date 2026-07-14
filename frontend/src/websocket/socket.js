@@ -3,17 +3,17 @@ import { Client } from "@stomp/stompjs";
 
 let stompClient = null;
 
-export function connectSocket(onConnected) {
+let connected = false;
 
-    if (
-        stompClient &&
-        stompClient.connected
-    ) {
-        return;
-    }
+let waitingCallbacks = [];
 
-    const token =
-        localStorage.getItem("token");
+export function connectSocket() {
+
+    if (connected) return;
+
+    if (stompClient?.active) return;
+
+    const token = localStorage.getItem("token");
 
     const socket = new SockJS(
 
@@ -31,9 +31,21 @@ export function connectSocket(onConnected) {
 
         onConnect: () => {
 
-            console.log("WebSocket Connected");
+            console.log("✅ WebSocket Connected");
 
-            onConnected?.();
+            connected = true;
+
+            waitingCallbacks.forEach(callback => callback());
+
+            waitingCallbacks = [];
+
+        },
+
+        onDisconnect: () => {
+
+            console.log("❌ WebSocket Disconnected");
+
+            connected = false;
 
         },
 
@@ -51,6 +63,8 @@ export function connectSocket(onConnected) {
 
 export function disconnectSocket() {
 
+    connected = false;
+
     stompClient?.deactivate();
 
 }
@@ -58,5 +72,23 @@ export function disconnectSocket() {
 export function getSocketClient() {
 
     return stompClient;
+
+}
+
+export function whenSocketConnected(callback){
+
+    if(
+
+        connected
+
+    ){
+
+        callback();
+
+        return;
+
+    }
+
+    waitingCallbacks.push(callback);
 
 }

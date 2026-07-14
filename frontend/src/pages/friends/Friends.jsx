@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import FriendService from "../../services/FriendService";
-import {
-    connectSocket,
-    disconnectSocket
-} from "../../websocket/socket";
 
+// STEP 1: Added subscribePresence to imports
+import { whenSocketConnected } from "../../websocket/socket";
 import {
     subscribeFriendRequests,
-    subscribeFriends
+    subscribeFriends,
+    subscribePresence
 } from "../../websocket/subscriptions";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -30,105 +29,103 @@ export default function Friends() {
 
   useEffect(() => {
 
+    let friendRequestSubscription;
+    let friendsSubscription;
+    let presenceSubscription;
+
     async function initialize() {
 
-    await loadFriends();
+        await loadFriends();
 
-}
+        whenSocketConnected(() => {
 
-initialize();
+            friendRequestSubscription =
+                subscribeFriendRequests(async (event) => {
 
-    let friendRequestSubscription;
-
-let friendsSubscription;
-    
-
-    connectSocket(() => {
-
-        friendRequestSubscription =
-
-            subscribeFriendRequests(
-
-                async (event) => {
-
-                    console.log(
-
-                        "Friend Request Event",
-
-                        event
-
-                    );
-
-                    if (
-
-                        event.type === "ACCEPTED"
-
-                    ) {
+                    if (event.type === "ACCEPTED") {
 
                         await loadFriends();
 
                     }
 
-                }
-
-            );
+                });
 
             friendsSubscription =
+                subscribeFriends(async () => {
 
-    subscribeFriends(
+                    await loadFriends();
 
-        async () => {
+                });
 
-            console.log("Friend List Updated");
+            presenceSubscription =
+                subscribePresence(status => {
 
-            await loadFriends();
+                    setFriends(previousFriends => {
 
-        }
+                        const updatedFriends =
+                            previousFriends.map(friend =>
 
-    );
+                                friend.id === status.userId
+                                    ? {
+                                          ...friend,
+                                          online: status.online
+                                      }
+                                    : friend
 
-    });
+                            );
+
+                        setStats({
+
+                            totalFriends: updatedFriends.length,
+
+                            onlineFriends:
+                                updatedFriends.filter(f => f.online).length,
+
+                            offlineFriends:
+                                updatedFriends.filter(f => !f.online).length
+
+                        });
+
+                        return updatedFriends;
+
+                    });
+
+                });
+
+        });
+
+    }
+
+    initialize();
 
     return () => {
 
-    friendRequestSubscription?.unsubscribe();
+        friendRequestSubscription?.unsubscribe();
 
-    friendsSubscription?.unsubscribe();
+        friendsSubscription?.unsubscribe();
 
-    disconnectSocket();
+        presenceSubscription?.unsubscribe();
 
-};
+    };
 
 }, []);
-
 
 
   async function loadFriends() {
     try {
       const [
-
     friendsResponse,
-
     statsResponse
-
 ] = await Promise.all([
-
     FriendService.getFriends(),
-
     FriendService.getFriendStats()
-
 ]);
 
 setFriends(
-
     friendsResponse.data.data
-
 );
-
 setStats(
-
     statsResponse.data.data
-
 );
     } catch (error) {
       console.log(error);
@@ -140,49 +137,29 @@ setStats(
   );
 
   async function confirmRemoveFriend() {
-
     if (!removeFriend) return;
 
     try {
-
       setRemoving(true);
         await FriendService.unfriend(removeFriend.id);
 
         setFriends(prev =>
-
             prev.filter(
-
                 friend =>
-
                     friend.id !== removeFriend.id
-
             )
-
         );
-        toast.success(
-    `${removeFriend.fullName} has been removed from your friends.`
-);
-
+        toast.success(`${removeFriend.fullName} has been removed from your friends.`);
         setRemoveFriend(null);
-
     } catch (error) {
-
     toast.error(
-
         error.response?.data?.message ||
-
         "Unable to remove friend"
-
     );
-
     setRemoveFriend(null);
-
 } finally {
-
         setRemoving(false);
-
     }
-
 }
 
   return (
@@ -193,15 +170,10 @@ setStats(
       </div>
 
       {
-
     stats &&
-
     <FriendStats
-
         stats={stats}
-
     />
-
 }
 
       <Input
@@ -217,13 +189,9 @@ setStats(
     className="friend-card"
     hover
 >
-
     <div className="friend-info">
-
         <div className="friend-avatar">
-
             {friend.fullName.charAt(0).toUpperCase()}
-
             <span
                 className={`online-dot ${
                     friend.online
@@ -231,37 +199,22 @@ setStats(
                         : "offline"
                 }`}
             />
-
         </div>
-
         <div>
-
             <h3>{friend.fullName}</h3>
-
             <p>
-
                 {
-
                     friend.profession ||
-
                     "No Profession"
-
                 }
-
             </p>
-
         </div>
-
     </div>
 
     <div className="flex gap-2">
-
     <Button>
-
         Message
-
     </Button>
-
       <Button
     variant="danger"
     disabled={removing}
@@ -269,32 +222,21 @@ setStats(
 >
     Remove
 </Button>   
-
 </div>
-
 </Card>
         ))}
       </div>
 
       <AddFriendModal open={open} onClose={() => setOpen(false)} />
       <ConfirmModal
-
     open={removeFriend !== null}
-
     title="Remove Friend"
-
     message={`Are you sure you want to remove ${removeFriend?.fullName} from your friends? You can always send another friend request later.`}
-
     confirmText={removing ? "Removing..." : "Remove"}
-
     cancelText="Cancel"
-
     loading={removing}
-
     onCancel={() => !removing && setRemoveFriend(null)}
-
     onConfirm={confirmRemoveFriend}
-
 />
     </div>
   );
