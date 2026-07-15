@@ -4,41 +4,53 @@ import { sendChatMessage } from "../../../websocket/publisher";
 
 export default function ChatInput({
 
-    friend
+    friend,
 
-}) {
+    onMessageSent
+
+}){
 
     const [message, setMessage] = useState("");
 
     function send() {
 
-        if (!friend) return;
+    if (!friend) return;
 
-        if (message.trim() === "") return;
+    if (!message.trim()) return;
 
-        try {
+    const tempMessage = {
 
-            const text = message;
+        id: "temp-" + Date.now(),
 
-setMessage("");
+        senderId: Number(
 
-sendChatMessage({
+            localStorage.getItem("userId")
 
-    receiverId: friend.id,
+        ),
 
-    content: text
+        receiverId: friend.id,
 
-});
+        content: message,
 
+        status: "SENDING",
 
+        sentAt: new Date()
 
-        } catch (error) {
+    };
 
-            console.log(error);
+    onMessageSent(tempMessage);
 
-        }
+    sendChatMessage({
 
-    }
+        receiverId: friend.id,
+
+        content: message
+
+    });
+
+    setMessage("");
+
+}
 
     return (
 

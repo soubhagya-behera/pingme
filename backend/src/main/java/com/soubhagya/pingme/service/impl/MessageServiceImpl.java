@@ -4,6 +4,8 @@ import com.soubhagya.pingme.dto.response.MessageResponse;
 import com.soubhagya.pingme.dto.response.RecentChatResponse;
 import com.soubhagya.pingme.entity.Message;
 import com.soubhagya.pingme.entity.User;
+import com.soubhagya.pingme.enums.MessageStatus;
+import com.soubhagya.pingme.repository.FriendRepository;
 import com.soubhagya.pingme.repository.MessageRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.MessageService;
@@ -13,7 +15,9 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.soubhagya.pingme.dto.response.RecentChatResponse;
+
+import com.soubhagya.pingme.entity.Friend;
+import com.soubhagya.pingme.dto.response.ChatSidebarResponse;
 
 
 @Service
@@ -23,6 +27,7 @@ public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
 
     private final UserRepository userRepository;
+    private final FriendRepository friendRepository;
 
     @Override
     public List<MessageResponse> getChatHistory(
@@ -143,6 +148,156 @@ public List<RecentChatResponse> getRecentChats(String email) {
     }
 
     return chats;
+
+}
+
+@Override
+public List<ChatSidebarResponse> getChatSidebar(String email) {
+
+    User me = userRepository.findByEmail(email)
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+    List<Friend> friendships = new ArrayList<>();
+
+    friendships.addAll(
+
+            friendRepository.findByUserOne(me)
+
+    );
+
+    friendships.addAll(
+
+            friendRepository.findByUserTwo(me)
+
+    );
+
+    List<ChatSidebarResponse> sidebar = new ArrayList<>();
+
+    for (Friend friendship : friendships) {
+
+        User friend;
+
+        if (friendship.getUserOne().getId().equals(me.getId())) {
+
+            friend = friendship.getUserTwo();
+
+        } else {
+
+            friend = friendship.getUserOne();
+
+        }
+
+        List<Message> messages =
+                messageRepository.findLatestConversationMessages(
+
+                        me,
+
+                        friend
+
+                );
+
+        Message latestMessage =
+
+                messages.isEmpty()
+
+                        ? null
+
+                        : messages.get(0);
+
+        long unreadCount =
+        messageRepository.countBySenderAndReceiverAndStatus(
+
+                friend,
+
+                me,
+
+                MessageStatus.DELIVERED
+
+        );
+
+        sidebar.add(
+
+                ChatSidebarResponse.builder()
+
+                        .id(friend.getId())
+
+                        .fullName(friend.getFullName())
+
+                        .profilePicture(friend.getProfilePicture())
+
+                        .online(friend.getOnline())
+
+                        .lastMessage(
+
+                                latestMessage == null
+
+                                        ? null
+
+                                        : latestMessage.getContent()
+
+                        )
+
+                        .lastMessageTime(
+
+                                latestMessage == null
+
+                                        ? null
+
+                                        : latestMessage.getSentAt()
+
+                        )
+
+                        .unreadCount(
+
+                                (int) unreadCount
+
+                        )
+
+                        .build()
+
+        );
+
+    }
+
+    sidebar.sort(
+
+            (a, b) -> {
+
+                if (a.getLastMessageTime() == null &&
+                        b.getLastMessageTime() == null) {
+
+                    return a.getFullName()
+
+                            .compareToIgnoreCase(
+
+                                    b.getFullName()
+
+                            );
+
+                }
+
+                if (a.getLastMessageTime() == null)
+
+                    return 1;
+
+                if (b.getLastMessageTime() == null)
+
+                    return -1;
+
+                return b.getLastMessageTime()
+
+                        .compareTo(
+
+                                a.getLastMessageTime()
+
+                        );
+
+            }
+
+    );
+
+    return sidebar;
 
 }
 

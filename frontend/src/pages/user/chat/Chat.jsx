@@ -15,23 +15,39 @@ export default function Chat() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        loadRecentChats();
+        loadChatSidebar();
     }, []);
 
     useEffect(() => {
         selectedFriendRef.current = selectedFriend;
     }, [selectedFriend]);
 
-    async function loadRecentChats() {
-        try {
-            const response = await ChatService.getRecentChats();
-            setFriends(response.data.data);
-            setLoading(false);
-        } catch (error) {
-            console.log(error);
-            setLoading(false);
-        }
+    async function loadChatSidebar() {
+
+    try {
+
+        const response =
+            await ChatService.getChatSidebar();
+
+        setFriends(
+
+            response.data.data
+
+        );
+
+        setLoading(false);
+
     }
+
+    catch (error) {
+
+        console.log(error);
+
+        setLoading(false);
+
+    }
+
+}
 
     useEffect(() => {
         let messageSubscription;
@@ -138,7 +154,20 @@ export default function Chat() {
                     <>
                         <ChatHeader friend={selectedFriend} />
                         <ChatMessages messages={messages} />
-                        <ChatInput friend={selectedFriend} />
+                        <ChatInput
+    friend={selectedFriend}
+    onMessageSent={(message) => {
+
+        setMessages(prev => [
+
+            ...prev,
+
+            message
+
+        ]);
+
+    }}
+/>
                     </>
                 ) : (
                     <div className="flex-1 flex items-center justify-center text-slate-400 text-xl">

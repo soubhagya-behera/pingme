@@ -14,6 +14,20 @@ export default function MessageBubble({
 
         if(!mine) return null;
 
+        if(status==="SENDING"){
+
+    return(
+
+        <span className="text-slate-300">
+
+            ⏳
+
+        </span>
+
+    );
+
+}
+
         if(status==="SENT"){
 
             return "✓";

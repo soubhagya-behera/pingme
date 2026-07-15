@@ -1,5 +1,6 @@
 package com.soubhagya.pingme.controller;
 
+import com.soubhagya.pingme.dto.response.ChatSidebarResponse;
 import com.soubhagya.pingme.dto.response.MessageResponse;
 import com.soubhagya.pingme.dto.response.RecentChatResponse;
 import com.soubhagya.pingme.payload.ApiResponse;
@@ -58,6 +59,31 @@ public ResponseEntity<ApiResponse<List<RecentChatResponse>>> recentChats(
 
                     messageService.getRecentChats(
                             authentication.getName()
+                    )
+
+            )
+
+    );
+
+}
+
+@GetMapping("/chat-sidebar")
+public ResponseEntity<ApiResponse<List<ChatSidebarResponse>>> getChatSidebar(
+
+        Authentication authentication
+
+) {
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Chat Sidebar",
+
+                    messageService.getChatSidebar(
+
+                            authentication.getName()
+
                     )
 
             )

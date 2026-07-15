@@ -76,6 +76,10 @@ markConversationRead(friendId) {
 
 },
 
+getChatSidebar() {
+    return api.get("/messages/chat-sidebar");
+},
+
 };
 
 export default ChatService;

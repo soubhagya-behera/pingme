@@ -116,7 +116,7 @@ export default function ChatSidebar({
 
         <p className="text-sm text-slate-500 truncate">
 
-            {friend.lastMessage || "Start chatting"}
+            {friend.lastMessage || "Start conversation"}
 
         </p>
 

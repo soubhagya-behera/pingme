@@ -68,4 +68,33 @@ long countByReceiverAndStatus(
         MessageStatus status
 );
 
+@Query("""
+SELECT m
+FROM Message m
+WHERE
+(
+    (m.sender = :me AND m.receiver = :friend)
+    OR
+    (m.sender = :friend AND m.receiver = :me)
+)
+ORDER BY m.sentAt DESC
+""")
+List<Message> findLatestConversationMessages(
+
+        @Param("me") User me,
+
+        @Param("friend") User friend
+
+);
+
+long countBySenderAndReceiverAndStatus(
+
+        User sender,
+
+        User receiver,
+
+        MessageStatus status
+
+);
+
 }
