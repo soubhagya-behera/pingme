@@ -48,7 +48,7 @@ export default function ChatSidebar({
 
                         hover:bg-slate-100
 
-                        ${selectedFriend?.id===friend.Id
+                        ${selectedFriend?.id===friend.id
 
                         ?"bg-indigo-50"
 
@@ -74,59 +74,63 @@ export default function ChatSidebar({
 
                         </div>
 
-                        <div>
+                        <div className="flex-1 min-w-0">
 
-                            <h3
+    <div className="flex justify-between items-center">
 
-                            className="font-semibold"
+        <h3 className="font-semibold truncate">
 
-                            >
+            {friend.fullName}
 
-                                {friend.fullName}
+        </h3>
 
-                            </h3>
+        <span className="text-xs text-slate-400">
 
-    <p
-className="text-sm text-slate-500 truncate w-44"
->
+            {
 
-{
+                friend.lastMessageTime
 
-friend.lastMessage
+                    ?
 
-}
+                    new Date(friend.lastMessageTime)
 
-</p>
+                        .toLocaleTimeString([], {
 
-<p
-className="text-xs text-slate-400"
->
+                            hour: "2-digit",
 
-{
+                            minute: "2-digit"
 
-friend.lastMessageTime
+                        })
 
-?
+                    :
 
-new Date(friend.lastMessageTime)
+                    ""
 
-.toLocaleTimeString([],{
+            }
 
-hour:"2-digit",
+        </span>
 
-minute:"2-digit"
+    </div>
 
-})
+    <div className="flex items-center justify-between mt-1">
 
-:
+        <p className="text-sm text-slate-500 truncate">
 
-""
+            {friend.lastMessage || "Start chatting"}
 
-}
+        </p>
 
-</p>
+        {
 
-                        </div>
+            friend.online &&
+
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+
+        }
+
+    </div>
+
+</div>
 
                     </div>
 

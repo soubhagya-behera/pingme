@@ -126,14 +126,14 @@ export default function Chat() {
     }
 
     return (
-        <div className="grid grid-cols-[320px_1fr] gap-6 h-[calc(100vh-140px)]">
+        <div className="grid grid-cols-[360px_1fr] gap-4 h-[calc(100vh-140px)]">
             <ChatSidebar
                 friends={friends}
                 selectedFriend={selectedFriend}
                 onSelect={selectFriend}
             />
 
-            <div className="rounded-3xl border bg-white flex flex-col overflow-hidden">
+            <div className="rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden">
                 {selectedFriend ? (
                     <>
                         <ChatHeader friend={selectedFriend} />

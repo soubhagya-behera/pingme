@@ -56,13 +56,13 @@ export default function MessageBubble({
 
                 className={`
 
-                max-w-sm
+                max-w-[70%]
 
-                rounded-2xl
+                rounded-3xl
 
                 px-4
 
-                py-3
+                py-2.5
 
                 ${mine
 

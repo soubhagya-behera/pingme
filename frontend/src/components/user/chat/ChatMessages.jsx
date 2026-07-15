@@ -20,7 +20,7 @@ export default function ChatMessages({ messages }) {
 
     return (
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto bg-slate-50 px-6 py-5 space-y-3">
 
             {
 
@@ -30,7 +30,7 @@ export default function ChatMessages({ messages }) {
 
                     <div className="text-center text-slate-400 mt-20">
 
-                        No messages yet
+                        Start your conversation 👋
 
                     </div>
 

@@ -1,69 +1,91 @@
-export default function ChatHeader({
+import { Phone, Video, MoreVertical } from "lucide-react";
 
-friend
+export default function ChatHeader({ friend }) {
 
-}){
+    return (
 
-return(
+        <div className="h-20 border-b px-6 flex items-center justify-between bg-white">
 
-<div className="flex items-center gap-3 border-b p-5">
+            <div className="flex items-center gap-4">
 
-<div
+                <div className="relative">
 
-className="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center"
+                    <div className="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
 
->
+                        {friend.fullName.charAt(0)}
 
-{
+                    </div>
 
-friend.fullName.charAt(0)
+                    {
 
-}
+                        friend.online &&
 
-</div>
+                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
 
-<div>
+                    }
 
-<h2 className="font-bold">
+                </div>
 
-{friend.fullName}
+                <div>
 
-</h2>
+                    <h2 className="font-semibold text-lg">
 
-<p className={
+                        {friend.fullName}
 
-friend.online
+                    </h2>
 
-?
+                    <p className={`text-sm ${friend.online
 
-"text-green-500"
+                            ? "text-green-600"
 
-:
+                            : "text-slate-500"
 
-"text-slate-500"
+                        }`}>
 
-}>
+                        {
 
-{
+                            friend.online
 
-friend.online
+                                ?
 
-?
+                                "Online"
 
-"Online"
+                                :
 
-:
+                                "Last seen recently"
 
-"Offline"
+                        }
 
-}
+                    </p>
 
-</p>
+                </div>
 
-</div>
+            </div>
 
-</div>
+            <div className="flex items-center gap-3">
 
-);
+                <button className="p-2 rounded-full hover:bg-slate-100">
+
+                    <Phone size={18} />
+
+                </button>
+
+                <button className="p-2 rounded-full hover:bg-slate-100">
+
+                    <Video size={18} />
+
+                </button>
+
+                <button className="p-2 rounded-full hover:bg-slate-100">
+
+                    <MoreVertical size={18} />
+
+                </button>
+
+            </div>
+
+        </div>
+
+    );
 
 }

@@ -42,7 +42,7 @@ sendChatMessage({
 
     return (
 
-        <div className="border-t p-5 flex gap-3">
+        <div className="border-t bg-white px-5 py-4 flex items-center gap-3">
 
             <input
 
@@ -52,7 +52,7 @@ sendChatMessage({
 
                 placeholder="Type a message..."
 
-                className="flex-1 rounded-xl border px-4 py-3 outline-none"
+                className="flex-1 rounded-full border border-slate-300 px-5 py-3 outline-none focus:ring-2 focus:ring-indigo-300"
 
                 onKeyDown={(e) => {
 
@@ -70,7 +70,7 @@ sendChatMessage({
 
                 onClick={send}
 
-                className="rounded-xl bg-indigo-600 text-white px-5"
+                className="w-12 h-12 rounded-full flex items-center justify-center bg-indigo-600 text-white px-5"
 
             >
 
