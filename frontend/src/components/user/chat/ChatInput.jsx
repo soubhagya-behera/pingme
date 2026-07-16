@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { v4 as uuid } from "uuid";
-import { Send } from "lucide-react";
+import { Send, Smile } from "lucide-react";
 import { sendChatMessage, sendTyping, sendStopTyping } from "../../../websocket/publisher";
+import EmojiPicker from "emoji-picker-react";
 
 export default function ChatInput({
 
@@ -12,8 +13,53 @@ export default function ChatInput({
 }){
 
     const [message, setMessage] = useState("");
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+const inputRef = useRef(null);
+
+const pickerRef = useRef(null);
     const typingRef = useRef(false);
     const typingTimeout = useRef(null);
+
+    useEffect(() => {
+
+    function handleClickOutside(event){
+
+        if(
+
+            pickerRef.current &&
+
+            !pickerRef.current.contains(event.target)
+
+        ){
+
+            setShowEmojiPicker(false);
+
+        }
+
+    }
+
+    document.addEventListener(
+
+        "mousedown",
+
+        handleClickOutside
+
+    );
+
+    return ()=>{
+
+        document.removeEventListener(
+
+            "mousedown",
+
+            handleClickOutside
+
+        );
+
+    };
+
+},[]);
 
     function handleTyping(value){
 
@@ -48,6 +94,62 @@ export default function ChatInput({
         sendStopTyping(friend.id);
 
     },1500);
+
+}
+
+function onEmojiClick(emojiData){
+
+    const emoji = emojiData.emoji;
+
+    const input = inputRef.current;
+
+    if(!input){
+
+        setMessage(prev=>prev + emoji);
+
+        return;
+
+    }
+
+    const start = input.selectionStart;
+
+    const end = input.selectionEnd;
+
+    const text = message;
+
+    const updated =
+
+        text.substring(0,start)
+
+        +
+
+        emoji
+
+        +
+
+        text.substring(end);
+
+    setMessage(updated);
+
+    requestAnimationFrame(()=>{
+
+        input.focus();
+
+        const cursor =
+
+            start +
+
+            emoji.length;
+
+        input.setSelectionRange(
+
+            cursor,
+
+            cursor
+
+        );
+
+    });
 
 }
 
@@ -114,44 +216,116 @@ export default function ChatInput({
 
     return (
 
-        <div className="border-t bg-white px-5 py-4 flex items-center gap-3">
+<div className="relative border-t bg-white px-5 py-4">
 
-            <input
+    {
 
-                value={message}
+        showEmojiPicker &&
 
-                onChange={(e) => handleTyping(e.target.value)}
+        (
 
-                placeholder="Type a message..."
+            <div
 
-                className="flex-1 rounded-full border border-slate-300 px-5 py-3 outline-none focus:ring-2 focus:ring-indigo-300"
+                ref={pickerRef}
 
-                onKeyDown={(e) => {
-
-                    if (e.key === "Enter") {
-
-                        send();
-
-                    }
-
-                }}
-
-            />
-
-            <button
-
-                onClick={send}
-
-                className="w-12 h-12 rounded-full flex items-center justify-center bg-indigo-600 text-white px-5"
+                className="absolute bottom-20 left-4 z-50 shadow-2xl rounded-xl overflow-hidden"
 
             >
 
-                <Send size={18}/>
+                <EmojiPicker
 
-            </button>
+                    onEmojiClick={onEmojiClick}
 
-        </div>
+                    width={340}
 
-    );
+                    height={420}
+
+                />
+
+            </div>
+
+        )
+
+    }
+
+    <div className="flex items-center gap-3">
+
+        {/* Emoji Button */}
+
+        <button
+
+            type="button"
+
+            onClick={()=>
+
+                setShowEmojiPicker(
+
+                    previous => !previous
+
+                )
+
+            }
+
+            className="text-slate-500 hover:text-indigo-600 transition"
+
+        >
+
+            <Smile size={24}/>
+
+        </button>
+
+        {/* Input */}
+
+        <input
+
+            ref={inputRef}
+
+            value={message}
+
+            onChange={(e)=>
+
+                handleTyping(
+
+                    e.target.value
+
+                )
+
+            }
+
+            placeholder="Type a message..."
+
+            className="flex-1 rounded-full border border-slate-300 px-5 py-3 outline-none focus:ring-2 focus:ring-indigo-300"
+
+            onKeyDown={(e)=>{
+
+                if(e.key==="Enter"){
+
+                    send();
+
+                }
+
+            }}
+
+        />
+
+        {/* Send */}
+
+        <button
+
+            onClick={send}
+
+            className="w-12 h-12 rounded-full flex items-center justify-center bg-indigo-600 text-white"
+
+        >
+
+            <Send size={18}/>
+
+        </button>
+
+    </div>
+
+</div>
+
+);
 
 }
