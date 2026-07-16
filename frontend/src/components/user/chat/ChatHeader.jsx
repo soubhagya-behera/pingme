@@ -1,6 +1,12 @@
 import { Phone, Video, MoreVertical } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+export default function ChatHeader({
 
-export default function ChatHeader({ friend }) {
+friend,
+
+onBack
+
+}) {
 
     return (
 
@@ -8,59 +14,75 @@ export default function ChatHeader({ friend }) {
 
             <div className="flex items-center gap-4">
 
-                <div className="relative">
+    {/* Mobile Back Button */}
 
-                    <div className="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
+    <button
 
-                        {friend.fullName.charAt(0)}
+        onClick={onBack}
 
-                    </div>
+        className="md:hidden p-2 rounded-full hover:bg-slate-100"
 
-                    {
+    >
 
-                        friend.online &&
+        <ArrowLeft size={22} />
 
-                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+    </button>
 
-                    }
+    <div className="relative">
 
-                </div>
+        <div className="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
 
-                <div>
+            {friend.fullName.charAt(0)}
 
-                    <h2 className="font-semibold text-lg">
+        </div>
 
-                        {friend.fullName}
+        {
 
-                    </h2>
+            friend.online &&
 
-                    <p className={`text-sm ${friend.online
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
 
-                            ? "text-green-600"
+        }
 
-                            : "text-slate-500"
+    </div>
 
-                        }`}>
+    <div>
 
-                        {
+        <h2 className="font-semibold text-lg">
 
-                            friend.online
+            {friend.fullName}
 
-                                ?
+        </h2>
 
-                                "Online"
+        <p
 
-                                :
+            className={`text-sm ${
 
-                                "Last seen recently"
+                friend.online
 
-                        }
+                    ? "text-green-600"
 
-                    </p>
+                    : "text-slate-500"
 
-                </div>
+            }`}
 
-            </div>
+        >
+
+            {
+
+                friend.online
+
+                    ? "Online"
+
+                    : "Last seen recently"
+
+            }
+
+        </p>
+
+    </div>
+
+</div>
 
             <div className="flex items-center gap-3">
 

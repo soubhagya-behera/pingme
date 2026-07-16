@@ -82,6 +82,9 @@ ChatMessage dto = ChatMessage.builder()
 
         .id(savedMessage.getId())
 
+        // ⭐ NEW
+        .clientId(chatMessage.getClientId())
+
         .senderId(sender.getId())
 
         .receiverId(receiver.getId())

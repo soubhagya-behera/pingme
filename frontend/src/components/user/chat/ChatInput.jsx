@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { v4 as uuid } from "uuid";
 import { Send } from "lucide-react";
 import { sendChatMessage } from "../../../websocket/publisher";
 
@@ -16,17 +17,17 @@ export default function ChatInput({
 
     if (!friend) return;
 
-    if (!message.trim()) return;
+    if (message.trim() === "") return;
+
+    const clientId = uuid();
 
     const tempMessage = {
 
-        id: "temp-" + Date.now(),
+        id: clientId,
 
-        senderId: Number(
+        clientId,
 
-            localStorage.getItem("userId")
-
-        ),
+        senderId: Number(localStorage.getItem("userId")),
 
         receiverId: friend.id,
 
@@ -38,9 +39,12 @@ export default function ChatInput({
 
     };
 
+    // ⭐ Show instantly
     onMessageSent(tempMessage);
 
     sendChatMessage({
+
+        clientId,
 
         receiverId: friend.id,
 

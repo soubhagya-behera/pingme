@@ -13,6 +13,9 @@ public class ChatMessage {
 
     private Long id;
 
+    // ⭐ NEW
+    private String clientId;
+
     private Long senderId;
 
     private Long receiverId;

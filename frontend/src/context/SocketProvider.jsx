@@ -1,27 +1,18 @@
-import {
-    createContext,
-    useContext,
-    useEffect
-} from "react";
+import { createContext, useContext, useEffect } from "react";
+import { connectSocket, disconnectSocket } from "../websocket/socket";
+import { useAuth } from "./AuthContext";
 
-import {
-    connectSocket,
-    disconnectSocket
-} from "../websocket/socket";
-
-const SocketContext = createContext();
+const SocketContext = createContext(null);
 
 export function SocketProvider({ children }) {
 
+    const { token } = useAuth();
+
     useEffect(() => {
 
-        const token = localStorage.getItem("token");
+        if (!token) return;
 
-        if (token) {
-
-            connectSocket();
-
-        }
+        connectSocket();
 
         return () => {
 
@@ -29,7 +20,7 @@ export function SocketProvider({ children }) {
 
         };
 
-    }, []);
+    }, [token]);
 
     return (
 

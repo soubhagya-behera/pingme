@@ -4,11 +4,17 @@ import ChatHeader from "../../../components/user/chat/ChatHeader";
 import ChatMessages from "../../../components/user/chat/ChatMessages";
 import ChatInput from "../../../components/user/chat/ChatInput";
 import ChatService from "../../../services/ChatService";
-import { connectSocket, disconnectSocket } from "../../../websocket/socket";
+import {
+
+    whenSocketConnected
+
+}
+from "../../../websocket/socket";
 import { subscribeMessages, subscribePresence, subscribeMessageStatus } from "../../../websocket/subscriptions";
 
 export default function Chat() {
     const [selectedFriend, setSelectedFriend] = useState(null);
+    const [showChat, setShowChat] = useState(false);
     const selectedFriendRef = useRef(null);
     const [messages, setMessages] = useState([]);
     const [friends, setFriends] = useState([]);
@@ -23,47 +29,61 @@ export default function Chat() {
     }, [selectedFriend]);
 
     async function loadChatSidebar() {
-
-    try {
-
-        const response =
-            await ChatService.getChatSidebar();
-
-        setFriends(
-
-            response.data.data
-
-        );
-
-        setLoading(false);
-
+        try {
+            const response = await ChatService.getChatSidebar();
+            setFriends(response.data.data);
+            setLoading(false);
+        } catch (error) {
+            console.log(error);
+            setLoading(false);
+        }
     }
-
-    catch (error) {
-
-        console.log(error);
-
-        setLoading(false);
-
-    }
-
-}
 
     useEffect(() => {
         let messageSubscription;
         let presenceSubscription;
         let statusSubscription;
 
-        connectSocket(() => {
+        whenSocketConnected(() => {
             // 1. Private Messages Subscription
             messageSubscription = subscribeMessages(async (incoming) => {
+                console.log("========== MESSAGE RECEIVED ==========");
+                console.log(incoming);
+
                 const myId = Number(localStorage.getItem("userId"));
 
+                console.log("My Id :", myId);
+                console.log("Receiver :", incoming.receiverId);
+
+                // Receiver gets message -> Delivered
                 if (incoming.receiverId === myId) {
+                    console.log("CALLING markDelivered");
                     await ChatService.markDelivered(incoming.id);
+                    console.log("markDelivered FINISHED");
                 }
 
-                setMessages((prev) => {
+                // If receiver is currently viewing THIS chat,
+                // immediately mark it READ.
+                if (
+                    selectedFriendRef.current &&
+                    incoming.senderId === selectedFriendRef.current.id
+                ) {
+                    await ChatService.markRead(incoming.id);
+                }
+
+                setMessages(prev => {
+                    // Replace optimistic message
+                    const optimisticIndex = prev.findIndex(
+                        m => m.clientId && m.clientId === incoming.clientId
+                    );
+
+                    if (optimisticIndex !== -1) {
+                        const copy = [...prev];
+                        copy[optimisticIndex] = incoming;
+                        return copy;
+                    }
+
+                    // Ignore if another chat
                     const currentFriend = selectedFriendRef.current;
                     if (
                         currentFriend &&
@@ -72,10 +92,11 @@ export default function Chat() {
                     ) {
                         return prev;
                     }
-                    const exists = prev.some((m) => m.id === incoming.id);
-                    if (exists) {
+
+                    if (prev.some(m => m.id === incoming.id)) {
                         return prev;
                     }
+
                     return [...prev, incoming];
                 });
             });
@@ -110,11 +131,14 @@ export default function Chat() {
         });
 
         return () => {
-            if (messageSubscription) messageSubscription.unsubscribe();
-            if (presenceSubscription) presenceSubscription.unsubscribe();
-            if (statusSubscription) statusSubscription.unsubscribe();
-            disconnectSocket();
-        };
+
+    messageSubscription?.unsubscribe();
+
+    presenceSubscription?.unsubscribe();
+
+    statusSubscription?.unsubscribe();
+
+};
     }, []);
 
     async function loadHistory(friend) {
@@ -128,9 +152,18 @@ export default function Chat() {
 
     async function selectFriend(friend) {
         setSelectedFriend(friend);
-        setMessages([]);
-        await loadHistory(friend);
+        setShowChat(true);
+        const response = await ChatService.getHistory(friend.id);
+        setMessages(response.data.data);
         await ChatService.markConversationRead(friend.id);
+        
+        setMessages(prev =>
+            prev.map(message =>
+                message.senderId === friend.id
+                    ? { ...message, status: "READ" }
+                    : message
+            )
+        );
     }
 
     if (loading) {
@@ -142,32 +175,57 @@ export default function Chat() {
     }
 
     return (
-        <div className="grid grid-cols-[360px_1fr] gap-4 h-[calc(100vh-140px)]">
-            <ChatSidebar
-                friends={friends}
-                selectedFriend={selectedFriend}
-                onSelect={selectFriend}
-            />
+        <div className="h-[calc(100vh-140px)] flex">
+            <div
+className={`
+w-full
+md:w-[360px]
+${showChat ? "hidden md:block" : "block"}
+`}
+>
 
-            <div className="rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden">
+<ChatSidebar
+friends={friends}
+selectedFriend={selectedFriend}
+onSelect={selectFriend}
+/>
+
+</div>
+
+            <div
+className={`
+flex-1
+${showChat ? "block" : "hidden md:flex"}
+rounded-3xl
+border
+border-slate-200
+bg-white
+shadow-sm
+flex
+flex-col
+overflow-hidden
+`}
+>
                 {selectedFriend ? (
                     <>
-                        <ChatHeader friend={selectedFriend} />
+                        <ChatHeader
+
+friend={selectedFriend}
+
+onBack={() => {
+
+setShowChat(false);
+
+}}
+
+ />
                         <ChatMessages messages={messages} />
                         <ChatInput
-    friend={selectedFriend}
-    onMessageSent={(message) => {
-
-        setMessages(prev => [
-
-            ...prev,
-
-            message
-
-        ]);
-
-    }}
-/>
+                            friend={selectedFriend}
+                            onMessageSent={(message) => {
+                                setMessages(prev => [...prev, message]);
+                            }}
+                        />
                     </>
                 ) : (
                     <div className="flex-1 flex items-center justify-center text-slate-400 text-xl">

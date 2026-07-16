@@ -1,4 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import {
+
+    disconnectSocket
+
+}
+from "../websocket/socket";
 
 const AuthContext = createContext();
 
@@ -77,6 +83,8 @@ export function AuthProvider({ children }) {
 };
 
     const logout = ()=>{
+
+        disconnectSocket();
 
     setUser(null);
 
