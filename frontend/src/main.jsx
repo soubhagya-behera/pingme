@@ -9,24 +9,30 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { SocketProvider } from "./context/SocketProvider";
 
+import { ChatRealtimeProvider } from "./context/ChatRealtimeContext";
+
 import { Toaster } from "react-hot-toast";
 
 createRoot(document.getElementById("root")).render(
 
     <AuthProvider>
 
-        <SocketProvider>
+    <SocketProvider>
+
+        <ChatRealtimeProvider>
 
             <ThemeProvider>
 
-                <Toaster position="top-right" />
+                <Toaster position="top-right"/>
 
-                <App />
+                <App/>
 
             </ThemeProvider>
 
-        </SocketProvider>
+        </ChatRealtimeProvider>
 
-    </AuthProvider>
+    </SocketProvider>
+
+</AuthProvider>
 
 );
