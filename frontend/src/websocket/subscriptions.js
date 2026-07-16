@@ -124,3 +124,23 @@ export function subscribeFriends(callback){
     );
 
 }
+
+export function subscribeTyping(callback) {
+
+    return getSocketClient().subscribe(
+
+        "/user/queue/typing",
+
+        message => {
+
+            callback(
+
+                JSON.parse(message.body)
+
+            );
+
+        }
+
+    );
+
+}

@@ -1,6 +1,7 @@
 package com.soubhagya.pingme.service;
 
 import com.soubhagya.pingme.dto.chat.ChatMessage;
+import com.soubhagya.pingme.dto.chat.TypingEvent;
 
 public interface ChatService {
 
@@ -20,6 +21,12 @@ void markConversationAsRead(
 
 void replayUndeliveredMessages(String receiverEmail);
 
+void sendTypingEvent(
 
+        TypingEvent event,
+
+        String senderEmail
+
+);
 
 }

@@ -1,4 +1,4 @@
-package com.soubhagya.pingme.websocket;
+package com.soubhagya.pingme.dto.chat;
 
 import lombok.*;
 
@@ -7,11 +7,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TypingMessage {
+public class TypingEvent {
 
     private Long receiverId;
-
-    private String senderName;
 
     private boolean typing;
 

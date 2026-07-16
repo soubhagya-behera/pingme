@@ -4,7 +4,8 @@ export default function ChatHeader({
 
 friend,
 
-onBack
+onBack,
+typing
 
 }) {
 
@@ -55,30 +56,22 @@ onBack
         </h2>
 
         <p
-
-            className={`text-sm ${
-
-                friend.online
-
-                    ? "text-green-600"
-
-                    : "text-slate-500"
-
-            }`}
-
-        >
-
-            {
-
-                friend.online
-
-                    ? "Online"
-
-                    : "Last seen recently"
-
-            }
-
-        </p>
+    className={`text-sm ${
+        typing
+            ? "text-indigo-600 font-medium"
+            : friend.online
+                ? "text-green-600"
+                : "text-slate-500"
+    }`}
+>
+    {
+        typing
+            ? "Typing..."
+            : friend.online
+                ? "Online"
+                : "Last seen recently"
+    }
+</p>
 
     </div>
 

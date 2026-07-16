@@ -14,11 +14,40 @@ export default function Chat() {
     const [messages, setMessages] = useState([]);
     const [friends, setFriends] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [typingUsers, setTypingUsers] = useState(new Set());
     const socket = useSocket();
+
+const { onTyping } = socket;
 
     useEffect(() => { loadChatSidebar(); }, []);
     useEffect(() => { selectedFriendRef.current = selectedFriend; }, [selectedFriend]);
+    useEffect(() => {
 
+    const unsubscribe = onTyping(event => {
+
+        setTypingUsers(prev => {
+
+            const copy = new Set(prev);
+
+            if (event.typing) {
+
+                copy.add(event.receiverId);
+
+            } else {
+
+                copy.delete(event.receiverId);
+
+            }
+
+            return copy;
+
+        });
+
+    });
+
+    return unsubscribe;
+
+}, [onTyping]);
     useEffect(() => {
         if (!socket) return;
         const removeMessage = socket.onMessage(incoming => {
@@ -74,7 +103,15 @@ export default function Chat() {
         </div>
         <div className={`flex-1 ${showChat ? "block" : "hidden md:flex"} rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden`}>
             {selectedFriend ? <>
-                <ChatHeader friend={selectedFriend} onBack={() => setShowChat(false)} />
+                <ChatHeader friend={selectedFriend} onBack={() => setShowChat(false)} typing={
+
+        selectedFriend
+
+            ? typingUsers.has(selectedFriend.id)
+
+            : false
+
+    }/>
                 <ChatMessages messages={messages} />
                 <ChatInput friend={selectedFriend} onMessageSent={message => setMessages(previous => [...previous, message])} />
             </> : <div className="flex-1 flex items-center justify-center text-slate-400 text-xl">Select a friend to start chatting</div>}

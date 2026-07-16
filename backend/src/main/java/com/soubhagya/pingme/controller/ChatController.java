@@ -16,7 +16,7 @@ import com.soubhagya.pingme.dto.request.UpdateMessageStatusRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import java.security.Principal;
-
+import com.soubhagya.pingme.dto.chat.TypingEvent;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -70,6 +70,25 @@ public ResponseEntity<?> sendHttpMessage(
     public void ready(Principal principal) {
         chatService.replayUndeliveredMessages(principal.getName());
     }
+
+    @MessageMapping("/chat.typing")
+public void typing(
+
+        TypingEvent event,
+
+        Principal principal
+
+){
+
+    chatService.sendTypingEvent(
+
+            event,
+
+            principal.getName()
+
+    );
+
+}
 
 @PostMapping("/read/{friendId}")
 public void markConversationRead(

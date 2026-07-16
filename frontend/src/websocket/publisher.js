@@ -27,3 +27,39 @@ export function acknowledgeRead(messageId) {
 export function announceSocketReady() {
     publish("/app/chat.ready");
 }
+
+export function sendTyping(receiverId) {
+
+    publish(
+
+        "/app/chat.typing",
+
+        {
+
+            receiverId,
+
+            typing: true
+
+        }
+
+    );
+
+}
+
+export function sendStopTyping(receiverId) {
+
+    publish(
+
+        "/app/chat.typing",
+
+        {
+
+            receiverId,
+
+            typing: false
+
+        }
+
+    );
+
+}

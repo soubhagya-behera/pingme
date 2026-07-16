@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import com.soubhagya.pingme.dto.chat.TypingEvent;
+
 @Service
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
@@ -101,6 +103,75 @@ public class ChatServiceImpl implements ChatService {
             messagingTemplate.convertAndSendToUser(receiverEmail, "/queue/messages", toEvent(message, null));
         }
     }
+
+    @Override
+@Transactional(readOnly = true)
+public void sendTypingEvent(
+
+        TypingEvent event,
+
+        String senderEmail
+
+) {
+
+    // Find sender
+    User sender = userRepository.findByEmail(senderEmail)
+
+            .orElseThrow(() ->
+
+                    new RuntimeException("Sender not found"));
+
+    // Find receiver
+    User receiver = userRepository.findById(event.getReceiverId())
+
+            .orElseThrow(() ->
+
+                    new RuntimeException("Receiver not found"));
+
+    // Security:
+    // Only friends can send typing events
+    boolean areFriends =
+
+            friendRepository.existsByUserOneAndUserTwoOrUserOneAndUserTwo(
+
+                    sender,
+
+                    receiver,
+
+                    receiver,
+
+                    sender
+
+            );
+
+    if (!areFriends) {
+
+        throw new RuntimeException(
+
+                "Typing not allowed."
+
+        );
+
+    }
+
+    // Send ONLY to receiver
+    messagingTemplate.convertAndSendToUser(
+
+            receiver.getEmail(),
+
+            "/queue/typing",
+
+            TypingEvent.builder()
+
+                    .receiverId(sender.getId())
+
+                    .typing(event.isTyping())
+
+                    .build()
+
+    );
+
+}
 
     private void publishReceipt(Message message, MessageStatus status) {
         MessageStatusUpdate event = MessageStatusUpdate.builder()

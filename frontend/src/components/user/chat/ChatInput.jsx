@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { v4 as uuid } from "uuid";
 import { Send } from "lucide-react";
-import { sendChatMessage } from "../../../websocket/publisher";
+import { sendChatMessage, sendTyping, sendStopTyping } from "../../../websocket/publisher";
 
 export default function ChatInput({
 
@@ -12,6 +12,44 @@ export default function ChatInput({
 }){
 
     const [message, setMessage] = useState("");
+    const typingRef = useRef(false);
+    const typingTimeout = useRef(null);
+
+    function handleTyping(value){
+
+    setMessage(value);
+
+    if(!friend) return;
+
+    // First key pressed
+    if(!typingRef.current){
+
+        typingRef.current = true;
+
+        sendTyping(friend.id);
+
+    }
+
+    // Reset timer
+    if(typingTimeout.current){
+
+        clearTimeout(
+
+            typingTimeout.current
+
+        );
+
+    }
+
+    typingTimeout.current = setTimeout(()=>{
+
+        typingRef.current = false;
+
+        sendStopTyping(friend.id);
+
+    },1500);
+
+}
 
     function send() {
 
@@ -42,6 +80,24 @@ export default function ChatInput({
     // ⭐ Show instantly
     onMessageSent(tempMessage);
 
+    if(typingRef.current){
+
+    typingRef.current = false;
+
+    clearTimeout(
+
+        typingTimeout.current
+
+    );
+
+    sendStopTyping(
+
+        friend.id
+
+    );
+
+}
+
     sendChatMessage({
 
         clientId,
@@ -64,7 +120,7 @@ export default function ChatInput({
 
                 value={message}
 
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => handleTyping(e.target.value)}
 
                 placeholder="Type a message..."
 
