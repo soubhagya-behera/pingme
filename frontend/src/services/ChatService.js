@@ -34,34 +34,6 @@ const ChatService = {
 
     },
 
-    async markDelivered(messageId) {
-
-    const response = await api.post(
-        "/chat/delivered",
-        {
-            messageId
-        }
-    );
-
-    return response;
-},
-
-markRead(messageId) {
-
-    return api.post(
-
-        "/chat/read",
-
-        {
-
-            messageId
-
-        }
-
-    );
-
-},
-
 markConversationRead(friendId) {
 
     return api.post(

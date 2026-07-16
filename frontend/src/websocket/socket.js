@@ -6,6 +6,7 @@ let stompClient = null;
 let connected = false;
 
 let waitingCallbacks = [];
+let connectionListeners = new Set();
 
 export function connectSocket() {
 
@@ -37,6 +38,7 @@ export function connectSocket() {
         waitingCallbacks.forEach(cb => cb());
 
         waitingCallbacks = [];
+        connectionListeners.forEach(cb => cb());
     },
 
     onDisconnect: () => {
@@ -92,4 +94,11 @@ export function whenSocketConnected(callback){
 
     waitingCallbacks.push(callback);
 
+}
+
+// Unlike whenSocketConnected, this is called after every successful reconnect.
+export function onSocketConnected(callback) {
+    connectionListeners.add(callback);
+    if (connected) callback();
+    return () => connectionListeners.delete(callback);
 }

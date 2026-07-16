@@ -9,14 +9,16 @@ public interface ChatService {
         String email
 );
 
-void markAsDelivered(Long messageId);
+void markAsDelivered(Long messageId, String receiverEmail);
 
-void markAsRead(Long messageId);
+void markAsRead(Long messageId, String receiverEmail);
 
 void markConversationAsRead(
         Long friendId,
         String email
 );
+
+void replayUndeliveredMessages(String receiverEmail);
 
 
 

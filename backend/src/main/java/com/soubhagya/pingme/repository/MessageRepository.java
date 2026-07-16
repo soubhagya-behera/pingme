@@ -7,6 +7,8 @@ import com.soubhagya.pingme.enums.MessageStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 
 import java.util.List;
 
@@ -60,6 +62,12 @@ List<Message> findBySenderAndReceiverAndStatus(
         User receiver,
         MessageStatus status
 );
+
+List<Message> findByReceiverAndStatus(User receiver, MessageStatus status);
+
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("select m from Message m where m.id = :messageId")
+java.util.Optional<Message> findByIdForReceipt(@Param("messageId") Long messageId);
 
 void deleteBySenderOrReceiver(User sender, User receiver);
 

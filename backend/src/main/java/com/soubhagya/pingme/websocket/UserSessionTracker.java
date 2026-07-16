@@ -1,54 +1,24 @@
 package com.soubhagya.pingme.websocket;
 
-import org.springframework.stereotype.Component;
-
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import org.springframework.stereotype.Component;
 
 @Component
 public class UserSessionTracker {
+    private final ConcurrentHashMap<String, Set<String>> sessions = new ConcurrentHashMap<>();
 
-    private final ConcurrentHashMap<String, AtomicInteger> sessions =
-            new ConcurrentHashMap<>();
-
-    public void connected(String email){
-
-        sessions.compute(email,(k,v)->{
-
-            if(v==null){
-
-                return new AtomicInteger(1);
-
-            }
-
-            v.incrementAndGet();
-
-            return v;
-
-        });
-
+    public void connected(String email, String sessionId) {
+        sessions.computeIfAbsent(email, ignored -> ConcurrentHashMap.newKeySet()).add(sessionId);
     }
 
-    public boolean disconnected(String email){
-
-        AtomicInteger count = sessions.get(email);
-
-        if(count==null){
-
-            return true;
-
-        }
-
-        if(count.decrementAndGet()<=0){
-
-            sessions.remove(email);
-
-            return true;
-
-        }
-
-        return false;
-
+    /** Returns true only when the final session for this user has gone away. */
+    public boolean disconnected(String email, String sessionId) {
+        Set<String> userSessions = sessions.get(email);
+        if (userSessions == null) return true;
+        userSessions.remove(sessionId);
+        if (!userSessions.isEmpty()) return false;
+        sessions.remove(email, userSessions);
+        return true;
     }
-
 }

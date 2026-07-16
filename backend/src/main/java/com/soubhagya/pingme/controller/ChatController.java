@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.soubhagya.pingme.dto.request.UpdateMessageStatusRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
+import java.security.Principal;
 
 
 @RestController
@@ -48,34 +49,27 @@ public ResponseEntity<?> sendHttpMessage(
     @MessageMapping("/chat.send")
     public void sendMessage(
             ChatMessage message,
-            SimpMessageHeaderAccessor headerAccessor) {
-
-        String email =
-                (String) headerAccessor
-                        .getSessionAttributes()
-                        .get("email");
-
-        chatService.sendMessage(message, email);
+            Principal principal) {
+        chatService.sendMessage(message, principal.getName());
 
     }
 
     
 
- @PostMapping("/delivered")
-public void markDelivered(
-        @RequestBody UpdateMessageStatusRequest request){
+    @MessageMapping("/chat.delivered")
+    public void markDelivered(UpdateMessageStatusRequest request, Principal principal) {
+        chatService.markAsDelivered(request.getMessageId(), principal.getName());
+    }
 
-    chatService.markAsDelivered(request.getMessageId());
+    @MessageMapping("/chat.read")
+    public void markRead(UpdateMessageStatusRequest request, Principal principal) {
+        chatService.markAsRead(request.getMessageId(), principal.getName());
+    }
 
-}
-
-@PostMapping("/read")
-public void markRead(
-        @RequestBody UpdateMessageStatusRequest request){
-
-    chatService.markAsRead(request.getMessageId());
-
-}
+    @MessageMapping("/chat.ready")
+    public void ready(Principal principal) {
+        chatService.replayUndeliveredMessages(principal.getName());
+    }
 
 @PostMapping("/read/{friendId}")
 public void markConversationRead(

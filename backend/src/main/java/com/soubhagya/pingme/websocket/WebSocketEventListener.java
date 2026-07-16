@@ -43,7 +43,7 @@ public void handleConnect(SessionConnectEvent event) {
 
     String email = emailObj.toString();
 
-    sessionTracker.connected(email);
+    sessionTracker.connected(email, accessor.getSessionId());
 
     User user =
             userRepository.findByEmail(email)
@@ -87,7 +87,7 @@ public void handleConnect(SessionConnectEvent event) {
         StompHeaderAccessor accessor =
                 StompHeaderAccessor.wrap(event.getMessage());
 
-        Object emailObj =
+        Object emailObj = accessor.getSessionAttributes() == null ? null :
                 accessor.getSessionAttributes().get("email");
 
         if (emailObj == null) {
@@ -100,7 +100,7 @@ public void handleConnect(SessionConnectEvent event) {
 
         // If another WebSocket session is still active,
         // don't mark the user offline.
-        if (!sessionTracker.disconnected(email)) {
+        if (!sessionTracker.disconnected(email, accessor.getSessionId())) {
 
             System.out.println(email + " still has active sessions.");
 

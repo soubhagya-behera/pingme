@@ -2,12 +2,8 @@ import { getSocketClient } from "./socket";
 
 export function subscribeMessages(callback) {
 
-    const userId =
-        localStorage.getItem("userId");
-
     return getSocketClient().subscribe(
-
-        `/topic/messages/${userId}`,
+        "/user/queue/messages",
 
         message => {
 
@@ -45,12 +41,8 @@ export function subscribePresence(callback) {
 
 export function subscribeMessageStatus(callback) {
 
-    const userId =
-        localStorage.getItem("userId");
-
     return getSocketClient().subscribe(
-
-        `/topic/status/${userId}`,
+        "/user/queue/receipts",
 
         status => {
 
