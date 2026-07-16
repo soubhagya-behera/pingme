@@ -35,6 +35,8 @@ public class ChatServiceImpl implements ChatService {
         ChatMessage chatMessage,
         String email) {
 
+                System.out.println("sendMessage() called");
+
         User sender = userRepository.findByEmail(email)
         .orElseThrow(() ->
                 new RuntimeException("Sender not found"));
@@ -120,6 +122,7 @@ System.out.println("Message Saved & Broadcast Successfully");
 @Override
 public void markAsDelivered(Long messageId) {
 
+        System.out.println("markAsDelivered() called");
     System.out.println("DELIVER REQUEST : " + messageId);
 
     Message message = messageRepository.findById(messageId)
@@ -159,6 +162,7 @@ public void markAsDelivered(Long messageId) {
 @Override
 public void markAsRead(Long messageId) {
 
+        System.out.println("markAsRead() called");
     Message message = messageRepository.findById(messageId)
 
             .orElseThrow(() ->
@@ -190,57 +194,39 @@ public void markAsRead(Long messageId) {
 
 @Override
 public void markConversationAsRead(
-
         Long friendId,
-
         String email
-
-){
+) {
 
     User receiver = userRepository.findByEmail(email)
-
             .orElseThrow(() ->
                     new RuntimeException("User not found"));
 
     User sender = userRepository.findById(friendId)
-
             .orElseThrow(() ->
                     new RuntimeException("Friend not found"));
 
     List<Message> unreadMessages =
-
             messageRepository.findBySenderAndReceiverAndStatus(
-
                     sender,
-
                     receiver,
-
                     MessageStatus.DELIVERED
-
             );
 
-    for(Message message : unreadMessages){
+    for (Message message : unreadMessages) {
 
         message.setStatus(MessageStatus.READ);
 
         messageRepository.save(message);
 
         messagingTemplate.convertAndSend(
-
                 "/topic/status/" + sender.getId(),
-
                 MessageStatusUpdate.builder()
-
                         .messageId(message.getId())
-
                         .status("READ")
-
                         .build()
-
         );
-
     }
-
 }
 
 }

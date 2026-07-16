@@ -15,47 +15,48 @@ export function connectSocket() {
 
     const token = localStorage.getItem("token");
 
-    const socket = new SockJS(
-
-        `http://localhost:8080/ws?token=${token}`
-
-    );
 
     stompClient = new Client({
 
-        webSocketFactory: () => socket,
+    webSocketFactory: () =>
 
-        reconnectDelay: 5000,
+    new SockJS(
 
-        debug: () => {},
+        `http://localhost:8080/ws?token=${token}`
 
-        onConnect: () => {
+    ),
 
-            console.log("✅ WebSocket Connected");
+    reconnectDelay: 5000,
 
-            connected = true;
+    debug: () => {},
 
-            waitingCallbacks.forEach(callback => callback());
+    onConnect: () => {
 
-            waitingCallbacks = [];
+        connected = true;
 
-        },
+        waitingCallbacks.forEach(cb => cb());
 
-        onDisconnect: () => {
+        waitingCallbacks = [];
+    },
 
-            console.log("❌ WebSocket Disconnected");
+    onDisconnect: () => {
 
-            connected = false;
+        connected = false;
+    },
 
-        },
+    onWebSocketClose: (event) => {
 
-        onStompError: frame => {
+    },
 
-            console.error(frame);
+    onWebSocketError: (event) => {
 
-        }
+    },
 
-    });
+    onStompError: frame => {
+
+    }
+
+});
 
     stompClient.activate();
 

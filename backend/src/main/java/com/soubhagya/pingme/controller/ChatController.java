@@ -65,8 +65,6 @@ public ResponseEntity<?> sendHttpMessage(
 public void markDelivered(
         @RequestBody UpdateMessageStatusRequest request){
 
-    System.out.println("DELIVERED API CALLED : " + request.getMessageId());
-
     chatService.markAsDelivered(request.getMessageId());
 
 }
@@ -74,8 +72,6 @@ public void markDelivered(
 @PostMapping("/read")
 public void markRead(
         @RequestBody UpdateMessageStatusRequest request){
-
-    System.out.println("READ API CALLED : " + request.getMessageId());
 
     chatService.markAsRead(request.getMessageId());
 

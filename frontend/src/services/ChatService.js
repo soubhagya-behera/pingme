@@ -34,20 +34,16 @@ const ChatService = {
 
     },
 
-    markDelivered(messageId) {
+    async markDelivered(messageId) {
 
-    return api.post(
-
+    const response = await api.post(
         "/chat/delivered",
-
         {
-
             messageId
-
         }
-
     );
 
+    return response;
 },
 
 markRead(messageId) {

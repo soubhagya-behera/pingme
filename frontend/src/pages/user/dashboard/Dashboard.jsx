@@ -8,14 +8,10 @@ import PendingRequests from "../../../components/user/dashboard/PendingRequests"
 import DashboardService from "../../../services/DashboardService";
 
 import {
-    connectSocket,
-    disconnectSocket
-} from "../../../websocket/socket";
-
-import {
     subscribeDashboard,
     subscribeFriendRequests
 } from "../../../websocket/subscriptions";
+import { whenSocketConnected } from "../../../websocket/socket";
 
 export default function Dashboard() {
 
@@ -29,37 +25,31 @@ export default function Dashboard() {
 
     let friendRequestSubscription;
 
-    connectSocket(() => {
+    whenSocketConnected(() => {
 
-        dashboardSubscription =
+    dashboardSubscription = subscribeDashboard(async () => {
 
-            subscribeDashboard(async () => {
+        console.log("Dashboard Update");
 
-                console.log("Dashboard Update");
-
-                await loadDashboard();
-
-            });
-
-        friendRequestSubscription =
-
-            subscribeFriendRequests(async () => {
-
-                console.log("Friend Request Update");
-
-                await loadDashboard();
-
-            });
+        await loadDashboard();
 
     });
+
+    friendRequestSubscription = subscribeFriendRequests(async () => {
+
+        console.log("Friend Request Update");
+
+        await loadDashboard();
+
+    });
+
+});
 
     return () => {
 
         dashboardSubscription?.unsubscribe();
 
         friendRequestSubscription?.unsubscribe();
-
-        disconnectSocket();
 
     };
 

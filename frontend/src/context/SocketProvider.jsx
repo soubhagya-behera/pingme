@@ -1,7 +1,20 @@
 import { createContext, useContext, useEffect } from "react";
-import { connectSocket, disconnectSocket } from "../websocket/socket";
-import { useAuth } from "./AuthContext";
 
+import {
+    connectSocket,
+    disconnectSocket,
+    whenSocketConnected
+} from "../websocket/socket";
+
+import {
+    subscribeMessages,
+    subscribePresence,
+    subscribeMessageStatus
+} from "../websocket/subscriptions";
+
+import ChatService from "../services/ChatService";
+
+import { useAuth } from "./AuthContext";
 const SocketContext = createContext(null);
 
 export function SocketProvider({ children }) {
@@ -10,17 +23,39 @@ export function SocketProvider({ children }) {
 
     useEffect(() => {
 
-        if (!token) return;
+    if (!token) return;
 
-        connectSocket();
+    connectSocket();
 
-        return () => {
+    let messageSubscription;
+    let presenceSubscription;
+    let statusSubscription;
 
-            disconnectSocket();
+    whenSocketConnected(() => {
 
-        };
+        presenceSubscription = subscribePresence((status) => {
 
-    }, [token]);
+        });
+
+        statusSubscription = subscribeMessageStatus((status) => {
+
+        });
+
+    });
+
+    return () => {
+
+        messageSubscription?.unsubscribe();
+
+        presenceSubscription?.unsubscribe();
+
+        statusSubscription?.unsubscribe();
+
+        disconnectSocket();
+
+    };
+
+}, [token]);
 
     return (
 

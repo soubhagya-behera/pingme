@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-    connectSocket,
-    disconnectSocket
-} from "../../../websocket/socket";
+
 import {
     subscribeFriendRequests
 } from "../../../websocket/subscriptions";
@@ -13,6 +10,7 @@ import Input from "../../../components/ui/Input";
 import RequestStats from "../../../components/user/requests/RequestStats";
 import RequestCard from "../../../components/user/requests/RequestCard";
 import EmptyRequests from "../../../components/user/requests/EmptyRequests";
+import { whenSocketConnected } from "../../../websocket/socket";
 
 export default function FriendRequests() {
     // Step 2: Added stats and search states alongside requests state
@@ -21,22 +19,28 @@ export default function FriendRequests() {
     const [search, setSearch] = useState("");
 
     useEffect(() => {
-        loadRequests();
 
-        connectSocket(() => {
-            const subscription = subscribeFriendRequests(async () => {
-                await loadRequests();
-            });
+    loadRequests();
 
-            return () => {
-                subscription.unsubscribe();
-            };
-        });
+    let subscription;
 
-        return () => {
-            disconnectSocket();
-        };
-    }, []);
+whenSocketConnected(() => {
+
+    subscription = subscribeFriendRequests(async () => {
+
+        await loadRequests();
+
+    });
+
+});
+
+    return () => {
+
+        subscription.unsubscribe();
+
+    };
+
+}, []);
 
     // Step 3: Upgraded to fetch both requests and stats asynchronously via Promise.all
     async function loadRequests() {

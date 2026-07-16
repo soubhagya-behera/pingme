@@ -23,12 +23,8 @@ public class WebSocketEventListener {
    @EventListener
 public void handleConnect(SessionConnectEvent event) {
 
-    System.out.println("========== CONNECT EVENT ==========");
-
     StompHeaderAccessor accessor =
             StompHeaderAccessor.wrap(event.getMessage());
-
-    System.out.println("Session Attributes : " + accessor.getSessionAttributes());
 
     Object emailObj = null;
 

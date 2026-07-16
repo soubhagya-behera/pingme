@@ -45,31 +45,16 @@ export default function Chat() {
         let statusSubscription;
 
         whenSocketConnected(() => {
+
             // 1. Private Messages Subscription
             messageSubscription = subscribeMessages(async (incoming) => {
-                console.log("========== MESSAGE RECEIVED ==========");
-                console.log(incoming);
 
-                const myId = Number(localStorage.getItem("userId"));
+const myId = Number(localStorage.getItem("userId"));
 
-                console.log("My Id :", myId);
-                console.log("Receiver :", incoming.receiverId);
+if (incoming.receiverId === myId) {
 
-                // Receiver gets message -> Delivered
-                if (incoming.receiverId === myId) {
-                    console.log("CALLING markDelivered");
-                    await ChatService.markDelivered(incoming.id);
-                    console.log("markDelivered FINISHED");
-                }
-
-                // If receiver is currently viewing THIS chat,
-                // immediately mark it READ.
-                if (
-                    selectedFriendRef.current &&
-                    incoming.senderId === selectedFriendRef.current.id
-                ) {
-                    await ChatService.markRead(incoming.id);
-                }
+    await ChatService.markDelivered(incoming.id);
+}
 
                 setMessages(prev => {
                     // Replace optimistic message
@@ -101,6 +86,30 @@ export default function Chat() {
                 });
             });
 
+            statusSubscription = subscribeMessageStatus((messageStatus) => {
+
+    setMessages(prev => {
+
+        const found = prev.find(
+            m => m.id === messageStatus.messageId
+        );
+
+        const updated = prev.map(message =>
+            message.id === messageStatus.messageId
+                ? {
+                      ...message,
+                      status: messageStatus.status
+                  }
+                : message
+        );
+
+        return updated;
+
+    });
+
+});
+            
+
             // 2. Online / Offline Presence Subscription
             presenceSubscription = subscribePresence((status) => {
                 setFriends((prev) =>
@@ -119,15 +128,15 @@ export default function Chat() {
             });
 
             // 3. Message Status (Delivered / Read) Subscription
-            statusSubscription = subscribeMessageStatus((messageStatus) => {
-                setMessages((prev) =>
-                    prev.map((message) =>
-                        message.id === messageStatus.messageId
-                            ? { ...message, status: messageStatus.status }
-                            : message
-                    )
-                );
-            });
+            // statusSubscription = subscribeMessageStatus((messageStatus) => {
+            //     setMessages((prev) =>
+            //         prev.map((message) =>
+            //             message.id === messageStatus.messageId
+            //                 ? { ...message, status: messageStatus.status }
+            //                 : message
+            //         )
+            //     );
+            // });
         });
 
         return () => {
