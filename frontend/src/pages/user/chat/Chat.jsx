@@ -15,6 +15,7 @@ export default function Chat() {
     const [friends, setFriends] = useState([]);
     const [loading, setLoading] = useState(true);
     const [typingUsers, setTypingUsers] = useState(new Set());
+    const [replyingTo, setReplyingTo] = useState(null);
     const socket = useSocket();
 
 const { onTyping } = socket;
@@ -112,8 +113,28 @@ const { onTyping } = socket;
             : false
 
     }/>
-                <ChatMessages messages={messages} />
-                <ChatInput friend={selectedFriend} onMessageSent={message => setMessages(previous => [...previous, message])} />
+                <ChatMessages
+
+    messages={messages}
+
+    onReply={setReplyingTo}
+
+/>
+                <ChatInput
+
+    friend={selectedFriend}
+
+    replyingTo={replyingTo}
+
+    clearReply={() => setReplyingTo(null)}
+
+    onMessageSent={message =>
+
+        setMessages(previous => [...previous, message])
+
+    }
+
+/>
             </> : <div className="flex-1 flex items-center justify-center text-slate-400 text-xl">Select a friend to start chatting</div>}
         </div>
     </div>;
