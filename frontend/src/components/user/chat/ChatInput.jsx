@@ -129,7 +129,7 @@ function onEmojiClick(emojiData){
 
         text.substring(end);
 
-    setMessage(updated);
+    handleTyping(updated);
 
     requestAnimationFrame(()=>{
 
