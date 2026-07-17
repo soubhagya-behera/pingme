@@ -21,6 +21,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import com.soubhagya.pingme.dto.chat.TypingEvent;
 
+import com.soubhagya.pingme.dto.chat.ReplyPreview;
+
 @Service
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
@@ -38,9 +40,39 @@ public class ChatServiceImpl implements ChatService {
             throw new RuntimeException("You can only chat with accepted friends.");
         }
 
-        Message saved = messageRepository.save(Message.builder()
-                .sender(sender).receiver(receiver).content(request.getContent())
-                .messageType(MessageType.TEXT).status(MessageStatus.SENT).sentAt(LocalDateTime.now()).build());
+        Message.MessageBuilder builder = Message.builder()
+        .sender(sender)
+        .receiver(receiver)
+        .content(request.getContent())
+        .messageType(MessageType.TEXT)
+        .status(MessageStatus.SENT)
+        .sentAt(LocalDateTime.now());
+
+if (request.getReplyToId() != null) {
+
+    Message replyMessage = messageRepository.findById(request.getReplyToId())
+            .orElseThrow(() -> new RuntimeException("Reply message not found"));
+
+    // Security:
+    // You can only reply to a message that belongs to this conversation.
+    boolean validConversation =
+            (replyMessage.getSender().getId().equals(sender.getId())
+                    && replyMessage.getReceiver().getId().equals(receiver.getId()))
+            ||
+            (replyMessage.getSender().getId().equals(receiver.getId())
+                    && replyMessage.getReceiver().getId().equals(sender.getId()));
+
+    if (!validConversation) {
+
+        throw new RuntimeException("Invalid reply message.");
+
+    }
+
+    builder.replyTo(replyMessage);
+
+}
+
+Message saved = messageRepository.save(builder.build());
         ChatMessage event = toEvent(saved, request.getClientId());
         String senderEmailForDelivery = sender.getEmail();
         String receiverEmailForDelivery = receiver.getEmail();
@@ -182,10 +214,44 @@ public void sendTypingEvent(
     }
 
     private ChatMessage toEvent(Message message, String clientId) {
-        return ChatMessage.builder().id(message.getId()).clientId(clientId)
-                .senderId(message.getSender().getId()).receiverId(message.getReceiver().getId())
-                .content(message.getContent()).sentAt(message.getSentAt()).status(message.getStatus().name()).build();
+
+    ReplyPreview reply = null;
+
+    if (message.getReplyTo() != null) {
+
+        reply = ReplyPreview.builder()
+
+                .id(message.getReplyTo().getId())
+
+                .senderId(message.getReplyTo().getSender().getId())
+
+                .content(message.getReplyTo().getContent())
+
+                .build();
+
     }
+
+    return ChatMessage.builder()
+
+            .id(message.getId())
+
+            .clientId(clientId)
+
+            .senderId(message.getSender().getId())
+
+            .receiverId(message.getReceiver().getId())
+
+            .content(message.getContent())
+
+            .sentAt(message.getSentAt())
+
+            .status(message.getStatus().name())
+
+            .reply(reply)
+
+            .build();
+
+}
 
     private void afterCommit(Runnable action) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {

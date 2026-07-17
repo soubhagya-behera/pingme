@@ -4,6 +4,8 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+import com.soubhagya.pingme.dto.chat.ReplyPreview;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,5 +26,7 @@ public class MessageResponse {
     private String status;
 
     private LocalDateTime sentAt;
+
+    private ReplyPreview reply;
 
 }

@@ -4,6 +4,8 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,5 +27,9 @@ public class ChatMessage {
     private LocalDateTime sentAt;
 
     private String status;
+
+    private Long replyToId;
+
+    private ReplyPreview reply;
 
 }
