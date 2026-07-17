@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import { useAuth } from "../../../context/AuthContext";
 
-export default function ChatMessages({ messages }) {
+export default function ChatMessages({ messages, onReply }) {
 
     const { user } = useAuth();
 
@@ -44,6 +44,8 @@ export default function ChatMessages({ messages }) {
 
     key={message.id}
 
+    message={message}
+
     mine={message.senderId===user.id}
 
     text={message.content}
@@ -51,6 +53,8 @@ export default function ChatMessages({ messages }) {
     time={message.sentAt}
 
     status={message.status}
+
+    onReply={onReply}
 
 />
 
