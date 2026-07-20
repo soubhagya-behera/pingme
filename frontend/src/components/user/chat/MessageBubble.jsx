@@ -1,4 +1,4 @@
-import { Reply } from "lucide-react";
+import MessageActionsMenu from "./MessageActionsMenu";
 
 export default function MessageBubble({
     message,
@@ -6,7 +6,9 @@ export default function MessageBubble({
     text,
     time,
     status,
-    onReply
+    onReply,
+    onEdit,
+    onDelete
 }) {
     function getStatus() {
         if (!mine) return null;
@@ -33,36 +35,23 @@ export default function MessageBubble({
         return null;
     }
 
-    const showReply = () => {
-        if (onReply) {
-            onReply(message);
-        }
-    };
-
     return (
         <div
             className={`
-                flex 
-                ${mine ? "justify-end" : "justify-start"} 
+                flex
+                items-start
+                ${mine ? "justify-end" : "justify-start"}
                 group
             `}
         >
-            {/* Reply button for incoming messages */}
             {!mine && (
-                <button
-                    onClick={showReply}
-                    className="
-                        opacity-0
-                        group-hover:opacity-100
-                        transition
-                        mr-2
-                        self-center
-                        text-slate-500
-                        hover:text-indigo-600
-                    "
-                >
-                    <Reply size={18} />
-                </button>
+                <MessageActionsMenu
+                    mine={mine}
+                    message={message}
+                    onReply={onReply}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                />
             )}
 
             <div
@@ -156,22 +145,14 @@ export default function MessageBubble({
                 </div>
             </div>
 
-            {/* Reply button for outgoing messages */}
             {mine && (
-                <button
-                    onClick={showReply}
-                    className="
-                        opacity-0
-                        group-hover:opacity-100
-                        transition
-                        ml-2
-                        self-center
-                        text-slate-500
-                        hover:text-indigo-600
-                    "
-                >
-                    <Reply size={18} />
-                </button>
+                <MessageActionsMenu
+                    mine={mine}
+                    message={message}
+                    onReply={onReply}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                />
             )}
         </div>
     );
