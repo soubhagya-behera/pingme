@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef } from "react";
 import { connectSocket, disconnectSocket, whenSocketConnected, onSocketConnected } from "../websocket/socket";
-import { subscribeMessages, subscribePresence, subscribeMessageStatus, subscribeTyping, subscribeMessageEdited } from "../websocket/subscriptions";
+import { subscribeMessages, subscribePresence, subscribeMessageStatus, subscribeTyping, subscribeMessageEdited, subscribeMessageDeleted } from "../websocket/subscriptions";
 import { acknowledgeDelivery, announceSocketReady } from "../websocket/publisher";
 import { useAuth } from "./AuthContext";
 
@@ -13,6 +13,7 @@ export function SocketProvider({ children }) {
     const presenceListeners = useRef(new Set());
     const typingListeners = useRef(new Set());
     const messageEditedListeners = useRef(new Set());
+    const messageDeletedListeners = useRef(new Set());
 
     useEffect(() => {
         if (!token) return;
@@ -22,6 +23,7 @@ export function SocketProvider({ children }) {
         let receiptSubscription;
         let typingSubscription;
         let messageEditedSubscription;
+        let messageDeletedSubscription;
         let removeReconnectListener;
         connectSocket();
 
@@ -54,6 +56,13 @@ export function SocketProvider({ children }) {
                     )
             );
 
+            messageDeletedSubscription = subscribeMessageDeleted(
+                deleted =>
+                    messageDeletedListeners.current.forEach(
+                        listener => listener(deleted)
+                    )
+            );
+
             // Sent after all inbox subscriptions exist, so reconnects replay unacknowledged messages safely.
             announceSocketReady();
             removeReconnectListener = onSocketConnected(announceSocketReady);
@@ -66,6 +75,7 @@ export function SocketProvider({ children }) {
             presenceSubscription?.unsubscribe();
             typingSubscription?.unsubscribe();
             messageEditedSubscription?.unsubscribe();
+            messageDeletedSubscription?.unsubscribe();
             removeReconnectListener?.();
             disconnectSocket();
         };
@@ -96,6 +106,11 @@ export function SocketProvider({ children }) {
             messageEditedListeners.current.add(listener);
             return () =>
                 messageEditedListeners.current.delete(listener);
+        },
+        onMessageDeleted: listener => {
+            messageDeletedListeners.current.add(listener);
+            return () =>
+                messageDeletedListeners.current.delete(listener);
         }
     };
 

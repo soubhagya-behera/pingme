@@ -64,7 +64,15 @@ editMessage(messageId, content) {
 
 },
 
+deleteForEveryone(messageId) {
 
+    return axios.delete(
+
+        `/chat/messages/${messageId}`
+
+    );
+
+},
 
 };
 

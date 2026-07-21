@@ -21,7 +21,8 @@ export default function Chat() {
 
     const {
         onTyping,
-        onMessageEdited
+        onMessageEdited,
+        onMessageDeleted
     } = socket;
 
     useEffect(() => { loadChatSidebar(); }, []);
@@ -60,6 +61,24 @@ export default function Chat() {
         });
         return unsubscribe;
     }, [onMessageEdited]);
+
+    useEffect(() => {
+        if (!onMessageDeleted) return;
+        const unsubscribe = onMessageDeleted(event => {
+            setMessages(previous =>
+                previous.map(message =>
+                    message.id === event.messageId
+                        ? {
+                            ...message,
+                            deletedForEveryone: true,
+                            deletedAt: event.deletedAt
+                        }
+                        : message
+                )
+            );
+        });
+        return unsubscribe;
+    }, [onMessageDeleted]);
 
     useEffect(() => {
         if (!socket) return;

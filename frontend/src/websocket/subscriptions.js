@@ -165,4 +165,22 @@ export function subscribeMessageEdited(callback) {
 
 }
 
+export function subscribeMessageDeleted(callback) {
 
+    return stompClient.subscribe(
+
+        "/user/queue/message-deleted",
+
+        (message) => {
+
+            callback(
+
+                JSON.parse(message.body)
+
+            );
+
+        }
+
+    );
+
+}
