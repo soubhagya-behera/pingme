@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { v4 as uuid } from "uuid";
 import { Send, Smile, X, Reply } from "lucide-react";
+import ChatService from "../../../services/ChatService";
 import { sendChatMessage, sendTyping, sendStopTyping } from "../../../websocket/publisher";
 import EmojiPicker from "emoji-picker-react";
 
@@ -8,6 +9,8 @@ export default function ChatInput({
     friend,
     replyingTo,
     clearReply,
+    editingMessage,
+    clearEditing,
     onMessageSent
 }) {
     const [message, setMessage] = useState("");
@@ -17,6 +20,14 @@ export default function ChatInput({
     const pickerRef = useRef(null);
     const typingRef = useRef(false);
     const typingTimeout = useRef(null);
+
+    useEffect(() => {
+        if (!editingMessage) return;
+        setMessage(editingMessage.content);
+        requestAnimationFrame(() => {
+            inputRef.current?.focus();
+        });
+    }, [editingMessage]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -83,6 +94,29 @@ export default function ChatInput({
     function send() {
         if (!friend) return;
         if (message.trim() === "") return;
+
+        if (editingMessage) {
+            if (typingRef.current) {
+
+    typingRef.current = false;
+
+    clearTimeout(typingTimeout.current);
+
+    sendStopTyping(friend.id);
+
+}
+            ChatService.editMessage(
+                editingMessage.id,
+                message
+            )
+            .then(() => {
+                setMessage("");
+                clearEditing?.();
+            })
+            .catch(console.error);
+            return;
+        }
+
         const clientId = uuid();
         const tempMessage = {
             id: clientId,
@@ -116,6 +150,28 @@ export default function ChatInput({
 
     return (
         <div className="relative border-t bg-white px-5 py-4">
+            {editingMessage && (
+                <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 flex justify-between items-start">
+                    <div>
+                        <div className="font-medium text-sm text-amber-700">
+                            Editing Message
+                        </div>
+                        <div className="text-sm text-slate-600 line-clamp-2">
+                            {editingMessage.content}
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => {
+                            clearEditing();
+                            setMessage("");
+                        }}
+                        className="text-slate-500 hover:text-red-500"
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
+            )}
+
             {replyingTo && (
                 <div className="mb-3 rounded-xl border bg-slate-100 px-4 py-3 flex justify-between items-start">
                     <div>

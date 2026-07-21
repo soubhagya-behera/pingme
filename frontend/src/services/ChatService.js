@@ -48,6 +48,22 @@ getChatSidebar() {
     return api.get("/messages/chat-sidebar");
 },
 
+editMessage(messageId, content) {
+
+    return api.put(
+
+        `/chat/messages/${messageId}`,
+
+        {
+
+            content
+
+        }
+
+    );
+
+},
+
 };
 
 export default ChatService;

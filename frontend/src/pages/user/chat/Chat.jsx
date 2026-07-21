@@ -16,39 +16,51 @@ export default function Chat() {
     const [loading, setLoading] = useState(true);
     const [typingUsers, setTypingUsers] = useState(new Set());
     const [replyingTo, setReplyingTo] = useState(null);
+    const [editingMessage, setEditingMessage] = useState(null);
     const socket = useSocket();
 
-const { onTyping } = socket;
+    const {
+        onTyping,
+        onMessageEdited
+    } = socket;
 
     useEffect(() => { loadChatSidebar(); }, []);
     useEffect(() => { selectedFriendRef.current = selectedFriend; }, [selectedFriend]);
+    
     useEffect(() => {
-
-    const unsubscribe = onTyping(event => {
-
-        setTypingUsers(prev => {
-
-            const copy = new Set(prev);
-
-            if (event.typing) {
-
-                copy.add(event.receiverId);
-
-            } else {
-
-                copy.delete(event.receiverId);
-
-            }
-
-            return copy;
-
+        const unsubscribe = onTyping(event => {
+            setTypingUsers(prev => {
+                const copy = new Set(prev);
+                if (event.typing) {
+                    copy.add(event.receiverId);
+                } else {
+                    copy.delete(event.receiverId);
+                }
+                return copy;
+            });
         });
+        return unsubscribe;
+    }, [onTyping]);
 
-    });
+    useEffect(() => {
+        if (!onMessageEdited) return;
+        const unsubscribe = onMessageEdited(event => {
+            setMessages(previous =>
+                previous.map(message =>
+                    message.id === event.messageId
+                        ? {
+                            ...message,
+                            content: event.content,
+                            edited: event.edited,
+                            editedAt: event.editedAt
+                        }
+                        : message
+                )
+            );
+        });
+        return unsubscribe;
+    }, [onMessageEdited]);
 
-    return unsubscribe;
-
-}, [onTyping]);
     useEffect(() => {
         if (!socket) return;
         const removeMessage = socket.onMessage(incoming => {
@@ -105,36 +117,25 @@ const { onTyping } = socket;
         <div className={`flex-1 ${showChat ? "block" : "hidden md:flex"} rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden`}>
             {selectedFriend ? <>
                 <ChatHeader friend={selectedFriend} onBack={() => setShowChat(false)} typing={
-
-        selectedFriend
-
-            ? typingUsers.has(selectedFriend.id)
-
-            : false
-
-    }/>
+                    selectedFriend
+                        ? typingUsers.has(selectedFriend.id)
+                        : false
+                }/>
                 <ChatMessages
-
-    messages={messages}
-
-    onReply={setReplyingTo}
-
-/>
+                    messages={messages}
+                    onReply={setReplyingTo}
+                    onEdit={setEditingMessage}
+                />
                 <ChatInput
-
-    friend={selectedFriend}
-
-    replyingTo={replyingTo}
-
-    clearReply={() => setReplyingTo(null)}
-
-    onMessageSent={message =>
-
-        setMessages(previous => [...previous, message])
-
-    }
-
-/>
+                    friend={selectedFriend}
+                    replyingTo={replyingTo}
+                    clearReply={() => setReplyingTo(null)}
+                    editingMessage={editingMessage}
+                    clearEditing={() => setEditingMessage(null)}
+                    onMessageSent={message =>
+                        setMessages(previous => [...previous, message])
+                    }
+                />
             </> : <div className="flex-1 flex items-center justify-center text-slate-400 text-xl">Select a friend to start chatting</div>}
         </div>
     </div>;

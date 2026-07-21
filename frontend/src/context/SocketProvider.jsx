@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef } from "react";
 import { connectSocket, disconnectSocket, whenSocketConnected, onSocketConnected } from "../websocket/socket";
-import { subscribeMessages, subscribePresence, subscribeMessageStatus, subscribeTyping } from "../websocket/subscriptions";
+import { subscribeMessages, subscribePresence, subscribeMessageStatus, subscribeTyping, subscribeMessageEdited } from "../websocket/subscriptions";
 import { acknowledgeDelivery, announceSocketReady } from "../websocket/publisher";
 import { useAuth } from "./AuthContext";
 
@@ -12,6 +12,7 @@ export function SocketProvider({ children }) {
     const receiptListeners = useRef(new Set());
     const presenceListeners = useRef(new Set());
     const typingListeners = useRef(new Set());
+    const messageEditedListeners = useRef(new Set());
 
     useEffect(() => {
         if (!token) return;
@@ -20,6 +21,7 @@ export function SocketProvider({ children }) {
         let presenceSubscription;
         let receiptSubscription;
         let typingSubscription;
+        let messageEditedSubscription;
         let removeReconnectListener;
         connectSocket();
 
@@ -39,16 +41,19 @@ export function SocketProvider({ children }) {
             );
 
             typingSubscription = subscribeTyping(
+                typing =>
+                    typingListeners.current.forEach(
+                        listener => listener(typing)
+                    )
+            );
 
-    typing =>
+            messageEditedSubscription = subscribeMessageEdited(
+                edited =>
+                    messageEditedListeners.current.forEach(
+                        listener => listener(edited)
+                    )
+            );
 
-        typingListeners.current.forEach(
-
-            listener => listener(typing)
-
-        )
-
-);
             // Sent after all inbox subscriptions exist, so reconnects replay unacknowledged messages safely.
             announceSocketReady();
             removeReconnectListener = onSocketConnected(announceSocketReady);
@@ -60,54 +65,40 @@ export function SocketProvider({ children }) {
             receiptSubscription?.unsubscribe();
             presenceSubscription?.unsubscribe();
             typingSubscription?.unsubscribe();
+            messageEditedSubscription?.unsubscribe();
             removeReconnectListener?.();
             disconnectSocket();
         };
     }, [token]);
 
     const value = {
+        onMessage: listener => {
+            messageListeners.current.add(listener);
+            return () =>
+                messageListeners.current.delete(listener);
+        },
+        onReceipt: listener => {
+            receiptListeners.current.add(listener);
+            return () =>
+                receiptListeners.current.delete(listener);
+        },
+        onPresence: listener => {
+            presenceListeners.current.add(listener);
+            return () =>
+                presenceListeners.current.delete(listener);
+        },
+        onTyping: listener => {
+            typingListeners.current.add(listener);
+            return () =>
+                typingListeners.current.delete(listener);
+        },
+        onMessageEdited: listener => {
+            messageEditedListeners.current.add(listener);
+            return () =>
+                messageEditedListeners.current.delete(listener);
+        }
+    };
 
-    onMessage: listener => {
-
-        messageListeners.current.add(listener);
-
-        return () =>
-
-            messageListeners.current.delete(listener);
-
-    },
-
-    onReceipt: listener => {
-
-        receiptListeners.current.add(listener);
-
-        return () =>
-
-            receiptListeners.current.delete(listener);
-
-    },
-
-    onPresence: listener => {
-
-        presenceListeners.current.add(listener);
-
-        return () =>
-
-            presenceListeners.current.delete(listener);
-
-    },
-
-    onTyping: listener => {
-
-        typingListeners.current.add(listener);
-
-        return () =>
-
-            typingListeners.current.delete(listener);
-
-    }
-
-};
     return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 }
 

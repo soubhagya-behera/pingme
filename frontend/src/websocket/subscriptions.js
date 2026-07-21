@@ -144,3 +144,23 @@ export function subscribeTyping(callback) {
     );
 
 }
+
+export function subscribeMessageEdited(callback) {
+
+    return getSocketClient().subscribe(
+
+        "/user/queue/message-edited",
+
+        message => {
+
+            callback(
+
+                JSON.parse(message.body)
+
+            );
+
+        }
+
+    );
+
+}

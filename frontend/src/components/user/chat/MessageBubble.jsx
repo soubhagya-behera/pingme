@@ -130,18 +130,41 @@ export default function MessageBubble({
                         }
                     `}
                 >
-                    {
-                        time ?
-                        new Date(time).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit"
-                        })
-                        :
-                        ""
-                    }
-                    {
-                        getStatus()
-                    }
+                    {message.edited && (
+
+    <span>
+
+        edited
+
+    </span>
+
+)}
+
+{
+
+    time
+
+        ?
+
+        new Date(time).toLocaleTimeString([], {
+
+            hour: "2-digit",
+
+            minute: "2-digit"
+
+        })
+
+        :
+
+        ""
+
+}
+
+{
+
+    getStatus()
+
+}
                 </div>
             </div>
 
