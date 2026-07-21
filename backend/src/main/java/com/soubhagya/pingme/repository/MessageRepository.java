@@ -69,6 +69,18 @@ List<Message> findByReceiverAndStatus(User receiver, MessageStatus status);
 @Query("select m from Message m where m.id = :messageId")
 java.util.Optional<Message> findByIdForReceipt(@Param("messageId") Long messageId);
 
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("""
+SELECT m
+FROM Message m
+WHERE m.id = :messageId
+""")
+java.util.Optional<Message> findByIdForEdit(
+
+        @Param("messageId") Long messageId
+
+);
+
 void deleteBySenderOrReceiver(User sender, User receiver);
 
 long countByReceiverAndStatus(

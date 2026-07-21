@@ -32,4 +32,8 @@ public class ChatMessage {
 
     private ReplyPreview reply;
 
+    private Boolean edited;
+
+private LocalDateTime editedAt;
+
 }

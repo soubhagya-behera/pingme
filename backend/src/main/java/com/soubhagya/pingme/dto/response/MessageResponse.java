@@ -29,4 +29,8 @@ public class MessageResponse {
 
     private ReplyPreview reply;
 
+    private Boolean edited;
+
+private LocalDateTime editedAt;
+
 }

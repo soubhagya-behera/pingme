@@ -1,6 +1,7 @@
 package com.soubhagya.pingme.service.impl;
 
 import com.soubhagya.pingme.dto.chat.ChatMessage;
+import com.soubhagya.pingme.dto.chat.MessageEditedEvent;
 import com.soubhagya.pingme.entity.Message;
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.enums.MessageStatus;
@@ -20,7 +21,6 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.soubhagya.pingme.dto.chat.TypingEvent;
-
 import com.soubhagya.pingme.dto.chat.ReplyPreview;
 
 @Service
@@ -48,39 +48,102 @@ public class ChatServiceImpl implements ChatService {
         .status(MessageStatus.SENT)
         .sentAt(LocalDateTime.now());
 
-if (request.getReplyToId() != null) {
+        if (request.getReplyToId() != null) {
+            Message replyMessage = messageRepository.findById(request.getReplyToId())
+                    .orElseThrow(() -> new RuntimeException("Reply message not found"));
 
-    Message replyMessage = messageRepository.findById(request.getReplyToId())
-            .orElseThrow(() -> new RuntimeException("Reply message not found"));
+            boolean validConversation =
+                    (replyMessage.getSender().getId().equals(sender.getId())
+                            && replyMessage.getReceiver().getId().equals(receiver.getId()))
+                    ||
+                    (replyMessage.getSender().getId().equals(receiver.getId())
+                            && replyMessage.getReceiver().getId().equals(sender.getId()));
 
-    // Security:
-    // You can only reply to a message that belongs to this conversation.
-    boolean validConversation =
-            (replyMessage.getSender().getId().equals(sender.getId())
-                    && replyMessage.getReceiver().getId().equals(receiver.getId()))
-            ||
-            (replyMessage.getSender().getId().equals(receiver.getId())
-                    && replyMessage.getReceiver().getId().equals(sender.getId()));
+            if (!validConversation) {
+                throw new RuntimeException("Invalid reply message.");
+            }
 
-    if (!validConversation) {
+            builder.replyTo(replyMessage);
+        }
 
-        throw new RuntimeException("Invalid reply message.");
-
-    }
-
-    builder.replyTo(replyMessage);
-
-}
-
-Message saved = messageRepository.save(builder.build());
+        Message saved = messageRepository.save(builder.build());
         ChatMessage event = toEvent(saved, request.getClientId());
         String senderEmailForDelivery = sender.getEmail();
         String receiverEmailForDelivery = receiver.getEmail();
 
-        // Sender gets the authoritative id; receiver gets the event on its private inbox.
         afterCommit(() -> {
             messagingTemplate.convertAndSendToUser(senderEmailForDelivery, "/queue/messages", event);
             messagingTemplate.convertAndSendToUser(receiverEmailForDelivery, "/queue/messages", event);
+        });
+    }
+
+    private static final long EDIT_WINDOW_MINUTES = 15;
+
+    @Override
+    @Transactional
+    public void editMessage(
+            Long messageId,
+            String content,
+            String email
+    ) {
+        Message message = messageRepository.findByIdForEdit(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+
+        // Only sender can edit
+        if (!message.getSender().getEmail().equals(email)) {
+            throw new SecurityException("You can only edit your own messages.");
+        }
+
+        // Validate edit time window
+        if (message.getSentAt().isBefore(LocalDateTime.now().minusMinutes(EDIT_WINDOW_MINUTES))) {
+            throw new RuntimeException("Edit time has expired.");
+        }
+
+        // Prevent empty messages
+        String updatedContent = content == null ? "" : content.trim();
+
+        if (updatedContent.isBlank()) {
+            throw new RuntimeException("Message cannot be empty.");
+        }
+
+        if (updatedContent.length() > 4000) {
+            throw new RuntimeException("Message is too long.");
+        }
+
+        if (message.getContent().equals(updatedContent)) {
+            return;
+        }
+
+        // TODO:
+        // Prevent editing deleted messages
+        message.setContent(updatedContent);
+        message.setEdited(true);
+        message.setEditedAt(LocalDateTime.now());
+
+        System.out.println("Message edited : " + message.getId());
+
+        MessageEditedEvent event =
+                MessageEditedEvent.builder()
+                        .messageId(message.getId())
+                        .content(message.getContent())
+                        .edited(true)
+                        .editedAt(message.getEditedAt())
+                        .build();
+
+        String senderEmail = message.getSender().getEmail();
+        String receiverEmail = message.getReceiver().getEmail();
+
+        afterCommit(() -> {
+            messagingTemplate.convertAndSendToUser(
+                    senderEmail,
+                    "/queue/message-edited",
+                    event
+            );
+            messagingTemplate.convertAndSendToUser(
+                    receiverEmail,
+                    "/queue/message-edited",
+                    event
+            );
         });
     }
 
@@ -92,7 +155,7 @@ Message saved = messageRepository.save(builder.build());
         if (!message.getReceiver().getEmail().equals(receiverEmail)) {
             throw new SecurityException("Only the recipient may acknowledge delivery");
         }
-        if (message.getStatus() != MessageStatus.SENT) return; // receipt retries are intentionally idempotent
+        if (message.getStatus() != MessageStatus.SENT) return;
         message.setStatus(MessageStatus.DELIVERED);
         message.setDeliveredAt(LocalDateTime.now());
         publishReceipt(message, MessageStatus.DELIVERED);
@@ -107,7 +170,6 @@ Message saved = messageRepository.save(builder.build());
             throw new SecurityException("Only the recipient may acknowledge read");
         }
         if (message.getStatus() == MessageStatus.READ) return;
-        // A READ receipt is also a delivery acknowledgement, so out-of-order client frames remain correct.
         if (message.getDeliveredAt() == null) message.setDeliveredAt(LocalDateTime.now());
         message.setStatus(MessageStatus.READ);
         message.setReadAt(LocalDateTime.now());
@@ -137,73 +199,38 @@ Message saved = messageRepository.save(builder.build());
     }
 
     @Override
-@Transactional(readOnly = true)
-public void sendTypingEvent(
+    @Transactional(readOnly = true)
+    public void sendTypingEvent(
+            TypingEvent event,
+            String senderEmail
+    ) {
+        User sender = userRepository.findByEmail(senderEmail)
+                .orElseThrow(() -> new RuntimeException("Sender not found"));
 
-        TypingEvent event,
+        User receiver = userRepository.findById(event.getReceiverId())
+                .orElseThrow(() -> new RuntimeException("Receiver not found"));
 
-        String senderEmail
+        boolean areFriends =
+                friendRepository.existsByUserOneAndUserTwoOrUserOneAndUserTwo(
+                        sender,
+                        receiver,
+                        receiver,
+                        sender
+                );
 
-) {
+        if (!areFriends) {
+            throw new RuntimeException("Typing not allowed.");
+        }
 
-    // Find sender
-    User sender = userRepository.findByEmail(senderEmail)
-
-            .orElseThrow(() ->
-
-                    new RuntimeException("Sender not found"));
-
-    // Find receiver
-    User receiver = userRepository.findById(event.getReceiverId())
-
-            .orElseThrow(() ->
-
-                    new RuntimeException("Receiver not found"));
-
-    // Security:
-    // Only friends can send typing events
-    boolean areFriends =
-
-            friendRepository.existsByUserOneAndUserTwoOrUserOneAndUserTwo(
-
-                    sender,
-
-                    receiver,
-
-                    receiver,
-
-                    sender
-
-            );
-
-    if (!areFriends) {
-
-        throw new RuntimeException(
-
-                "Typing not allowed."
-
+        messagingTemplate.convertAndSendToUser(
+                receiver.getEmail(),
+                "/queue/typing",
+                TypingEvent.builder()
+                        .receiverId(sender.getId())
+                        .typing(event.isTyping())
+                        .build()
         );
-
     }
-
-    // Send ONLY to receiver
-    messagingTemplate.convertAndSendToUser(
-
-            receiver.getEmail(),
-
-            "/queue/typing",
-
-            TypingEvent.builder()
-
-                    .receiverId(sender.getId())
-
-                    .typing(event.isTyping())
-
-                    .build()
-
-    );
-
-}
 
     private void publishReceipt(Message message, MessageStatus status) {
         MessageStatusUpdate event = MessageStatusUpdate.builder()
@@ -214,44 +241,29 @@ public void sendTypingEvent(
     }
 
     private ChatMessage toEvent(Message message, String clientId) {
+        ReplyPreview reply = null;
 
-    ReplyPreview reply = null;
+        if (message.getReplyTo() != null) {
+            reply = ReplyPreview.builder()
+                    .id(message.getReplyTo().getId())
+                    .senderId(message.getReplyTo().getSender().getId())
+                    .content(message.getReplyTo().getContent())
+                    .build();
+        }
 
-    if (message.getReplyTo() != null) {
-
-        reply = ReplyPreview.builder()
-
-                .id(message.getReplyTo().getId())
-
-                .senderId(message.getReplyTo().getSender().getId())
-
-                .content(message.getReplyTo().getContent())
-
+        return ChatMessage.builder()
+                .id(message.getId())
+                .clientId(clientId)
+                .senderId(message.getSender().getId())
+                .receiverId(message.getReceiver().getId())
+                .content(message.getContent())
+                .sentAt(message.getSentAt())
+                .status(message.getStatus().name())
+                .reply(reply)
+                .edited(message.getEdited())
+                .editedAt(message.getEditedAt())
                 .build();
-
     }
-
-    return ChatMessage.builder()
-
-            .id(message.getId())
-
-            .clientId(clientId)
-
-            .senderId(message.getSender().getId())
-
-            .receiverId(message.getReceiver().getId())
-
-            .content(message.getContent())
-
-            .sentAt(message.getSentAt())
-
-            .status(message.getStatus().name())
-
-            .reply(reply)
-
-            .build();
-
-}
 
     private void afterCommit(Runnable action) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {

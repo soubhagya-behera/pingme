@@ -29,4 +29,14 @@ void sendTypingEvent(
 
 );
 
+void editMessage(
+
+        Long messageId,
+
+        String content,
+
+        String email
+
+);
+
 }

@@ -47,4 +47,10 @@ public class Message {
 
     private LocalDateTime readAt;
 
+    @Column(nullable = false)
+@Builder.Default
+private Boolean edited = false;
+
+private LocalDateTime editedAt;
+
 }

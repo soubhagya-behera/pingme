@@ -8,15 +8,21 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.soubhagya.pingme.dto.request.EditMessageRequest;
 import com.soubhagya.pingme.dto.request.UpdateMessageStatusRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import java.security.Principal;
 import com.soubhagya.pingme.dto.chat.TypingEvent;
+
+import org.springframework.web.bind.annotation.PutMapping;
+
+import com.soubhagya.pingme.dto.request.EditMessageRequest;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -106,6 +112,31 @@ public void markConversationRead(
             authentication.getName()
 
     );
+
+}
+
+@PutMapping("/messages/{messageId}")
+public ResponseEntity<?> editMessage(
+
+        @PathVariable Long messageId,
+
+        @RequestBody EditMessageRequest request,
+
+        Authentication authentication
+
+){
+
+    chatService.editMessage(
+
+            messageId,
+
+            request.getContent(),
+
+            authentication.getName()
+
+    );
+
+    return ResponseEntity.ok().build();
 
 }
 

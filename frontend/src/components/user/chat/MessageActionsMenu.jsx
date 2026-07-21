@@ -70,31 +70,30 @@ export default function MessageActionsMenu({
 
         <div
 
-            ref={menuRef}
+    ref={menuRef}
 
-            className="relative"
+    className="relative self-start"
 
-        >
+>
 
             <button
 
                 onClick={()=>setOpen(previous=>!previous)}
 
                 className="
+    opacity-0
+    group-hover:opacity-100
+    transition-opacity
+    duration-150
 
-                    opacity-0
+    p-1
 
-                    group-hover:opacity-100
+    rounded-full
 
-                    transition
+    hover:bg-slate-200
 
-                    p-1
-
-                    rounded-full
-
-                    hover:bg-slate-200
-
-                "
+    flex-shrink-0
+"
 
             >
 
