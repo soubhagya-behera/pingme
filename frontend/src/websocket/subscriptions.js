@@ -167,11 +167,11 @@ export function subscribeMessageEdited(callback) {
 
 export function subscribeMessageDeleted(callback) {
 
-    return stompClient.subscribe(
+    return getSocketClient().subscribe(
 
         "/user/queue/message-deleted",
 
-        (message) => {
+        message => {
 
             callback(
 

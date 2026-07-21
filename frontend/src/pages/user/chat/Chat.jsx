@@ -118,6 +118,30 @@ export default function Chat() {
         finally { setLoading(false); }
     }
 
+    async function deleteForEveryone(message) {
+
+    const confirmed = window.confirm(
+        "Delete this message for everyone?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        await ChatService.deleteForEveryone(
+            message.id
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
     async function selectFriend(friend) {
         setSelectedFriend(friend); setShowChat(true);
         try {
@@ -141,10 +165,11 @@ export default function Chat() {
                         : false
                 }/>
                 <ChatMessages
-                    messages={messages}
-                    onReply={setReplyingTo}
-                    onEdit={setEditingMessage}
-                />
+    messages={messages}
+    onReply={setReplyingTo}
+    onEdit={setEditingMessage}
+    onDelete={deleteForEveryone}
+/>
                 <ChatInput
                     friend={selectedFriend}
                     replyingTo={replyingTo}

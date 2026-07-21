@@ -23,7 +23,14 @@ export default function MessageActionsMenu({
         if (!mine) {
             return false;
         }
-        const sentTime = new Date(message.sentAt).getTime();
+
+        if (message.deletedForEveryone) {
+            return false;
+        }
+
+        const sentTime =
+            new Date(message.sentAt).getTime();
+
         return (
             Date.now() - sentTime < EDIT_WINDOW_MS
         );
@@ -88,16 +95,20 @@ export default function MessageActionsMenu({
                             z-[999]
                         `}
                     >
-                        <button
-                            onClick={() => {
-                                onReply(message);
-                                setOpen(false);
-                            }}
-                            className="flex w-full items-center gap-3 px-4 py-2 hover:bg-slate-100"
-                        >
-                            <Reply size={18} />
-                            Reply
-                        </button>
+                        {
+                            !message.deletedForEveryone &&
+
+                            <button
+                                onClick={() => {
+                                    onReply(message);
+                                    setOpen(false);
+                                }}
+                                className="flex w-full items-center gap-3 px-4 py-2 hover:bg-slate-100"
+                            >
+                                <Reply size={18} />
+                                Reply
+                            </button>
+                        }
 
                         {
                             canEdit &&
@@ -113,21 +124,26 @@ export default function MessageActionsMenu({
                             </button>
                         }
 
-                        <button
-                            onClick={() => {
-                                navigator.clipboard.writeText(
-                                    message.content
-                                );
-                                setOpen(false);
-                            }}
-                            className="flex w-full items-center gap-3 px-4 py-2 hover:bg-slate-100"
-                        >
-                            <Copy size={18} />
-                            Copy
-                        </button>
+                        {
+                            !message.deletedForEveryone &&
+
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(
+                                        message.content
+                                    );
+                                    setOpen(false);
+                                }}
+                                className="flex w-full items-center gap-3 px-4 py-2 hover:bg-slate-100"
+                            >
+                                <Copy size={18} />
+                                Copy
+                            </button>
+                        }
 
                         {
                             mine &&
+                            !message.deletedForEveryone &&
                             <button
                                 onClick={() => {
                                     onDelete(message);
@@ -136,7 +152,7 @@ export default function MessageActionsMenu({
                                 className="flex w-full items-center gap-3 px-4 py-2 hover:bg-red-50 text-red-600"
                             >
                                 <Trash2 size={18} />
-                                Delete
+                                Delete for Everyone
                             </button>
                         }
 

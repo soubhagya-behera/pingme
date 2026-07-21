@@ -67,7 +67,10 @@ export default function MessageBubble({
                 `}
             >
                 <>
-                    {message.reply && (
+                    {
+                        !message.deletedForEveryone &&
+                        message.reply &&
+                    (
                         <div
                             className={`
                                 mb-2
@@ -112,7 +115,28 @@ export default function MessageBubble({
                     )}
 
                     <div>
-                        {text}
+                        {
+                            message.deletedForEveryone
+
+                                ?
+
+                                <span
+                                    className={`
+                                        italic
+                                        ${
+                                            mine
+                                                ? "text-indigo-200"
+                                                : "text-slate-500"
+                                        }
+                                    `}
+                                >
+                                    🗑 This message was deleted
+                                </span>
+
+                                :
+
+                                text
+                        }
                     </div>
                 </>
 
@@ -130,7 +154,10 @@ export default function MessageBubble({
                         }
                     `}
                 >
-                    {message.edited && (
+                    {
+                        message.edited &&
+                        !message.deletedForEveryone &&
+                    (
 
     <span>
 

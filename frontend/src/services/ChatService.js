@@ -66,7 +66,7 @@ editMessage(messageId, content) {
 
 deleteForEveryone(messageId) {
 
-    return axios.delete(
+    return api.delete(
 
         `/chat/messages/${messageId}`
 
