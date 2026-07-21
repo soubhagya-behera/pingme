@@ -39,4 +39,9 @@ void editMessage(
 
 );
 
+void deleteForEveryone(
+        Long messageId,
+        String email
+);
+
 }

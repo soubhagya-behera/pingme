@@ -1,6 +1,7 @@
 package com.soubhagya.pingme.service.impl;
 
 import com.soubhagya.pingme.dto.chat.ChatMessage;
+import com.soubhagya.pingme.dto.chat.MessageDeletedEvent;
 import com.soubhagya.pingme.dto.chat.MessageEditedEvent;
 import com.soubhagya.pingme.entity.Message;
 import com.soubhagya.pingme.entity.User;
@@ -22,6 +23,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import com.soubhagya.pingme.dto.chat.TypingEvent;
 import com.soubhagya.pingme.dto.chat.ReplyPreview;
+import com.soubhagya.pingme.dto.chat.MessageDeletedEvent;
 
 @Service
 @RequiredArgsConstructor
@@ -78,6 +80,7 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private static final long EDIT_WINDOW_MINUTES = 15;
+    private static final long DELETE_WINDOW_MINUTES = 15;
 
     @Override
     @Transactional
@@ -146,6 +149,114 @@ public class ChatServiceImpl implements ChatService {
             );
         });
     }
+
+    @Override
+@Transactional
+public void deleteForEveryone(
+
+        Long messageId,
+
+        String email
+
+) {
+
+    Message message = messageRepository.findByIdForEdit(messageId)
+
+            .orElseThrow(() ->
+
+                    new RuntimeException("Message not found"));
+
+    // Only sender can delete
+
+    if (!message.getSender().getEmail().equals(email)) {
+
+        throw new SecurityException(
+
+                "You can only delete your own messages."
+
+        );
+
+    }
+
+    // Delete window
+
+    if (
+
+            message.getSentAt().isBefore(
+
+                    LocalDateTime.now()
+
+                            .minusMinutes(DELETE_WINDOW_MINUTES)
+
+            )
+
+    ) {
+
+        throw new RuntimeException(
+
+                "Delete time has expired."
+
+        );
+
+    }
+
+    // Already deleted
+
+    if (Boolean.TRUE.equals(message.getDeletedForEveryone())) {
+
+        return;
+
+    }
+
+    message.setDeletedForEveryone(true);
+
+    message.setDeletedAt(LocalDateTime.now());
+
+    MessageDeletedEvent event =
+
+            MessageDeletedEvent.builder()
+
+                    .messageId(message.getId())
+
+                    .deletedForEveryone(message.getDeletedForEveryone())
+
+                    .deletedAt(message.getDeletedAt())
+
+                    .build();
+
+    String senderEmail =
+
+            message.getSender().getEmail();
+
+    String receiverEmail =
+
+            message.getReceiver().getEmail();
+
+    afterCommit(() -> {
+
+        messagingTemplate.convertAndSendToUser(
+
+                senderEmail,
+
+                "/queue/message-deleted",
+
+                event
+
+        );
+
+        messagingTemplate.convertAndSendToUser(
+
+                receiverEmail,
+
+                "/queue/message-deleted",
+
+                event
+
+        );
+
+    });
+
+}
 
     @Override
     @Transactional
@@ -262,6 +373,8 @@ public class ChatServiceImpl implements ChatService {
                 .reply(reply)
                 .edited(message.getEdited())
                 .editedAt(message.getEditedAt())
+                .deletedForEveryone(message.getDeletedForEveryone())
+                .deletedAt(message.getDeletedAt())
                 .build();
     }
 

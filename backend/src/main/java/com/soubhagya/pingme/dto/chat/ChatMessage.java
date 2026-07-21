@@ -36,4 +36,8 @@ public class ChatMessage {
 
 private LocalDateTime editedAt;
 
+private Boolean deletedForEveryone;
+
+private LocalDateTime deletedAt;
+
 }

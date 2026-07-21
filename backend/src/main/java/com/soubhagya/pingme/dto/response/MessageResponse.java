@@ -33,4 +33,8 @@ public class MessageResponse {
 
 private LocalDateTime editedAt;
 
+private Boolean deletedForEveryone;
+
+private LocalDateTime deletedAt;
+
 }

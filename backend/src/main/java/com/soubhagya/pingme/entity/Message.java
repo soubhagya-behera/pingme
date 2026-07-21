@@ -53,4 +53,10 @@ private Boolean edited = false;
 
 private LocalDateTime editedAt;
 
+@Column(nullable = false)
+@Builder.Default
+private Boolean deletedForEveryone = false;
+
+private LocalDateTime deletedAt;
+
 }

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.soubhagya.pingme.dto.request.EditMessageRequest;
 import com.soubhagya.pingme.dto.request.UpdateMessageStatusRequest;
+import com.soubhagya.pingme.payload.ApiResponse;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import java.security.Principal;
@@ -23,6 +26,7 @@ import com.soubhagya.pingme.dto.chat.TypingEvent;
 import org.springframework.web.bind.annotation.PutMapping;
 
 import com.soubhagya.pingme.dto.request.EditMessageRequest;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -137,6 +141,35 @@ public ResponseEntity<?> editMessage(
     );
 
     return ResponseEntity.ok().build();
+
+}
+
+@DeleteMapping("/messages/{messageId}")
+public ResponseEntity<ApiResponse<String>> deleteForEveryone(
+
+        @PathVariable Long messageId,
+
+        Authentication authentication
+
+) {
+
+    chatService.deleteForEveryone(
+
+            messageId,
+
+            authentication.getName()
+
+    );
+
+    return ResponseEntity.ok(
+
+            ApiResponse.success(
+
+                    "Message deleted successfully."
+
+            )
+
+    );
 
 }
 
