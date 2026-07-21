@@ -82,6 +82,10 @@ public class MessageServiceImpl implements MessageService {
 
                         .sentAt(message.getSentAt())
 
+                        .deletedForEveryone(message.getDeletedForEveryone())
+
+                        .deletedAt(message.getDeletedAt())
+
                         .build())
 
                 .collect(Collectors.toList());
