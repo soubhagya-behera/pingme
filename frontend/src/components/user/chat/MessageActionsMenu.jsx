@@ -14,6 +14,7 @@ export default function MessageActionsMenu({
     onReply,
     onEdit,
     onDelete,
+    onDeleteMe,
     message
 }) {
     const [open, setOpen] = useState(false);
@@ -155,6 +156,25 @@ export default function MessageActionsMenu({
                                 Delete for Everyone
                             </button>
                         }
+
+                        {
+    !message.deletedForEveryone &&
+    <button
+        onClick={() => {
+
+            onDeleteMe(message);
+
+            setOpen(false);
+
+        }}
+        className="flex w-full items-center gap-3 px-4 py-2 hover:bg-slate-100"
+    >
+        <Trash2 size={18} />
+
+        Delete for Me
+
+    </button>
+}
 
                         <button
                             className="flex w-full items-center gap-3 px-4 py-2 hover:bg-slate-100"

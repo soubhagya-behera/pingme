@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import { useAuth } from "../../../context/AuthContext";
 
-export default function ChatMessages({ messages, onReply, onEdit, onDelete }) {
+export default function ChatMessages({ messages, onReply, onEdit, onDelete, onDeleteMe
+ }) {
 
     const { user } = useAuth();
 
@@ -60,6 +61,7 @@ export default function ChatMessages({ messages, onReply, onEdit, onDelete }) {
 
     onDelete={onDelete}
 
+    onDeleteMe={onDeleteMe}
 
 />
 

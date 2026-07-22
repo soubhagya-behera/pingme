@@ -8,7 +8,8 @@ export default function MessageBubble({
     status,
     onReply,
     onEdit,
-    onDelete
+    onDelete,
+    onDeleteMe
 }) {
     function getStatus() {
         if (!mine) return null;
@@ -51,6 +52,7 @@ export default function MessageBubble({
                     onReply={onReply}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onDeleteMe={onDeleteMe}
                 />
             )}
 
@@ -202,6 +204,7 @@ export default function MessageBubble({
                     onReply={onReply}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onDeleteMe={onDeleteMe}
                 />
             )}
         </div>

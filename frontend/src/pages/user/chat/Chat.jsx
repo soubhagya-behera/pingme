@@ -142,6 +142,40 @@ export default function Chat() {
 
 }
 
+async function deleteForMe(message) {
+
+    const confirmed = window.confirm(
+        "Delete this message only for you?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        await ChatService.deleteForMe(
+            message.id
+        );
+
+        setMessages(previous =>
+
+            previous.filter(
+
+                item => item.id !== message.id
+
+            )
+
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
     async function selectFriend(friend) {
         setSelectedFriend(friend); setShowChat(true);
         try {
@@ -169,6 +203,8 @@ export default function Chat() {
     onReply={setReplyingTo}
     onEdit={setEditingMessage}
     onDelete={deleteForEveryone}
+    onDeleteMe={deleteForMe}
+
 />
                 <ChatInput
                     friend={selectedFriend}
