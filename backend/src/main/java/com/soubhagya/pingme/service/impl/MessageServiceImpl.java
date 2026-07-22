@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 import com.soubhagya.pingme.entity.Friend;
 import com.soubhagya.pingme.dto.response.ChatSidebarResponse;
-
+import com.soubhagya.pingme.repository.HiddenMessageRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +28,7 @@ public class MessageServiceImpl implements MessageService {
 
     private final UserRepository userRepository;
     private final FriendRepository friendRepository;
+    private final HiddenMessageRepository hiddenMessageRepository;
 
     @Override
     public List<MessageResponse> getChatHistory(
@@ -63,6 +64,19 @@ public class MessageServiceImpl implements MessageService {
                 sender,
                 receiver
         );
+
+        messages = messages.stream()
+
+        .filter(message ->
+
+                !hiddenMessageRepository.existsByMessageAndUser(
+                        message,
+                        sender
+                )
+
+        )
+
+        .toList();
 
         return messages.stream()
 

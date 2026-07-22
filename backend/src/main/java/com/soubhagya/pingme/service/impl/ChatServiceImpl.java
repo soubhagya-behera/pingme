@@ -3,11 +3,13 @@ package com.soubhagya.pingme.service.impl;
 import com.soubhagya.pingme.dto.chat.ChatMessage;
 import com.soubhagya.pingme.dto.chat.MessageDeletedEvent;
 import com.soubhagya.pingme.dto.chat.MessageEditedEvent;
+import com.soubhagya.pingme.entity.HiddenMessage;
 import com.soubhagya.pingme.entity.Message;
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.enums.MessageStatus;
 import com.soubhagya.pingme.enums.MessageType;
 import com.soubhagya.pingme.repository.FriendRepository;
+import com.soubhagya.pingme.repository.HiddenMessageRepository;
 import com.soubhagya.pingme.repository.MessageRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.ChatService;
@@ -25,6 +27,7 @@ import com.soubhagya.pingme.dto.chat.TypingEvent;
 import com.soubhagya.pingme.dto.chat.ReplyPreview;
 import com.soubhagya.pingme.dto.chat.MessageDeletedEvent;
 
+
 @Service
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
@@ -32,6 +35,7 @@ public class ChatServiceImpl implements ChatService {
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final FriendRepository friendRepository;
+    private final HiddenMessageRepository hiddenMessageRepository;
 
     @Override
     @Transactional
@@ -390,4 +394,50 @@ public void deleteForEveryone(
             }
         });
     }
+
+    @Override
+@Transactional
+public void deleteForMe(
+        Long messageId,
+        String email
+) {
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow();
+
+    Message message =
+            messageRepository.findById(messageId)
+                    .orElseThrow();
+
+    if (
+            !message.getSender().getId().equals(user.getId())
+                    &&
+            !message.getReceiver().getId().equals(user.getId())
+    ) {
+
+        throw new RuntimeException(
+                "You cannot delete this message."
+        );
+
+    }
+
+    if (
+            hiddenMessageRepository.existsByMessageAndUser(
+                    message,
+                    user
+            )
+    ) {
+        return;
+    }
+
+    HiddenMessage hiddenMessage =
+            HiddenMessage.builder()
+                    .message(message)
+                    .user(user)
+                    .hiddenAt(LocalDateTime.now())
+                    .build();
+
+    hiddenMessageRepository.save(hiddenMessage);
+
+}
 }

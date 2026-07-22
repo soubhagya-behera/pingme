@@ -44,4 +44,9 @@ void deleteForEveryone(
         String email
 );
 
+void deleteForMe(
+        Long messageId,
+        String email
+);
+
 }

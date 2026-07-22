@@ -173,4 +173,23 @@ public ResponseEntity<ApiResponse<String>> deleteForEveryone(
 
 }
 
+@DeleteMapping("/messages/{messageId}/me")
+public ResponseEntity<ApiResponse<Void>> deleteForMe(
+        @PathVariable Long messageId,
+        Authentication authentication
+) {
+
+    chatService.deleteForMe(
+            messageId,
+            authentication.getName()
+    );
+
+    return ResponseEntity.ok(
+            ApiResponse.success(
+                    "Deleted"
+            )
+    );
+
+}
+
 }
