@@ -21,6 +21,8 @@ public class MessageResponse {
 
     private String content;
 
+    private String imageUrl;
+
     private String messageType;
 
     private String status;

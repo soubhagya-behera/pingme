@@ -25,7 +25,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import com.soubhagya.pingme.dto.chat.TypingEvent;
 import com.soubhagya.pingme.dto.chat.ReplyPreview;
-import com.soubhagya.pingme.dto.chat.MessageDeletedEvent;
 
 
 @Service
@@ -46,13 +45,36 @@ public class ChatServiceImpl implements ChatService {
             throw new RuntimeException("You can only chat with accepted friends.");
         }
 
-        Message.MessageBuilder builder = Message.builder()
-        .sender(sender)
-        .receiver(receiver)
-        .content(request.getContent())
-        .messageType(MessageType.TEXT)
-        .status(MessageStatus.SENT)
-        .sentAt(LocalDateTime.now());
+        MessageType type =
+                request.getMessageType() == null
+                        ? MessageType.TEXT
+                        : MessageType.valueOf(
+                                request.getMessageType()
+                        );
+
+        if (
+                type == MessageType.IMAGE
+                &&
+                (
+                        request.getImageUrl() == null
+                                ||
+                        request.getImageUrl().isBlank()
+                )
+        ) {
+            throw new RuntimeException(
+                    "Image URL is required."
+            );
+        }
+
+        Message.MessageBuilder builder =
+                Message.builder()
+                        .sender(sender)
+                        .receiver(receiver)
+                        .content(request.getContent())
+                        .imageUrl(request.getImageUrl())
+                        .messageType(type)
+                        .status(MessageStatus.SENT)
+                        .sentAt(LocalDateTime.now());
 
         if (request.getReplyToId() != null) {
             Message replyMessage = messageRepository.findById(request.getReplyToId())
@@ -155,112 +177,64 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-@Transactional
-public void deleteForEveryone(
-
-        Long messageId,
-
-        String email
-
-) {
-
-    Message message = messageRepository.findByIdForEdit(messageId)
-
-            .orElseThrow(() ->
-
-                    new RuntimeException("Message not found"));
-
-    // Only sender can delete
-
-    if (!message.getSender().getEmail().equals(email)) {
-
-        throw new SecurityException(
-
-                "You can only delete your own messages."
-
-        );
-
-    }
-
-    // Delete window
-
-    if (
-
-            message.getSentAt().isBefore(
-
-                    LocalDateTime.now()
-
-                            .minusMinutes(DELETE_WINDOW_MINUTES)
-
-            )
-
+    @Transactional
+    public void deleteForEveryone(
+            Long messageId,
+            String email
     ) {
+        Message message = messageRepository.findByIdForEdit(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
 
-        throw new RuntimeException(
+        // Only sender can delete
+        if (!message.getSender().getEmail().equals(email)) {
+            throw new SecurityException(
+                    "You can only delete your own messages."
+            );
+        }
 
-                "Delete time has expired."
+        // Delete window
+        if (
+                message.getSentAt().isBefore(
+                        LocalDateTime.now()
+                                .minusMinutes(DELETE_WINDOW_MINUTES)
+                )
+        ) {
+            throw new RuntimeException(
+                    "Delete time has expired."
+            );
+        }
 
-        );
+        // Already deleted
+        if (Boolean.TRUE.equals(message.getDeletedForEveryone())) {
+            return;
+        }
 
+        message.setDeletedForEveryone(true);
+        message.setDeletedAt(LocalDateTime.now());
+
+        MessageDeletedEvent event =
+                MessageDeletedEvent.builder()
+                        .messageId(message.getId())
+                        .deletedForEveryone(message.getDeletedForEveryone())
+                        .deletedAt(message.getDeletedAt())
+                        .build();
+
+        String senderEmail = message.getSender().getEmail();
+        String receiverEmail = message.getReceiver().getEmail();
+
+        afterCommit(() -> {
+            messagingTemplate.convertAndSendToUser(
+                    senderEmail,
+                    "/queue/message-deleted",
+                    event
+            );
+            messagingTemplate.convertAndSendToUser(
+                    receiverEmail,
+                    "/queue/message-deleted",
+                    event
+            );
+        });
     }
-
-    // Already deleted
-
-    if (Boolean.TRUE.equals(message.getDeletedForEveryone())) {
-
-        return;
-
-    }
-
-    message.setDeletedForEveryone(true);
-
-    message.setDeletedAt(LocalDateTime.now());
-
-    MessageDeletedEvent event =
-
-            MessageDeletedEvent.builder()
-
-                    .messageId(message.getId())
-
-                    .deletedForEveryone(message.getDeletedForEveryone())
-
-                    .deletedAt(message.getDeletedAt())
-
-                    .build();
-
-    String senderEmail =
-
-            message.getSender().getEmail();
-
-    String receiverEmail =
-
-            message.getReceiver().getEmail();
-
-    afterCommit(() -> {
-
-        messagingTemplate.convertAndSendToUser(
-
-                senderEmail,
-
-                "/queue/message-deleted",
-
-                event
-
-        );
-
-        messagingTemplate.convertAndSendToUser(
-
-                receiverEmail,
-
-                "/queue/message-deleted",
-
-                event
-
-        );
-
-    });
-
-}
 
     @Override
     @Transactional
@@ -372,6 +346,12 @@ public void deleteForEveryone(
                 .senderId(message.getSender().getId())
                 .receiverId(message.getReceiver().getId())
                 .content(message.getContent())
+                .imageUrl(
+                        message.getImageUrl()
+                )
+                .messageType(
+                        message.getMessageType().name()
+                )
                 .sentAt(message.getSentAt())
                 .status(message.getStatus().name())
                 .reply(reply)
@@ -396,48 +376,44 @@ public void deleteForEveryone(
     }
 
     @Override
-@Transactional
-public void deleteForMe(
-        Long messageId,
-        String email
-) {
-
-    User user = userRepository.findByEmail(email)
-            .orElseThrow();
-
-    Message message =
-            messageRepository.findById(messageId)
-                    .orElseThrow();
-
-    if (
-            !message.getSender().getId().equals(user.getId())
-                    &&
-            !message.getReceiver().getId().equals(user.getId())
+    @Transactional
+    public void deleteForMe(
+            Long messageId,
+            String email
     ) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow();
 
-        throw new RuntimeException(
-                "You cannot delete this message."
-        );
+        Message message =
+                messageRepository.findById(messageId)
+                        .orElseThrow();
 
+        if (
+                !message.getSender().getId().equals(user.getId())
+                        &&
+                !message.getReceiver().getId().equals(user.getId())
+        ) {
+            throw new RuntimeException(
+                    "You cannot delete this message."
+            );
+        }
+
+        if (
+                hiddenMessageRepository.existsByMessageAndUser(
+                        message,
+                        user
+                )
+        ) {
+            return;
+        }
+
+        HiddenMessage hiddenMessage =
+                HiddenMessage.builder()
+                        .message(message)
+                        .user(user)
+                        .hiddenAt(LocalDateTime.now())
+                        .build();
+
+        hiddenMessageRepository.save(hiddenMessage);
     }
-
-    if (
-            hiddenMessageRepository.existsByMessageAndUser(
-                    message,
-                    user
-            )
-    ) {
-        return;
-    }
-
-    HiddenMessage hiddenMessage =
-            HiddenMessage.builder()
-                    .message(message)
-                    .user(user)
-                    .hiddenAt(LocalDateTime.now())
-                    .build();
-
-    hiddenMessageRepository.save(hiddenMessage);
-
-}
 }

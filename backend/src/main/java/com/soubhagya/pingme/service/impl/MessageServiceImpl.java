@@ -90,6 +90,8 @@ public class MessageServiceImpl implements MessageService {
 
                         .content(message.getContent())
 
+                        .imageUrl(message.getImageUrl())
+
                         .messageType(message.getMessageType().name())
 
                         .status(message.getStatus().name())

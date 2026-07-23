@@ -24,6 +24,10 @@ public class ChatMessage {
 
     private String content;
 
+    private String imageUrl;
+
+private String messageType;
+
     private LocalDateTime sentAt;
 
     private String status;

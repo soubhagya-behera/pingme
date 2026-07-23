@@ -35,6 +35,9 @@ public class Message {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @Column(columnDefinition = "TEXT")
+private String imageUrl;
+
     @Enumerated(EnumType.STRING)
     private MessageType messageType;
 
