@@ -75,9 +75,7 @@ deleteForEveryone(messageId) {
 },
 
 deleteForMe(messageId){
-
     return api.delete(
-
         `/chat/messages/${messageId}/me`
 
     );
