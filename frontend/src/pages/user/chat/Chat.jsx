@@ -3,6 +3,7 @@ import ChatSidebar from "../../../components/user/chat/ChatSidebar";
 import ChatHeader from "../../../components/user/chat/ChatHeader";
 import ChatMessages from "../../../components/user/chat/ChatMessages";
 import ChatInput from "../../../components/user/chat/ChatInput";
+import ConfirmDialog from "../../../components/common/ConfirmDialog";
 import ChatService from "../../../services/ChatService";
 import { acknowledgeRead } from "../../../websocket/publisher";
 import { useSocket } from "../../../context/SocketProvider";
@@ -17,6 +18,12 @@ export default function Chat() {
     const [typingUsers, setTypingUsers] = useState(new Set());
     const [replyingTo, setReplyingTo] = useState(null);
     const [editingMessage, setEditingMessage] = useState(null);
+
+    // ConfirmDialog states
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmConfig, setConfirmConfig] = useState(null);
+    const [confirmCallback, setConfirmCallback] = useState(null);
+
     const socket = useSocket();
 
     const {
@@ -118,61 +125,54 @@ export default function Chat() {
         finally { setLoading(false); }
     }
 
-    async function deleteForEveryone(message) {
-
-    const confirmed = window.confirm(
-        "Delete this message for everyone?"
-    );
-
-    if (!confirmed) {
-        return;
+    function openConfirm(config, callback) {
+        setConfirmConfig(config);
+        setConfirmCallback(() => callback);
+        setConfirmOpen(true);
     }
 
-    try {
-
-        await ChatService.deleteForEveryone(
-            message.id
+    function deleteForEveryone(message) {
+        openConfirm(
+            {
+                title: "Delete Message",
+                message: "Delete this message for everyone? This action cannot be undone.",
+                confirmText: "Delete",
+                cancelText: "Cancel",
+                confirmVariant: "danger"
+            },
+            async () => {
+                try {
+                    await ChatService.deleteForEveryone(message.id);
+                } catch (error) {
+                    console.error(error);
+                }
+            }
         );
-
-    } catch (error) {
-
-
     }
 
-}
-
-async function deleteForMe(message) {
-
-    const confirmed = window.confirm(
-        "Delete this message only for you?"
-    );
-
-    if (!confirmed) {
-        return;
-    }
-
-    try {
-
-        await ChatService.deleteForMe(
-            message.id
+    function deleteForMe(message) {
+        openConfirm(
+            {
+                title: "Delete Message",
+                message: "Delete this message only for you?",
+                confirmText: "Delete",
+                cancelText: "Cancel",
+                confirmVariant: "danger"
+            },
+            async () => {
+                try {
+                    await ChatService.deleteForMe(message.id);
+                    setMessages(previous =>
+                        previous.filter(
+                            item => item.id !== message.id
+                        )
+                    );
+                } catch (error) {
+                    console.error(error);
+                }
+            }
         );
-
-        setMessages(previous =>
-
-            previous.filter(
-
-                item => item.id !== message.id
-
-            )
-
-        );
-
-    } catch (error) {
-
-
     }
-
-}
 
     async function selectFriend(friend) {
         setSelectedFriend(friend); setShowChat(true);
@@ -185,34 +185,54 @@ async function deleteForMe(message) {
     }
 
     if (loading) return <div className="flex justify-center items-center h-full">Loading chats...</div>;
-    return <div className="flex h-[calc(100dvh-140px)] min-h-0">
-        <div className={`w-full md:w-[360px] ${showChat ? "hidden md:block" : "block"}`}>
-            <ChatSidebar friends={friends} selectedFriend={selectedFriend} onSelect={selectFriend} />
-        </div>
-        <div className={`flex-1 ${showChat ? "block" : "hidden md:flex"} rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden`}>
-            {selectedFriend ? <>
-                <ChatHeader friend={selectedFriend} onBack={() => setShowChat(false)} typing={
-                    selectedFriend
-                        ? typingUsers.has(selectedFriend.id)
-                        : false
-                }/>
-                <ChatMessages
-    messages={messages}
-    onReply={setReplyingTo}
-    onEdit={setEditingMessage}
-    onDelete={deleteForEveryone}
-    onDeleteMe={deleteForMe}
 
-/>
-                <ChatInput
-                    friend={selectedFriend}
-                    replyingTo={replyingTo}
-                    clearReply={() => setReplyingTo(null)}
-                    editingMessage={editingMessage}
-                    clearEditing={() => setEditingMessage(null)}
-                    onMessageSent={message => setMessages(previous => previous.some(item => item.id === message.id || (message.clientId && item.clientId === message.clientId)) ? previous : [...previous, message])}
-                />
-            </> : <div className="flex-1 flex items-center justify-center text-slate-400 text-xl">Select a friend to start chatting</div>}
+    return (
+        <div className="flex h-[calc(100dvh-140px)] min-h-0">
+            <div className={`w-full md:w-[360px] ${showChat ? "hidden md:block" : "block"}`}>
+                <ChatSidebar friends={friends} selectedFriend={selectedFriend} onSelect={selectFriend} />
+            </div>
+            <div className={`flex-1 ${showChat ? "block" : "hidden md:flex"} rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden`}>
+                {selectedFriend ? <>
+                    <ChatHeader friend={selectedFriend} onBack={() => setShowChat(false)} typing={
+                        selectedFriend
+                            ? typingUsers.has(selectedFriend.id)
+                            : false
+                    }/>
+                    <ChatMessages
+                        messages={messages}
+                        onReply={setReplyingTo}
+                        onEdit={setEditingMessage}
+                        onDelete={deleteForEveryone}
+                        onDeleteMe={deleteForMe}
+                    />
+                    <ChatInput
+                        friend={selectedFriend}
+                        replyingTo={replyingTo}
+                        clearReply={() => setReplyingTo(null)}
+                        editingMessage={editingMessage}
+                        clearEditing={() => setEditingMessage(null)}
+                        onMessageSent={message => setMessages(previous => previous.some(item => item.id === message.id || (message.clientId && item.clientId === message.clientId)) ? previous : [...previous, message])}
+                    />
+                </> : <div className="flex-1 flex items-center justify-center text-slate-400 text-xl">Select a friend to start chatting</div>}
+            </div>
+
+            <ConfirmDialog
+                open={confirmOpen}
+                title={confirmConfig?.title}
+                message={confirmConfig?.message}
+                confirmText={confirmConfig?.confirmText}
+                cancelText={confirmConfig?.cancelText}
+                confirmVariant={confirmConfig?.confirmVariant}
+                onCancel={() => {
+                    setConfirmOpen(false);
+                }}
+                onConfirm={async () => {
+                    setConfirmOpen(false);
+                    if (confirmCallback) {
+                        await confirmCallback();
+                    }
+                }}
+            />
         </div>
-    </div>;
+    );
 }
