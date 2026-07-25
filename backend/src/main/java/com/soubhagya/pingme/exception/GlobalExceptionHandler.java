@@ -6,6 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.security.access.AccessDeniedException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -55,6 +59,34 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler({InvalidImageException.class, MissingServletRequestPartException.class})
+    public ResponseEntity<ApiResponse<?>> invalidImage(Exception ex) {
+        String message = ex instanceof MissingServletRequestPartException ? "Please select an image." : ex.getMessage();
+        return ResponseEntity.badRequest().body(ApiResponse.failure(message));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<?>> uploadTooLarge(MaxUploadSizeExceededException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(ApiResponse.failure("Maximum image size is 10 MB."));
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiResponse<?>> multipart(MultipartException ex) {
+        return ResponseEntity.badRequest().body(ApiResponse.failure("The image upload could not be processed."));
+    }
+
+    @ExceptionHandler(ImageStorageException.class)
+    public ResponseEntity<ApiResponse<?>> storage(ImageStorageException ex) {
+        return ResponseEntity.internalServerError()
+                .body(ApiResponse.failure("Image storage is temporarily unavailable. Please try again."));
+    }
+
+    @ExceptionHandler({SecurityException.class, AccessDeniedException.class})
+    public ResponseEntity<ApiResponse<?>> forbidden(Exception ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.failure(ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> exception(Exception ex){
 
@@ -62,7 +94,7 @@ public class GlobalExceptionHandler {
 
                 ApiResponse.builder()
                         .success(false)
-                        .message(ex.getMessage())
+                .message("An unexpected error occurred. Please try again.")
                         .build()
 
         );

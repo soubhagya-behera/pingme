@@ -21,7 +21,7 @@ export default function ChatMessages({ messages, onReply, onEdit, onDelete, onDe
 
     return (
 
-        <div className="flex-1 overflow-y-auto bg-slate-50 px-6 py-5 space-y-3">
+        <div className="flex-1 overflow-y-auto overscroll-contain bg-slate-50 px-3 py-4 space-y-3 sm:px-6 sm:py-5">
 
             {
 

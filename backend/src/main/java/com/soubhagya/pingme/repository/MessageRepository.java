@@ -21,6 +21,10 @@ public interface MessageRepository
     @Query("""
 SELECT m
 FROM Message m
+JOIN FETCH m.sender
+JOIN FETCH m.receiver
+LEFT JOIN FETCH m.replyTo replyTo
+LEFT JOIN FETCH replyTo.sender
 WHERE
 (m.sender = :user1 AND m.receiver = :user2)
 
@@ -41,6 +45,8 @@ List<Message> getConversation(
 @Query("""
 SELECT m
 FROM Message m
+JOIN FETCH m.sender
+JOIN FETCH m.receiver
 WHERE
 
 m.sender = :user

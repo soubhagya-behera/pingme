@@ -82,6 +82,25 @@ deleteForMe(messageId){
 
 },
 
+uploadImage(file, onProgress) {
+    const formData = new FormData();
+
+    formData.append("image", file);
+
+    return api.post(
+
+        "/upload/image",
+
+        formData,
+
+        { timeout: 30000, onUploadProgress: event => {
+            if (event.total) onProgress?.(Math.round((event.loaded * 100) / event.total));
+        }}
+
+    );
+
+},
+
 };
 
 export default ChatService;

@@ -45,12 +45,16 @@ public class ChatServiceImpl implements ChatService {
             throw new RuntimeException("You can only chat with accepted friends.");
         }
 
-        MessageType type =
-                request.getMessageType() == null
-                        ? MessageType.TEXT
-                        : MessageType.valueOf(
-                                request.getMessageType()
-                        );
+        MessageType type;
+        try {
+            type = request.getMessageType() == null ? MessageType.TEXT : MessageType.valueOf(request.getMessageType());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Unsupported message type.");
+        }
+
+        String content = request.getContent() == null ? "" : request.getContent().trim();
+        if (content.length() > 4000) throw new IllegalArgumentException("Message is too long.");
+        if (type == MessageType.TEXT && content.isBlank()) throw new IllegalArgumentException("Message cannot be empty.");
 
         if (
                 type == MessageType.IMAGE
@@ -65,12 +69,15 @@ public class ChatServiceImpl implements ChatService {
                     "Image URL is required."
             );
         }
+        if (type == MessageType.IMAGE && !request.getImageUrl().matches("^/uploads/chat-images/[0-9a-fA-F-]{36}\\.(jpg|jpeg|png|gif)$")) {
+            throw new IllegalArgumentException("Invalid image URL.");
+        }
 
         Message.MessageBuilder builder =
                 Message.builder()
                         .sender(sender)
                         .receiver(receiver)
-                        .content(request.getContent())
+                        .content(content)
                         .imageUrl(request.getImageUrl())
                         .messageType(type)
                         .status(MessageStatus.SENT)
@@ -128,28 +135,24 @@ public class ChatServiceImpl implements ChatService {
             throw new RuntimeException("Edit time has expired.");
         }
 
-        // Prevent empty messages
         String updatedContent = content == null ? "" : content.trim();
 
-        if (updatedContent.isBlank()) {
-            throw new RuntimeException("Message cannot be empty.");
+        if (Boolean.TRUE.equals(message.getDeletedForEveryone())) {
+            throw new IllegalArgumentException("Deleted messages cannot be edited.");
         }
-
-        if (updatedContent.length() > 4000) {
-            throw new RuntimeException("Message is too long.");
+        if (message.getMessageType() == MessageType.IMAGE && updatedContent.length() > 4000) {
+            throw new IllegalArgumentException("Caption is too long.");
         }
-
-        if (message.getContent().equals(updatedContent)) {
-            return;
+        if (message.getMessageType() == MessageType.IMAGE && updatedContent.isBlank()) {
+            // An empty caption is a valid edit for an image message.
+            updatedContent = "";
+        } else if (updatedContent.isBlank()) {
+            throw new IllegalArgumentException("Message cannot be empty.");
         }
-
-        // TODO:
-        // Prevent editing deleted messages
+        if (java.util.Objects.equals(message.getContent(), updatedContent)) return;
         message.setContent(updatedContent);
         message.setEdited(true);
         message.setEditedAt(LocalDateTime.now());
-
-        System.out.println("Message edited : " + message.getId());
 
         MessageEditedEvent event =
                 MessageEditedEvent.builder()
@@ -337,6 +340,7 @@ public class ChatServiceImpl implements ChatService {
                     .id(message.getReplyTo().getId())
                     .senderId(message.getReplyTo().getSender().getId())
                     .content(message.getReplyTo().getContent())
+                    .imageUrl(message.getReplyTo().getImageUrl())
                     .build();
         }
 

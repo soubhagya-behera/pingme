@@ -11,14 +11,18 @@ import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.soubhagya.pingme.entity.Friend;
 import com.soubhagya.pingme.dto.response.ChatSidebarResponse;
 import com.soubhagya.pingme.repository.HiddenMessageRepository;
+import com.soubhagya.pingme.dto.chat.ReplyPreview;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +35,7 @@ public class MessageServiceImpl implements MessageService {
     private final HiddenMessageRepository hiddenMessageRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<MessageResponse> getChatHistory(
 
         String email,
@@ -98,6 +103,14 @@ public class MessageServiceImpl implements MessageService {
 
                         .sentAt(message.getSentAt())
 
+                        .reply(message.getReplyTo() == null ? null : ReplyPreview.builder()
+                                .id(message.getReplyTo().getId())
+                                .senderId(message.getReplyTo().getSender().getId())
+                                .content(message.getReplyTo().getContent())
+                                .imageUrl(message.getReplyTo().getImageUrl())
+                                .build())
+                        .edited(message.getEdited())
+                        .editedAt(message.getEditedAt())
                         .deletedForEveryone(message.getDeletedForEveryone())
 
                         .deletedAt(message.getDeletedAt())
@@ -110,6 +123,7 @@ public class MessageServiceImpl implements MessageService {
 
 
 @Override
+@Transactional(readOnly = true)
 public List<RecentChatResponse> getRecentChats(String email) {
 
     User user = userRepository.findByEmail(email)
@@ -172,25 +186,27 @@ public List<RecentChatResponse> getRecentChats(String email) {
 }
 
 @Override
+@Transactional(readOnly = true)
 public List<ChatSidebarResponse> getChatSidebar(String email) {
 
     User me = userRepository.findByEmail(email)
             .orElseThrow(() ->
                     new RuntimeException("User not found"));
 
-    List<Friend> friendships = new ArrayList<>();
+    List<Friend> friendships = friendRepository.findAllForUserWithUsers(me);
+    List<Message> conversationMessages = messageRepository.findRecentMessages(me);
+    Map<Long, Message> latestByFriend = new HashMap<>();
+    Map<Long, Integer> unreadByFriend = new HashMap<>();
 
-    friendships.addAll(
-
-            friendRepository.findByUserOne(me)
-
-    );
-
-    friendships.addAll(
-
-            friendRepository.findByUserTwo(me)
-
-    );
+    for (Message message : conversationMessages) {
+        User otherUser = message.getSender().getId().equals(me.getId())
+                ? message.getReceiver() : message.getSender();
+        latestByFriend.putIfAbsent(otherUser.getId(), message);
+        if (message.getReceiver().getId().equals(me.getId())
+                && message.getStatus() == MessageStatus.DELIVERED) {
+            unreadByFriend.merge(otherUser.getId(), 1, Integer::sum);
+        }
+    }
 
     List<ChatSidebarResponse> sidebar = new ArrayList<>();
 
@@ -208,33 +224,8 @@ public List<ChatSidebarResponse> getChatSidebar(String email) {
 
         }
 
-        List<Message> messages =
-                messageRepository.findLatestConversationMessages(
-
-                        me,
-
-                        friend
-
-                );
-
-        Message latestMessage =
-
-                messages.isEmpty()
-
-                        ? null
-
-                        : messages.get(0);
-
-        long unreadCount =
-        messageRepository.countBySenderAndReceiverAndStatus(
-
-                friend,
-
-                me,
-
-                MessageStatus.DELIVERED
-
-        );
+        Message latestMessage = latestByFriend.get(friend.getId());
+        int unreadCount = unreadByFriend.getOrDefault(friend.getId(), 0);
 
         sidebar.add(
 
@@ -270,7 +261,7 @@ public List<ChatSidebarResponse> getChatSidebar(String email) {
 
                         .unreadCount(
 
-                                (int) unreadCount
+                                unreadCount
 
                         )
 

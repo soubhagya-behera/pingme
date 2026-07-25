@@ -8,6 +8,15 @@ from "../websocket/socket";
 
 const AuthContext = createContext();
 
+function isUsableToken(value) {
+
+    return typeof value === "string" &&
+        value.trim() !== "" &&
+        value !== "null" &&
+        value !== "undefined";
+
+}
+
 export function AuthProvider({ children }) {
 
     const [user, setUser] = useState(() => {
@@ -18,16 +27,18 @@ export function AuthProvider({ children }) {
 
     });
 
-    const [token, setToken] = useState(
+    const [token, setToken] = useState(() => {
 
-        localStorage.getItem("token")
+        const savedToken = localStorage.getItem("token");
 
-    );
+        return isUsableToken(savedToken) ? savedToken : null;
+
+    });
 
     // Save Token
     useEffect(() => {
 
-        if (token) {
+        if (isUsableToken(token)) {
 
             localStorage.setItem("token", token);
 
@@ -67,6 +78,14 @@ export function AuthProvider({ children }) {
     jwtToken
 
 )=>{
+
+    // Persist synchronously so HTTP requests issued immediately after login
+    // already have credentials. Socket authentication receives jwtToken directly.
+    if (!isUsableToken(jwtToken)) {
+        throw new Error("Login response did not contain a valid token.");
+    }
+
+    localStorage.setItem("token", jwtToken);
 
     setUser(userData);
 

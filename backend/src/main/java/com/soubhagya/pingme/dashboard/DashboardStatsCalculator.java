@@ -39,16 +39,10 @@ public class DashboardStatsCalculator {
                 );
 
         long onlineFriends =
-                friendRepository.findByUserOne(user)
+                friendRepository.findAllForUserWithUsers(user)
                         .stream()
-                        .map(friend -> friend.getUserTwo())
-                        .filter(User::getOnline)
-                        .count();
-
-        onlineFriends +=
-                friendRepository.findByUserTwo(user)
-                        .stream()
-                        .map(friend -> friend.getUserOne())
+                        .map(friend -> friend.getUserOne().getId().equals(user.getId())
+                                ? friend.getUserTwo() : friend.getUserOne())
                         .filter(User::getOnline)
                         .count();
 

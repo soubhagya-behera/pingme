@@ -74,3 +74,9 @@ src/main/resources/application.properties
 # Generated Files
 ############################
 HELP.md
+
+############################
+# Runtime Uploads
+############################
+uploads/chat-images/*
+!uploads/chat-images/.gitkeep

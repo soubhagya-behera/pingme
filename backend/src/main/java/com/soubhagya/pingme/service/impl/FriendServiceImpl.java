@@ -31,73 +31,21 @@ public class FriendServiceImpl implements FriendService {
 private final DashboardRealtimeService dashboardRealtimeService;
 
     @Override
+    @Transactional(readOnly = true)
     public List<FriendResponse> getFriends(String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("User not found"));
 
-        List<FriendResponse> friends = new ArrayList<>();
-
-        List<Friend> userOneFriends =
-                friendRepository.findByUserOne(user);
-
-        for (Friend friend : userOneFriends) {
-
-            User f = friend.getUserTwo();
-
-            friends.add(
-
-                    FriendResponse.builder()
-
-                            .id(f.getId())
-
-                            .fullName(f.getFullName())
-
-                            .email(f.getEmail())
-
-                            .profession(f.getProfession())
-
-                            .profilePicture(f.getProfilePicture())
-
-                            .online(f.getOnline())
-
-                            .build()
-
-            );
-
-        }
-
-        List<Friend> userTwoFriends =
-                friendRepository.findByUserTwo(user);
-
-        for (Friend friend : userTwoFriends) {
-
-            User f = friend.getUserOne();
-
-            friends.add(
-
-                    FriendResponse.builder()
-
-                            .id(f.getId())
-
-                            .fullName(f.getFullName())
-
-                            .email(f.getEmail())
-
-                            .profession(f.getProfession())
-
-                            .profilePicture(f.getProfilePicture())
-
-                            .online(f.getOnline())
-
-                            .build()
-
-            );
-
-        }
-
-        return friends;
+        return friendRepository.findAllForUserWithUsers(user).stream()
+                .map(friend -> friend.getUserOne().getId().equals(user.getId())
+                        ? friend.getUserTwo() : friend.getUserOne())
+                .map(f -> FriendResponse.builder()
+                        .id(f.getId()).fullName(f.getFullName()).email(f.getEmail())
+                        .profession(f.getProfession()).profilePicture(f.getProfilePicture())
+                        .online(f.getOnline()).build())
+                .toList();
 
     }
 

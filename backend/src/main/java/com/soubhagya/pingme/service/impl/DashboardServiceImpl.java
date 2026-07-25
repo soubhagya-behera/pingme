@@ -16,6 +16,7 @@ import com.soubhagya.pingme.service.DashboardService;
 import com.soubhagya.pingme.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +35,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final DashboardStatsCalculator dashboardStatsCalculator;
 
     @Override
+    @Transactional(readOnly = true)
     public DashboardResponse getDashboard(String email) {
 
         User user = userRepository.findByEmail(email)
@@ -52,7 +54,7 @@ public class DashboardServiceImpl implements DashboardService {
     private List<FriendRequestResponse> getPendingRequests(User user) {
 
         return friendRequestRepository
-                .findByReceiverAndStatus(
+                .findByReceiverAndStatusWithUsers(
                         user,
                         FriendRequestStatus.PENDING
                 )

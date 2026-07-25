@@ -12,5 +12,6 @@ import org.springframework.stereotype.Component;
 public class UploadProperties {
 
     private String imageDirectory;
+    private long maxImageSizeBytes = 10 * 1024 * 1024;
 
 }

@@ -8,22 +8,33 @@ let connected = false;
 let waitingCallbacks = [];
 let connectionListeners = new Set();
 
-export function connectSocket() {
+function isUsableToken(token) {
+    return typeof token === "string" &&
+        token.trim() !== "" &&
+        token !== "null" &&
+        token !== "undefined";
+}
+
+export function connectSocket(token) {
 
     if (connected) return;
 
     if (stompClient?.active) return;
 
-    const token = localStorage.getItem("token");
+    if (!isUsableToken(token)) return;
+
+    const socketUrl = `http://localhost:8080/ws?token=${encodeURIComponent(token)}`;
 
 
-    stompClient = new Client({
+    let client;
+
+    client = new Client({
 
     webSocketFactory: () =>
 
     new SockJS(
 
-        `http://localhost:8080/ws?token=${token}`
+        socketUrl
 
     ),
 
@@ -32,6 +43,8 @@ export function connectSocket() {
     debug: () => {},
 
     onConnect: () => {
+
+        if (stompClient !== client) return;
 
         connected = true;
 
@@ -43,11 +56,14 @@ export function connectSocket() {
 
     onDisconnect: () => {
 
+        if (stompClient !== client) return;
+
         connected = false;
     },
 
-    onWebSocketClose: (event) => {
-
+    onWebSocketClose: () => {
+        if (stompClient !== client) return;
+        connected = false;
     },
 
     onWebSocketError: (event) => {
@@ -60,7 +76,9 @@ export function connectSocket() {
 
 });
 
-    stompClient.activate();
+    stompClient = client;
+
+    client.activate();
 
 }
 
@@ -68,7 +86,11 @@ export function disconnectSocket() {
 
     connected = false;
 
-    stompClient?.deactivate();
+    const client = stompClient;
+
+    stompClient = null;
+
+    client?.deactivate();
 
 }
 

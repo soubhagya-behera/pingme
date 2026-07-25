@@ -114,7 +114,7 @@ export default function Chat() {
 
     async function loadChatSidebar() {
         try { setFriends((await ChatService.getChatSidebar()).data.data); }
-        catch (error) { console.error(error); }
+        catch { setFriends([]); }
         finally { setLoading(false); }
     }
 
@@ -136,7 +136,6 @@ export default function Chat() {
 
     } catch (error) {
 
-        console.error(error);
 
     }
 
@@ -170,7 +169,6 @@ async function deleteForMe(message) {
 
     } catch (error) {
 
-        console.error(error);
 
     }
 
@@ -183,11 +181,11 @@ async function deleteForMe(message) {
             setMessages(history.data.data);
             await ChatService.markConversationRead(friend.id);
             setMessages(previous => previous.map(message => message.senderId === friend.id ? { ...message, status: "READ" } : message));
-        } catch (error) { console.error(error); }
+        } catch { setMessages([]); }
     }
 
     if (loading) return <div className="flex justify-center items-center h-full">Loading chats...</div>;
-    return <div className="h-[calc(100vh-140px)] flex">
+    return <div className="flex h-[calc(100dvh-140px)] min-h-0">
         <div className={`w-full md:w-[360px] ${showChat ? "hidden md:block" : "block"}`}>
             <ChatSidebar friends={friends} selectedFriend={selectedFriend} onSelect={selectFriend} />
         </div>
@@ -212,9 +210,7 @@ async function deleteForMe(message) {
                     clearReply={() => setReplyingTo(null)}
                     editingMessage={editingMessage}
                     clearEditing={() => setEditingMessage(null)}
-                    onMessageSent={message =>
-                        setMessages(previous => [...previous, message])
-                    }
+                    onMessageSent={message => setMessages(previous => previous.some(item => item.id === message.id || (message.clientId && item.clientId === message.clientId)) ? previous : [...previous, message])}
                 />
             </> : <div className="flex-1 flex items-center justify-center text-slate-400 text-xl">Select a friend to start chatting</div>}
         </div>

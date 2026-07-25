@@ -1,170 +1,79 @@
 package com.soubhagya.pingme.service.impl;
 
 import com.soubhagya.pingme.config.UploadProperties;
+import com.soubhagya.pingme.exception.ImageStorageException;
+import com.soubhagya.pingme.exception.InvalidImageException;
 import com.soubhagya.pingme.service.ImageStorageService;
+import jakarta.annotation.PostConstruct;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.annotation.PostConstruct;
-
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.List;
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class ImageStorageServiceImpl implements ImageStorageService {
-
+    private static final Map<String, String> ALLOWED_IMAGES = Map.of(
+            "jpg", "image/jpeg", "jpeg", "image/jpeg", "png", "image/png", "gif", "image/gif");
     private final UploadProperties uploadProperties;
-
     private Path uploadPath;
-
-    private static final List<String> ALLOWED_TYPES = List.of(
-
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "image/gif"
-
-    );
-
-    private static final long MAX_FILE_SIZE =
-
-            10 * 1024 * 1024;
 
     @PostConstruct
     public void init() {
-
         try {
-
-            uploadPath = Paths.get(
-
-                    uploadProperties.getImageDirectory()
-
-            ).toAbsolutePath().normalize();
-
-            System.out.println("Upload Path : " + uploadPath);
-
+            uploadPath = Paths.get(uploadProperties.getImageDirectory()).toAbsolutePath().normalize();
             Files.createDirectories(uploadPath);
-
-        } catch (IOException e) {
-
-            throw new RuntimeException(
-
-                    "Could not create upload directory.",
-
-                    e
-
-            );
-
+        } catch (IOException ex) {
+            throw new ImageStorageException("Could not initialize image storage.", ex);
         }
-
     }
 
     @Override
     public String upload(MultipartFile file) {
-
-        validate(file);
-
-        String extension =
-
-                StringUtils.getFilenameExtension(
-
-                        file.getOriginalFilename()
-
-                );
-
-        String fileName =
-
-                UUID.randomUUID()
-
-                        + "." +
-
-                        extension;
-
-        try {
-
-            Path target =
-
-                    uploadPath.resolve(fileName);
-
-            Files.copy(
-
-                    file.getInputStream(),
-
-                    target,
-
-                    StandardCopyOption.REPLACE_EXISTING
-
-            );
-
-            return "/uploads/chat-images/" + fileName;
-
-        } catch (IOException e) {
-
-            throw new RuntimeException(
-
-                    "Image upload failed.",
-
-                    e
-
-            );
-
+        String extension = validate(file);
+        for (int attempt = 0; attempt < 3; attempt++) {
+            String fileName = UUID.randomUUID() + "." + extension;
+            Path target = uploadPath.resolve(fileName).normalize();
+            if (!target.startsWith(uploadPath)) throw new InvalidImageException("Invalid image filename.");
+            try (InputStream input = file.getInputStream()) {
+                Files.copy(input, target);
+                return "/uploads/chat-images/" + fileName;
+            } catch (FileAlreadyExistsException ignored) {
+                // UUID collisions are extraordinarily unlikely, but never overwrite an existing upload.
+            } catch (IOException ex) {
+                throw new ImageStorageException("Image upload failed.", ex);
+            }
         }
-
+        throw new ImageStorageException("Could not allocate an image filename.", null);
     }
 
-    private void validate(MultipartFile file) {
-
-        if (file == null || file.isEmpty()) {
-
-            throw new RuntimeException(
-
-                    "Please select an image."
-
-            );
-
+    private String validate(MultipartFile file) {
+        if (file == null || file.isEmpty()) throw new InvalidImageException("Please select a non-empty image.");
+        if (file.getSize() > uploadProperties.getMaxImageSizeBytes()) throw new InvalidImageException("Maximum image size is 10 MB.");
+        String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        if (!StringUtils.hasText(extension)) throw new InvalidImageException("The image filename must have an extension.");
+        extension = extension.toLowerCase(Locale.ROOT);
+        String expectedType = ALLOWED_IMAGES.get(extension);
+        if (expectedType == null || !expectedType.equalsIgnoreCase(file.getContentType()))
+            throw new InvalidImageException("Unsupported image format or mismatched filename extension.");
+        try (InputStream input = file.getInputStream()) {
+            BufferedImage image = ImageIO.read(input);
+            if (image == null || image.getWidth() <= 0 || image.getHeight() <= 0)
+                throw new InvalidImageException("The uploaded file is not a valid image.");
+        } catch (IOException ex) {
+            throw new InvalidImageException("The uploaded image is corrupted or unreadable.");
         }
-
-        if (
-
-                file.getSize()
-
-                        >
-
-                        MAX_FILE_SIZE
-
-        ) {
-
-            throw new RuntimeException(
-
-                    "Maximum image size is 10 MB."
-
-            );
-
-        }
-
-        if (
-
-                !ALLOWED_TYPES.contains(
-
-                        file.getContentType()
-
-                )
-
-        ) {
-
-            throw new RuntimeException(
-
-                    "Unsupported image format."
-
-            );
-
-        }
-
+        return extension;
     }
-
 }

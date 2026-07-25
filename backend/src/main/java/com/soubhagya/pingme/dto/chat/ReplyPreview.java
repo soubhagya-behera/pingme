@@ -15,4 +15,6 @@ public class ReplyPreview {
 
     private String content;
 
+    private String imageUrl;
+
 }

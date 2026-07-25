@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef } from "react";
-import { connectSocket, disconnectSocket, whenSocketConnected, onSocketConnected } from "../websocket/socket";
+import { connectSocket, disconnectSocket, onSocketConnected } from "../websocket/socket";
 import { subscribeMessages, subscribePresence, subscribeMessageStatus, subscribeTyping, subscribeMessageEdited, subscribeMessageDeleted } from "../websocket/subscriptions";
 import { acknowledgeDelivery, announceSocketReady } from "../websocket/publisher";
 import { useAuth } from "./AuthContext";
@@ -25,10 +25,19 @@ export function SocketProvider({ children }) {
         let messageEditedSubscription;
         let messageDeletedSubscription;
         let removeReconnectListener;
-        connectSocket();
 
-        whenSocketConnected(() => {
+        const subscribeToSocketEvents = () => {
             if (cancelled) return;
+
+            // A STOMP reconnect creates a new server session, so its
+            // subscriptions must be registered again for every connection.
+            messageSubscription?.unsubscribe();
+            receiptSubscription?.unsubscribe();
+            presenceSubscription?.unsubscribe();
+            typingSubscription?.unsubscribe();
+            messageEditedSubscription?.unsubscribe();
+            messageDeletedSubscription?.unsubscribe();
+
             // These subscriptions are application-wide: delivery cannot depend on Chat being mounted.
             messageSubscription = subscribeMessages(message => {
                 const myId = Number(localStorage.getItem("userId"));
@@ -65,8 +74,10 @@ export function SocketProvider({ children }) {
 
             // Sent after all inbox subscriptions exist, so reconnects replay unacknowledged messages safely.
             announceSocketReady();
-            removeReconnectListener = onSocketConnected(announceSocketReady);
-        });
+        };
+
+        removeReconnectListener = onSocketConnected(subscribeToSocketEvents);
+        connectSocket(token);
 
         return () => {
             cancelled = true;

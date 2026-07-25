@@ -6,8 +6,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface FriendRepository extends JpaRepository<Friend, Long> {
+
+    @Query("""
+            select f from Friend f
+            join fetch f.userOne
+            join fetch f.userTwo
+            where f.userOne = :user or f.userTwo = :user
+            """)
+    List<Friend> findAllForUserWithUsers(@Param("user") User user);
 
     // Find friends
     List<Friend> findByUserOne(User user);

@@ -2,6 +2,7 @@ package com.soubhagya.pingme.websocket;
 
 import com.soubhagya.pingme.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -26,12 +27,25 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
             String token = servletRequest.getServletRequest().getParameter("token");
 
-            if (token != null && !token.isBlank()) {
+            if (token == null || token.isBlank() || "null".equals(token) || "undefined".equals(token)) {
+                response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                return false;
+            }
 
+            try {
                 String email = jwtService.extractUsername(token);
 
-                attributes.put("email", email);
+                if (email == null || email.isBlank()) {
+                    response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                    return false;
+                }
 
+                attributes.put("email", email);
+            } catch (RuntimeException exception) {
+                // Reject malformed, expired, or otherwise invalid query tokens
+                // without allowing a JWT parsing exception to escape the handshake.
+                response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                return false;
             }
 
         }

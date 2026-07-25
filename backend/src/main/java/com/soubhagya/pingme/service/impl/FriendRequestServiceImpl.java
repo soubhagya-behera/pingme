@@ -210,6 +210,7 @@ FriendRequest saved =
 }
 
 @Override
+@Transactional(readOnly = true)
 public List<FriendRequestResponse> getIncomingRequests(String email) {
 
     User receiver = userRepository.findByEmail(email)
@@ -217,7 +218,7 @@ public List<FriendRequestResponse> getIncomingRequests(String email) {
                 new RuntimeException("User not found"));
 
     List<FriendRequest> requests =
-            friendRequestRepository.findByReceiverAndStatus(
+            friendRequestRepository.findByReceiverAndStatusWithUsers(
 
                     receiver,
 
