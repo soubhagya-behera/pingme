@@ -1,5 +1,5 @@
-
 import { useState, useEffect, useRef } from "react";
+import toast from "react-hot-toast";
 import ChatSidebar from "../../../components/user/chat/ChatSidebar";
 import ChatHeader from "../../../components/user/chat/ChatHeader";
 import ChatMessages from "../../../components/user/chat/ChatMessages";
@@ -144,8 +144,10 @@ export default function Chat() {
             async () => {
                 try {
                     await ChatService.deleteForEveryone(message.id);
+                    toast.success("Message deleted for everyone.");
                 } catch (error) {
                     console.error(error);
+                    toast.error("Couldn't delete the message.");
                 }
             }
         );
@@ -163,6 +165,7 @@ export default function Chat() {
             async () => {
                 try {
                     await ChatService.deleteForMe(message.id);
+                    toast.success("Message deleted.");
                     setMessages(previous =>
                         previous.filter(
                             item => item.id !== message.id
@@ -170,6 +173,7 @@ export default function Chat() {
                     );
                 } catch (error) {
                     console.error(error);
+                    toast.error("Couldn't delete the message.");
                 }
             }
         );

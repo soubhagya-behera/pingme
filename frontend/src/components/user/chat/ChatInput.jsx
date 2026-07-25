@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
 import { Image as ImageIcon, LoaderCircle, Reply, Send, Smile, X } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
+import toast from "react-hot-toast";
 import ChatService from "../../../services/ChatService";
 import { sendStopTyping, sendTyping } from "../../../websocket/publisher";
 import ImagePreviewModal from "./ImagePreviewModal";
@@ -44,13 +45,30 @@ export default function ChatInput({ friend, replyingTo, clearReply, editingMessa
             }
             const clientId = uuid();
             await addAfterSend({ clientId, receiverId, content: messageCaption, imageUrl: response.data.data.imageUrl, messageType: "IMAGE", replyToId });
+            toast.success("Image sent");
             cancelImage(); clearReply?.();
-        } catch (error) { setImageError(uploadError(error)); }
+        } catch (error) { 
+            console.error(error);
+            toast.error(uploadError(error));
+            setImageError(uploadError(error)); 
+        }
         finally { uploadInFlight.current = false; setUploading(false); }
     }
     async function send() {
         if (!friend || !message.trim() || uploading) return;
-        if (editingMessage) { try { await ChatService.editMessage(editingMessage.id, message); setMessage(""); clearEditing?.(); } catch (error) { setImageError(uploadError(error)); } return; }
+        if (editingMessage) { 
+            try { 
+                await ChatService.editMessage(editingMessage.id, message); 
+                toast.success("Message edited");
+                setMessage(""); 
+                clearEditing?.(); 
+            } catch (error) { 
+                console.error(error);
+                toast.error("Couldn't edit the message.");
+                setImageError(uploadError(error)); 
+            } 
+            return; 
+        }
         const content = message.trim(); setMessage(""); stopTyping();
         try { await addAfterSend({ clientId: uuid(), receiverId: friend.id, content, messageType: "TEXT", replyToId: replyingTo?.id }); clearReply?.(); }
         catch (error) { setMessage(content); setImageError(uploadError(error)); }

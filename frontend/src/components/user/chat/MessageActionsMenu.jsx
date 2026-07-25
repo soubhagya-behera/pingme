@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import {
     ChevronDown,
     Reply,
@@ -166,8 +167,12 @@ export default function MessageActionsMenu({
                             <button
                                 onClick={() => {
                                     navigator.clipboard.writeText(
-                                        message.content
-                                    );
+    message.content
+);
+
+toast.success(
+    "Copied to clipboard"
+);
                                     setOpen(false);
                                 }}
                                 className="flex w-full items-center gap-3 px-4 py-2 hover:bg-slate-100"
