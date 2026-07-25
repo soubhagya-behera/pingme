@@ -7,7 +7,8 @@ import {
     Forward
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { EDIT_WINDOW_MS } from "../../../constants/chatConstants";
+import { EDIT_WINDOW_MS, DELETE_WINDOW_MS
+ } from "../../../constants/chatConstants";
 
 export default function MessageActionsMenu({
     mine,
@@ -36,6 +37,40 @@ export default function MessageActionsMenu({
             Date.now() - sentTime < EDIT_WINDOW_MS
         );
     })();
+
+    const canDeleteForEveryone = (() => {
+
+    if (!mine) {
+
+        return false;
+
+    }
+
+    if (message.deletedForEveryone) {
+
+        return false;
+
+    }
+
+    const sentTime =
+
+        new Date(
+
+            message.sentAt
+
+        ).getTime();
+
+    return (
+
+        Date.now() - sentTime
+
+        <
+
+        DELETE_WINDOW_MS
+
+    );
+
+})();
 
     useEffect(() => {
         function outside(event) {
@@ -143,19 +178,28 @@ export default function MessageActionsMenu({
                         }
 
                         {
-                            mine &&
-                            !message.deletedForEveryone &&
-                            <button
-                                onClick={() => {
-                                    onDelete(message);
-                                    setOpen(false);
-                                }}
-                                className="flex w-full items-center gap-3 px-4 py-2 hover:bg-red-50 text-red-600"
-                            >
-                                <Trash2 size={18} />
-                                Delete for Everyone
-                            </button>
-                        }
+    canDeleteForEveryone &&
+
+    <button
+
+        onClick={() => {
+
+            onDelete(message);
+
+            setOpen(false);
+
+        }}
+
+        className="flex w-full items-center gap-3 px-4 py-2 hover:bg-red-50 text-red-600"
+
+    >
+
+        <Trash2 size={18} />
+
+        Delete for Everyone
+
+    </button>
+}
 
                         {
     !message.deletedForEveryone &&
