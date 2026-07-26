@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import AnimatedBackground from "../ui/AnimatedBackground";
+import AnimatedBackground from "../layout/AnimatedBackground";
 
 export default function AuthLayout({
   children,

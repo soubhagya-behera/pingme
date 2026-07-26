@@ -34,3 +34,16 @@
   place-items: center; 
   padding: max(1.5rem, env(safe-area-inset-top)) max(1.25rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-left)); 
 }
+
+.login-title{
+    font-size:36px;
+    font-weight:800;
+    color:white;
+    margin-bottom:12px;
+}
+
+.login-subtitle{
+    color:#94A3B8;
+    margin-bottom:32px;
+    line-height:1.6;
+}

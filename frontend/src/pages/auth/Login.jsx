@@ -1,186 +1,120 @@
-import "./Login.css";
-
-import Card from "../../components/ui/Card";
-import Input from "../../components/ui/Input";
-import Button from "../../components/ui/Button";
-
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 import { useForm } from "react-hook-form";
+import { Mail, Lock } from "lucide-react";
 
 import AuthService from "../../services/AuthService";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
-export default function Login(){
+import AuthLayout from "../../components/auth/layout/AuthLayout";
+import GlassCard from "../../components/auth/ui/GlassCard";
+import AuthInput from "../../components/auth/ui/AuthInput";
+import GradientButton from "../../components/auth/ui/GradientButton";
 
-const{
+export default function Login() {
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-register,
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm();
 
-handleSubmit
-
-}=useForm();
-const navigate = useNavigate();
-
-const { login } = useAuth();
-
-const onSubmit = async (data) => {
-
+  const onSubmit = async (data) => {
+    setLoading(true);
     try {
+      const response = await AuthService.login(data);
+      const result = response.data.data;
 
-        const response = await AuthService.login(data);
+      login(
+        {
+          id: result.id,
+          name: result.fullName,
+          email: result.email,
+          role: result.role
+        },
+        result.token
+      );
 
-        const result = response.data.data;
-
-        login(
-
-            {
-                id: result.id,
-                name: result.fullName,
-                email: result.email,
-                role: result.role
-            },
-
-            result.token
-
-        );
-
-        toast.success("Login Successful");
-
-        navigate(result.role === "ADMIN" ? "/admin" : "/");
-
+      toast.success("Login Successful");
+      navigate(result.role === "ADMIN" ? "/admin" : "/");
     } catch (error) {
-
-        toast.error(
-
-            error.response?.data?.message ||
-
-            "Login Failed"
-
-        );
-
+      toast.error(
+        error.response?.data?.message || "Login Failed"
+      );
+    } finally {
+      setLoading(false);
     }
+  };
 
-};
+  return (
+    <AuthLayout>
+      <GlassCard>
+        <h1 className="login-title">
+          Welcome Back 👋
+        </h1>
+        <p className="login-subtitle">
+          Sign in to continue to PingMe
+        </p>
 
-return(
+        <form
+          className="auth-form"
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <AuthInput
+            label="Email Address"
+            placeholder="Enter your email"
+            type="email"
+            icon={<Mail size={18} />}
+            error={errors.email?.message}
+            {...register("email", {
+              required: "Email is required"
+            })}
+          />
 
-<div className="login-page">
+          <AuthInput
+            label="Password"
+            placeholder="Enter your password"
+            type="password"
+            icon={<Lock size={18} />}
+            error={errors.password?.message}
+            {...register("password", {
+              required: "Password is required"
+            })}
+          />
 
-<Card
+          <div className="auth-form-options">
+            <Link
+              to="/forgot-password"
+              className="auth-text-link"
+            >
+              Forgot Password?
+            </Link>
+          </div>
 
-className="login-card p-8"
+          <GradientButton
+            type="submit"
+            loading={loading}
+          >
+            Sign In
+          </GradientButton>
+        </form>
 
->
-
-<h1 className="login-title">
-
-Welcome Back 👋
-
-</h1>
-
-<p className="login-subtitle">
-
-Sign in to continue to PingMe
-
-</p>
-
-<form
-
-onSubmit={handleSubmit(onSubmit)}
-
->
-
-<div className="form-group">
-
-<Input
-
-placeholder="Email"
-
-type="email"
-
-{
-
-...register("email")
-
-}
-
-/>
-
-</div>
-
-<div className="form-group">
-
-<Input
-
-placeholder="Password"
-
-type="password"
-
-{
-
-...register("password")
-
-}
-
-/>
-
-<div className="mt-2 flex justify-end">
-
-    <Link
-        to="/forgot-password"
-        className="text-sm text-indigo-600 hover:underline"
-    >
-        Forgot Password?
-    </Link>
-
-</div>
-
-</div>
-
-<Button
-
-type="submit"
-
-className="w-full"
-
->
-
-Login
-
-</Button>
-
-</form>
-
-<div className="login-footer">
-
-    <span>
-
-        Don't have an account?
-
-    </span>
-
-    {" "}
-
-    <Link
-
-        to="/register"
-
-        className="register-link"
-
-    >
-
-        Create Account
-
-    </Link>
-
-</div>
-
-</Card>
-
-</div>
-
-);
-
+        <div className="auth-footer">
+          <span>
+            Don't have an account?
+          </span>
+          <Link
+            to="/register"
+            className="auth-text-link"
+          >
+            Create Account
+          </Link>
+        </div>
+      </GlassCard>
+    </AuthLayout>
+  );
 }
