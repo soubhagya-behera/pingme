@@ -1,0 +1,78 @@
+.auth-page {
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  overflow: hidden;
+  background: radial-gradient(circle at 5% 5%, rgba(167,139,250,.2), transparent 28rem), radial-gradient(circle at 95% 88%, rgba(99,102,241,.13), transparent 30rem), #f7f8ff;
+  animation: auth-fade-in .55s ease-out both;
+}
+
+.auth-page::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  opacity: .36;
+  background-image: linear-gradient(rgba(99,91,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(99,91,255,.045) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, black, transparent 88%);
+}
+
+.auth-background-gradient {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(99,102,241,.18), transparent 28%), 
+    radial-gradient(circle at 90% 10%, rgba(139,92,246,.18), transparent 30%), 
+    radial-gradient(circle at 80% 90%, rgba(59,130,246,.15), transparent 28%), 
+    linear-gradient(135deg, #050816 0%, #0b1120 45%, #111827 100%);
+  z-index: 0;
+  overflow: hidden;
+}
+
+.auth-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), 
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(to bottom, black, transparent);
+  opacity: .45;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.auth-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: .65;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-blob-one {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  left: -80px;
+  background: #6366F1;
+}
+
+.auth-blob-two {
+  width: 360px;
+  height: 360px;
+  right: -80px;
+  bottom: -100px;
+  background: #8B5CF6;
+}
+
+.auth-blob-three {
+  width: 260px;
+  height: 260px;
+  top: 45%;
+  left: 50%;
+  background: #3B82F6;
+  transform: translate(-50%, -50%);
+}

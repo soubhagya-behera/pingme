@@ -1,0 +1,36 @@
+.auth-shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 520px;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.auth-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px;
+  position: relative;
+  z-index: 2;
+}
+
+.auth-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  position: relative;
+  z-index: 2;
+}
+
+.auth-showcase, .auth-panel { 
+  position: relative; 
+  z-index: 1; 
+}
+
+.auth-panel { 
+  display: grid; 
+  place-items: center; 
+  padding: max(1.5rem, env(safe-area-inset-top)) max(1.25rem, env(safe-area-inset-right)) max(1.5rem, env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-left)); 
+}

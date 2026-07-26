@@ -1,0 +1,51 @@
+@media (max-width: 992px) {
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+  .auth-left {
+    display: none;
+  }
+  .auth-right {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .glass-card {
+    padding: 28px;
+    border-radius: 24px;
+  }
+}
+
+@media (min-width: 768px) {
+  .auth-page { 
+    grid-template-columns: minmax(0,1.05fr) minmax(28rem,.95fr); 
+  }
+  .auth-showcase { 
+    display: block; 
+  }
+  .auth-mobile-brand { 
+    display: none; 
+  }
+  .auth-panel { 
+    padding: clamp(2rem,5vw,5rem); 
+  }
+}
+
+@media (min-width: 1280px) {
+  .auth-showcase { 
+    padding-left: max(4rem, calc((100vw - 1440px)/2 + 4rem)); 
+  }
+  .auth-panel { 
+    padding-right: max(4rem, calc((100vw - 1440px)/2 + 4rem)); 
+  }
+}
+
+@media (max-width: 900px) and (min-width: 768px) {
+  .auth-showcase { 
+    padding: 3rem; 
+  }
+  .auth-hero { 
+    margin-top: 5rem; 
+  }
+}
