@@ -215,3 +215,93 @@
 .gradient-btn:hover .gradient-btn-arrow {
   transform: translateX(5px);
 }
+
+/* =====================================================
+                    AUTH INPUT
+===================================================== */
+.auth-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-floating-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #CBD5E1;
+  letter-spacing: .3px;
+}
+
+.auth-input-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 58px;
+  padding: 0 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .08);
+  backdrop-filter: blur(18px);
+  transition: all .25s ease;
+}
+
+.auth-input-container:focus-within {
+  border-color: #6366F1;
+  box-shadow: 
+    0 0 0 4px rgba(99, 102, 241, .15), 
+    0 12px 40px rgba(99, 102, 241, .15);
+  transform: translateY(-1px);
+}
+
+.auth-input-left-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+  transition: .25s;
+}
+
+.auth-input-container:focus-within .auth-input-left-icon {
+  color: #818CF8;
+}
+
+.auth-input-field {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.auth-input-field::placeholder {
+  color: #64748B;
+}
+
+.auth-password-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  transition: .25s;
+}
+
+.auth-password-btn:hover {
+  color: white;
+  transform: scale(1.08);
+}
+
+.auth-input-error {
+  border-color: #EF4444;
+  animation: shake .35s;
+}
+
+.auth-error-text {
+  font-size: 13px;
+  color: #EF4444;
+  margin-left: 6px;
+}

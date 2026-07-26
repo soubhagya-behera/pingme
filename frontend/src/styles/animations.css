@@ -5,3 +5,42 @@
 @keyframes auth-pulse-dot { 0%, 100% { opacity: .4; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
 @keyframes auth-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+@keyframes shake{
+
+0%{
+
+transform:translateX(0);
+
+}
+
+20%{
+
+transform:translateX(-4px);
+
+}
+
+40%{
+
+transform:translateX(4px);
+
+}
+
+60%{
+
+transform:translateX(-4px);
+
+}
+
+80%{
+
+transform:translateX(4px);
+
+}
+
+100%{
+
+transform:translateX(0);
+
+}
+
+}
