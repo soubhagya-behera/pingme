@@ -1,11 +1,13 @@
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 22px;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 70px;
+.brand{
+
+display:flex;
+
+align-items:center;
+
+gap:16px;
+
+margin-bottom:48px;
+
 }
 
 .brand-logo {

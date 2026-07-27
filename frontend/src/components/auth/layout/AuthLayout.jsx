@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
 import AnimatedBackground from "../layout/AnimatedBackground";
+import { MessageCircleMore } from "lucide-react";
 
 export default function AuthLayout({
   children,
-  title = "Welcome Back",
-  subtitle = "Continue your conversations securely."
+  heroTitle = "Fast. Secure. Beautiful.",
+  heroSubtitle =
+    "Experience real-time conversations with modern UI, lightning fast performance, and enterprise-grade security.",
+  badge = "Modern Messaging Platform",
 }) {
   return (
     <div className="auth-shell">
@@ -24,9 +27,9 @@ export default function AuthLayout({
 
           <div className="brand-logo">
 
-            P
+<MessageCircleMore size={28}/>
 
-          </div>
+</div>
 
           <span>PingMe</span>
 
@@ -36,23 +39,19 @@ export default function AuthLayout({
 
           <span className="hero-badge">
 
-            Modern Messaging Platform
+            {badge}
 
           </span>
 
           <h1>
 
-            Fast.
-            Secure.
-            
+            {heroTitle}
 
           </h1>
 
           <p>
 
-            Experience real-time conversations with
-            modern UI, lightning fast performance,
-            and enterprise-grade security.
+            {heroSubtitle}
 
           </p>
 

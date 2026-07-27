@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { Mail, Lock, ShieldCheck } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 
 import AuthService from "../../services/AuthService";
 import { useAuth } from "../../context/AuthContext";
@@ -11,6 +11,7 @@ import AuthLayout from "../../components/auth/layout/AuthLayout";
 import GlassCard from "../../components/auth/ui/GlassCard";
 import AuthInput from "../../components/auth/ui/AuthInput";
 import GradientButton from "../../components/auth/ui/GradientButton";
+import AuthHeader from "../../components/auth/ui/AuthHeader";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -51,25 +52,21 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout>
+    <AuthLayout
+
+heroTitle="Where Conversations Meet Simplicity."
+
+heroSubtitle="Built with Spring Boot, React, WebSockets, and modern cloud-ready architecture."
+
+>
       <GlassCard>
-        <h1 className="login-title">
-          Welcome Back 👋
-        </h1>
-        <p className="login-subtitle">
-          Sign in to continue to PingMe
-        </p>
-        <div className="login-security">
+      <AuthHeader
 
-    <ShieldCheck size={15} />
+title="Welcome Back 👋"
 
-    <span>
+subtitle="Sign in to continue to PingMe"
 
-        🛡 Built with JWT authentication and Spring Security.
-
-    </span>
-
-</div>
+/>
         <form
           className="auth-form"
           onSubmit={handleSubmit(onSubmit)}
