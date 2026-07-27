@@ -1,113 +1,45 @@
-import { motion } from "framer-motion";
-import AnimatedBackground from "../layout/AnimatedBackground";
+import { motion, useReducedMotion } from "framer-motion";
 import { MessageCircleMore } from "lucide-react";
+import AnimatedBackground from "../layout/AnimatedBackground";
+import MessagingIllustration from "./MessagingIllustration";
 
-export default function AuthLayout({
-  children,
-  heroTitle = "Fast. Secure. Beautiful.",
-  heroSubtitle =
-    "Experience real-time conversations with modern UI, lightning fast performance, and enterprise-grade security.",
-  badge = "Modern Messaging Platform",
-}) {
+export default function AuthLayout({ children }) {
+  const reducedMotion = useReducedMotion();
+
   return (
     <div className="auth-shell">
-
       <AnimatedBackground />
 
-      {/* LEFT PANEL */}
-
-      <motion.div
+      <motion.aside
         className="auth-left"
-        initial={{ opacity: 0, x: -40 }}
+        initial={reducedMotion ? false : { opacity: 0, x: -40 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: .6 }}
+        transition={{ duration: 0.6 }}
+        aria-label="PingMe introduction"
       >
-
-        <div className="brand">
-
-          <div className="brand-logo">
-
-<MessageCircleMore size={28}/>
-
-</div>
-
-          <span>PingMe</span>
-
+        <MessagingIllustration />
+        <div className="brand brand-under-illustration">
+          <div className="brand-logo" aria-hidden="true"><MessageCircleMore size={25} /></div>
+          <div>
+            <span>PingMe</span>
+            <p>Modern Messaging Platform</p>
+          </div>
         </div>
+      </motion.aside>
 
-        <div className="hero">
-
-          <span className="hero-badge">
-
-            {badge}
-
-          </span>
-
-          <h1>
-
-            {heroTitle}
-
-          </h1>
-
-          <p>
-
-            {heroSubtitle}
-
-          </p>
-
-        </div>
-
-        {/* Fake Chat Preview */}
-
-        <div className="chat-preview">
-
-          <div className="chat-header">
-
-            <div className="online-dot"></div>
-
-            Dev Team
-
-          </div>
-
-          <div className="message">
-
-            Hey! Did you push the latest update?
-
-          </div>
-
-          <div className="message own">
-
-            Yes 🚀 Everything is deployed.
-
-          </div>
-
-          <div className="typing">
-
-            <span></span>
-
-            <span></span>
-
-            <span></span>
-
-          </div>
-
-        </div>
-
-      </motion.div>
-
-      {/* RIGHT PANEL */}
-
-      <motion.div
+      <motion.main
         className="auth-right"
-        initial={{ opacity: 0, x: 40 }}
+        initial={reducedMotion ? false : { opacity: 0, x: 40 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: .6 }}
+        transition={{ duration: 0.6 }}
       >
-
+        <div className="auth-mobile-intro" aria-hidden="true">
+          <div className="auth-mobile-brandmark"><MessageCircleMore size={21} /></div>
+          <span className="auth-mobile-brandname">PingMe</span>
+          <motion.span className="auth-mobile-message" animate={reducedMotion ? { opacity: 1 } : { y: [0, -3, 0], opacity: [0.68, 1, 0.68] }} transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}>A calmer way to connect</motion.span>
+        </div>
         {children}
-
-      </motion.div>
-
+      </motion.main>
     </div>
   );
 }

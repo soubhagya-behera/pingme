@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { motion } from "framer-motion";
 import clsx from "clsx";
 import { Eye, EyeOff } from "lucide-react";
@@ -12,6 +12,8 @@ export default function AuthInput({
   ...props
 }) {
   const [showPassword, setShowPassword] = useState(false);
+  const generatedId = useId();
+  const inputId = props.id || generatedId;
 
   const isPassword = type === "password";
 
@@ -22,7 +24,7 @@ export default function AuthInput({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
     >
-      <label className="auth-floating-label">
+      <label className="auth-floating-label" htmlFor={inputId}>
         {label}
       </label>
 
@@ -43,6 +45,7 @@ export default function AuthInput({
             "auth-input-field",
             className
           )}
+          id={inputId}
           type={
             isPassword
               ? showPassword
@@ -57,6 +60,7 @@ export default function AuthInput({
           <button
             type="button"
             className="auth-password-btn"
+            aria-label={showPassword ? "Hide password" : "Show password"}
             onClick={() =>
               setShowPassword(!showPassword)
             }

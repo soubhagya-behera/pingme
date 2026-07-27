@@ -52,13 +52,7 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout
-
-heroTitle="Where Conversations Meet Simplicity."
-
-heroSubtitle="Built with Spring Boot, React, WebSockets, and modern cloud-ready architecture."
-
->
+    <AuthLayout>
       <GlassCard>
       <AuthHeader
 

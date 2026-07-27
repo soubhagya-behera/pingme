@@ -22,10 +22,11 @@
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(circle at 10% 20%, rgba(99,102,241,.18), transparent 28%), 
-    radial-gradient(circle at 90% 10%, rgba(139,92,246,.18), transparent 30%), 
-    radial-gradient(circle at 80% 90%, rgba(59,130,246,.15), transparent 28%), 
-    linear-gradient(135deg, #050816 0%, #0b1120 45%, #111827 100%);
+    radial-gradient(circle at 13% 20%, rgba(99,102,241,.24), transparent 25%),
+    radial-gradient(circle at 80% 12%, rgba(139,92,246,.17), transparent 28%),
+    radial-gradient(circle at 74% 88%, rgba(59,130,246,.16), transparent 25%),
+    radial-gradient(circle at 48% 50%, rgba(30,41,89,.22), transparent 42%),
+    linear-gradient(135deg, #030611 0%, #080d1d 48%, #101426 100%);
   z-index: 0;
   overflow: hidden;
 }
@@ -38,7 +39,7 @@
     linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
   background-size: 40px 40px;
   mask-image: linear-gradient(to bottom, black, transparent);
-  opacity: .45;
+  opacity: .32;
   pointer-events: none;
   z-index: 1;
 }
@@ -46,8 +47,8 @@
 .auth-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: .65;
+  filter: blur(118px);
+  opacity: .58;
   pointer-events: none;
   z-index: 0;
 }
