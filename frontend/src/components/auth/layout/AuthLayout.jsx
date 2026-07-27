@@ -44,7 +44,7 @@ export default function AuthLayout({
 
             Fast.
             Secure.
-            Beautiful.
+            
 
           </h1>
 
@@ -66,7 +66,7 @@ export default function AuthLayout({
 
             <div className="online-dot"></div>
 
-            Sarah
+            Dev Team
 
           </div>
 

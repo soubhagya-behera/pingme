@@ -41,10 +41,19 @@ export default function GradientButton({
           {children}
 
           {icon && (
-            <ArrowRight
-              size={18}
-              className="gradient-btn-arrow"
-            />
+            <motion.div
+
+whileHover={{
+
+x:4
+
+}}
+
+>
+
+<ArrowRight size={18}/>
+
+</motion.div>
           )}
         </>
       )}
