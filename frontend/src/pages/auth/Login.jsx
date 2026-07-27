@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, ShieldCheck } from "lucide-react";
 
 import AuthService from "../../services/AuthService";
 import { useAuth } from "../../context/AuthContext";
@@ -59,7 +59,17 @@ export default function Login() {
         <p className="login-subtitle">
           Sign in to continue to PingMe
         </p>
+        <div className="login-security">
 
+    <ShieldCheck size={15} />
+
+    <span>
+
+        🛡 Built with JWT authentication and Spring Security.
+
+    </span>
+
+</div>
         <form
           className="auth-form"
           onSubmit={handleSubmit(onSubmit)}
