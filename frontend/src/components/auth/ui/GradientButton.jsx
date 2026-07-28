@@ -5,6 +5,7 @@ import { Loader2, ArrowRight } from "lucide-react";
 export default function GradientButton({
   children,
   loading = false,
+  loadingText = "Signing In...",
   icon = true,
   className = "",
   ...props
@@ -34,7 +35,7 @@ export default function GradientButton({
             size={18}
             className="gradient-btn-spinner"
           />
-          Signing In...
+          {loadingText}
         </>
       ) : (
         <>

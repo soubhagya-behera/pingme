@@ -2,12 +2,15 @@ import "./Register.css";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { BriefcaseBusiness, Mail, Phone, UserRound, PenLine } from "lucide-react";
 import toast from "react-hot-toast";
 
-import Card from "../../components/ui/Card";
-import Input from "../../components/ui/Input";
-import Button from "../../components/ui/Button";
 import AuthService from "../../services/AuthService";
+import AuthLayout from "../../components/auth/layout/AuthLayout";
+import GlassCard from "../../components/auth/ui/GlassCard";
+import AuthHeader from "../../components/auth/ui/AuthHeader";
+import AuthInput from "../../components/auth/ui/AuthInput";
+import GradientButton from "../../components/auth/ui/GradientButton";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -38,90 +41,68 @@ export default function Register() {
   };
 
   return (
-    <div className="register-page">
-      <div className="register-left">
-        <h1 className="brand">PingMe</h1>
-        <h2 className="brand-text">Connect. Collaborate. Communicate.</h2>
-        <p className="brand-subtitle">
-          A modern communication platform designed for teams, friends and
-          communities. Fast, secure and beautifully simple.
-        </p>
-        <div className="feature-list">
-          <div className="feature">
-            <div className="feature-icon">💬</div>
-            <div>
-              <div className="feature-title">Real-time Messaging</div>
-              <div className="feature-text">Instant conversations powered by WebSocket.</div>
-            </div>
+    <AuthLayout>
+      <GlassCard className="register-auth-card">
+        <AuthHeader
+          title="Create your account"
+          subtitle="Set up your PingMe profile and start connecting."
+          info="Your profile is protected and reviewed securely."
+        />
+
+        <form className="auth-form register-auth-form" onSubmit={handleSubmit(onSubmit)}>
+          <AuthInput
+            label="Full name"
+            placeholder="How should people know you?"
+            icon={<UserRound size={18} />}
+            error={errors.fullName?.message}
+            {...register("fullName", { required: "Full Name is required" })}
+          />
+          <AuthInput
+            label="Email address"
+            placeholder="you@example.com"
+            type="email"
+            icon={<Mail size={18} />}
+            error={errors.email?.message}
+            {...register("email", {
+              required: "Email is required",
+              pattern: { value: /^\S+@\S+$/i, message: "Invalid Email" },
+            })}
+          />
+          <div className="register-auth-grid">
+            <AuthInput
+              label="Profession"
+              placeholder="Designer, developer…"
+              icon={<BriefcaseBusiness size={17} />}
+              {...register("profession")}
+            />
+            <AuthInput
+              label="Phone"
+              placeholder="10-digit number"
+              type="tel"
+              icon={<Phone size={17} />}
+              error={errors.phone?.message}
+              {...register("phone", {
+                pattern: { value: /^[6-9]\d{9}$/, message: "Invalid Phone Number" },
+              })}
+            />
           </div>
-          <div className="feature">
-            <div className="feature-icon">🔒</div>
-            <div>
-              <div className="feature-title">Enterprise Security</div>
-              <div className="feature-text">JWT authentication with encrypted passwords.</div>
-            </div>
-          </div>
-          <div className="feature">
-            <div className="feature-icon">⚡</div>
-            <div>
-              <div className="feature-title">Lightning Fast</div>
-              <div className="feature-text">Optimized for speed across all devices.</div>
-            </div>
-          </div>
+          <AuthInput
+            label="A little about you"
+            placeholder="Tell your future connections something…"
+            icon={<PenLine size={17} />}
+            {...register("bio")}
+          />
+
+          <GradientButton type="submit" loading={loading} loadingText="Creating Account...">
+            Create Account
+          </GradientButton>
+        </form>
+
+        <div className="auth-footer register-auth-footer">
+          <span>Already part of PingMe?</span>
+          <Link to="/login" className="auth-text-link">Sign In</Link>
         </div>
-      </div>
-
-      <div className="register-right">
-        <Card className="register-card">
-          <h2 className="register-title">Create Account 🚀</h2>
-          <p className="register-subtitle">Create your PingMe account to get started.</p>
-
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="form-group">
-              <Input
-                placeholder="Full Name"
-                {...register("fullName", { required: "Full Name is required" })}
-                error={errors.fullName?.message}
-              />
-            </div>
-            <div className="form-group">
-              <Input
-                placeholder="Email"
-                type="email"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: { value: /^\S+@\S+$/i, message: "Invalid Email" },
-                })}
-                error={errors.email?.message}
-              />
-            </div>
-            <div className="form-group">
-              <Input placeholder="Profession" {...register("profession")} />
-            </div>
-            <div className="form-group">
-              <Input
-                placeholder="Phone"
-                {...register("phone", {
-                  pattern: { value: /^[6-9]\d{9}$/, message: "Invalid Phone Number" },
-                })}
-                error={errors.phone?.message}
-              />
-            </div>
-            <div className="form-group">
-              <Input placeholder="Bio" {...register("bio")} />
-            </div>
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating Account..." : "Create Account"}
-            </Button>
-          </form>
-
-          <div className="register-footer">
-            Already have an account?{" "}
-            <Link to="/login">Login</Link>
-          </div>
-        </Card>
-      </div>
-    </div>
+      </GlassCard>
+    </AuthLayout>
   );
 }
