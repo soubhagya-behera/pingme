@@ -26,12 +26,46 @@
 }
 
 @media (max-width: 720px) {
+  .auth-shell-register .auth-mobile-intro {
+    min-height: 94px;
+    margin-bottom: 9px;
+  }
+
+  .auth-shell-register .auth-mobile-brandmark {
+    width: 39px;
+    height: 39px;
+    border-radius: 14px;
+  }
+
+  .auth-shell-register .auth-mobile-brandname {
+    margin-top: 5px;
+    font-size: 20px;
+  }
+
+  .auth-shell-register .auth-mobile-message {
+    margin-top: 1px;
+    font-size: 11px;
+  }
+
+  .auth-shell-register .auth-mobile-bubble-one {
+    top: 0;
+  }
+
+  .auth-shell-register .auth-mobile-bubble-two {
+    top: 8px;
+  }
+
+  .auth-shell-register .auth-mobile-bubble-three {
+    bottom: -1px;
+  }
+
   .register-auth-card {
     max-width: 430px;
+    padding: 19px 19px 18px;
   }
 
   .register-auth-form {
-    gap: 15px;
+    gap: 10px;
   }
 
   .register-auth-card .login-title {
@@ -40,13 +74,111 @@
   }
 
   .register-auth-grid {
-    gap: 14px;
+    gap: 10px;
+  }
+
+  .register-auth-card .auth-header {
+    margin-bottom: 14px;
+  }
+
+  .register-auth-card .login-title {
+    margin-bottom: 4px;
+  }
+
+  .register-auth-card .login-subtitle {
+    margin-bottom: 12px;
+    line-height: 1.45;
+  }
+
+  .register-auth-card .login-security {
+    margin-bottom: 14px;
+    padding: 9px 10px;
+  }
+
+  .register-auth-card .auth-input-wrapper {
+    gap: 5px;
+  }
+
+  .register-auth-card .auth-input-container {
+    height: 50px;
+    border-radius: 14px;
+  }
+
+  .register-auth-card .auth-floating-label {
+    font-size: 12px;
+  }
+
+  .register-auth-card .gradient-btn {
+    height: 51px;
+    margin-top: 2px;
+  }
+
+  .register-auth-footer {
+    margin-top: 16px;
+    gap: 5px;
   }
 }
 
 @media (max-width: 420px) {
   .register-auth-grid {
-    grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 8px;
+  }
+
+  .register-auth-grid .auth-input-container {
+    padding-inline: 10px;
+  }
+
+  .register-auth-grid .auth-input-field {
+    font-size: 12px;
+  }
+
+  .register-auth-card {
+    padding: 17px 16px;
+  }
+}
+
+@media (max-width: 720px) and (max-height: 700px) {
+  .auth-shell-register .auth-right {
+    justify-content: flex-start;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .auth-shell-register .auth-mobile-intro {
+    min-height: 78px;
+    margin-bottom: 5px;
+  }
+
+  .auth-shell-register .auth-mobile-message {
+    display: none;
+  }
+
+  .register-auth-card {
+    padding: 14px 16px 13px;
+  }
+
+  .register-auth-card .auth-header {
+    margin-bottom: 10px;
+  }
+
+  .register-auth-card .login-subtitle {
+    margin-bottom: 8px;
+  }
+
+  .register-auth-card .login-security {
+    margin-bottom: 10px;
+    padding-block: 8px;
+  }
+
+  .register-auth-form {
+    gap: 8px;
+  }
+
+  .register-auth-card .auth-input-container {
+    height: 47px;
+  }
+
+  .register-auth-footer {
+    margin-top: 11px;
   }
 }

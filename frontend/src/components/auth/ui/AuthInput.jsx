@@ -9,6 +9,7 @@ export default function AuthInput({
   error,
   className = "",
   type = "text",
+  entranceDelay = 0,
   ...props
 }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +23,7 @@ export default function AuthInput({
       className="auth-input-wrapper"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
+      transition={{ duration: 0.35, delay: entranceDelay }}
     >
       <label className="auth-floating-label" htmlFor={inputId}>
         {label}

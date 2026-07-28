@@ -3,11 +3,11 @@ import { MessageCircleMore } from "lucide-react";
 import AnimatedBackground from "../layout/AnimatedBackground";
 import MessagingIllustration from "./MessagingIllustration";
 
-export default function AuthLayout({ children }) {
+export default function AuthLayout({ children, illustration: Illustration = MessagingIllustration, mobileMessage = "A calmer way to connect", className = "" }) {
   const reducedMotion = useReducedMotion();
 
   return (
-    <div className="auth-shell">
+    <div className={`auth-shell ${className}`}>
       <AnimatedBackground />
 
       <motion.aside
@@ -17,7 +17,7 @@ export default function AuthLayout({ children }) {
         transition={{ duration: 0.6 }}
         aria-label="PingMe introduction"
       >
-        <MessagingIllustration />
+        <Illustration />
         <div className="brand brand-under-illustration">
           <div className="brand-logo" aria-hidden="true"><MessageCircleMore size={25} /></div>
           <div>
@@ -51,7 +51,7 @@ export default function AuthLayout({ children }) {
           >♡</motion.span>
           <div className="auth-mobile-brandmark"><MessageCircleMore size={21} /></div>
           <span className="auth-mobile-brandname">PingMe</span>
-          <motion.span className="auth-mobile-message" animate={reducedMotion ? { opacity: 1 } : { y: [0, -2, 0], opacity: [0.68, 1, 0.68] }} transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}>A calmer way to connect</motion.span>
+          <motion.span className="auth-mobile-message" animate={reducedMotion ? { opacity: 1 } : { y: [0, -2, 0], opacity: [0.68, 1, 0.68] }} transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}>{mobileMessage}</motion.span>
         </div>
         {children}
       </motion.main>
