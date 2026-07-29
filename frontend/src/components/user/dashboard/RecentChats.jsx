@@ -1,101 +1,146 @@
 import Card from "../../ui/Card";
+import {
+    MessageCircle,
+    ChevronRight
+} from "lucide-react";
 
-export default function RecentChats({
-
-    chats
-
-}) {
+export default function RecentChats({ chats }) {
 
     return (
 
-        <Card className="mt-8 p-6">
+        <Card className="recent-chat-card">
 
-            <h2 className="text-2xl font-bold mb-5">
+            <div className="recent-chat-header">
 
-                Recent Chats
+                <div>
 
-            </h2>
+                    <h2>
+
+                        Recent Chats
+
+                    </h2>
+
+                    <p>
+
+                        Continue your latest conversations
+
+                    </p>
+
+                </div>
+
+                <button className="recent-chat-view-all">
+
+                    View All
+
+                    <ChevronRight size={16}/>
+
+                </button>
+
+            </div>
 
             {
 
                 chats.length === 0 ?
 
-                    (
+                (
 
-                        <p className="text-slate-400">
+                    <div className="recent-chat-empty">
 
-                            No recent chats.
+                        <MessageCircle size={42}/>
+
+                        <h3>
+
+                            No conversations yet
+
+                        </h3>
+
+                        <p>
+
+                            Start chatting with your friends.
 
                         </p>
 
-                    )
+                    </div>
 
-                    :
+                )
 
-                    chats.map(chat => (
+                :
 
-                        <div
+                chats.map(chat => (
 
-                            key={chat.id}
+                    <div
 
-                            className="flex justify-between items-center py-3 border-b last:border-0"
+                        key={chat.id}
 
-                        >
+                        className="recent-chat-item"
 
-                            <div>
+                    >
 
-                                <h3 className="font-semibold">
+                        <div className="recent-avatar-wrapper">
+
+                            <div className="recent-avatar">
+
+                                {chat.fullName.charAt(0)}
+
+                            </div>
+
+                            {
+
+                                chat.online &&
+
+                                <span className="recent-online"/>
+
+                            }
+
+                        </div>
+
+                        <div className="recent-chat-body">
+
+                            <div className="recent-chat-top">
+
+                                <h3>
 
                                     {chat.fullName}
 
                                 </h3>
 
-                                <p className="text-sm text-slate-500">
-
-                                    {chat.lastMessage}
-
-                                </p>
-
-                            </div>
-
-                            <div className="text-right">
-
-                                <div
-
-                                    className={`w-3 h-3 rounded-full ml-auto ${
-                                        chat.online
-                                            ? "bg-green-500"
-                                            : "bg-slate-300"
-                                    }`}
-                                />
-
-                                <p className="text-xs text-slate-400 mt-2">
+                                <span>
 
                                     {
 
                                         chat.lastMessageTime ?
 
-                                            new Date(chat.lastMessageTime)
+                                        new Date(chat.lastMessageTime)
 
-                                                .toLocaleTimeString([], {
+                                        .toLocaleTimeString([],{
 
-                                                    hour: "2-digit",
+                                            hour:"2-digit",
 
-                                                    minute: "2-digit"
+                                            minute:"2-digit"
 
-                                                })
+                                        })
 
-                                            : ""
+                                        :
+
+                                        ""
 
                                     }
 
-                                </p>
+                                </span>
 
                             </div>
 
+                            <p>
+
+                                {chat.lastMessage}
+
+                            </p>
+
                         </div>
 
-                    ))
+                    </div>
+
+                ))
 
             }
 
