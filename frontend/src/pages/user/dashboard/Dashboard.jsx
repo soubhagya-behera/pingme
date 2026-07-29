@@ -10,6 +10,7 @@ import DashboardService from "../../../services/DashboardService";
 import "../../../styles/user/dashboard/dashboard-header.css";
 import "../../../styles/user/dashboard/stats-cards.css";
 import "../../../styles/user/dashboard/recent-chats.css";
+import "../../../styles/user/dashboard/pending-requests.css";
 
 import {
     subscribeDashboard,

@@ -1,12 +1,12 @@
 import Card from "../../ui/Card";
 import Button from "../../ui/Button";
 import FriendService from "../../../services/FriendService";
+import {
+    UserPlus,
+    Sparkles
+} from "lucide-react";
 
-export default function PendingRequests({
-
-    requests
-
-}) {
+export default function PendingRequests({ requests }) {
 
     async function accept(id) {
 
@@ -26,83 +26,117 @@ export default function PendingRequests({
 
     return (
 
-        <Card className="mt-8 p-6">
+        <Card className="pending-card">
 
-            <h2 className="text-2xl font-bold mb-5">
+            <div className="pending-header">
 
-                Pending Requests
+                <div>
 
-            </h2>
+                    <h2>
+
+                        Friend Requests
+
+                    </h2>
+
+                    <p>
+
+                        People waiting to connect with you
+
+                    </p>
+
+                </div>
+
+            </div>
 
             {
 
                 requests.length === 0 ?
 
-                    (
+                (
 
-                        <p className="text-slate-400">
+                    <div className="pending-empty">
 
-                            No pending requests.
+                        <Sparkles size={48}/>
+
+                        <h3>
+
+                            You're all caught up 🎉
+
+                        </h3>
+
+                        <p>
+
+                            No pending requests right now.
 
                         </p>
 
-                    )
+                    </div>
 
-                    :
+                )
 
-                    requests.map(request => (
+                :
 
-                        <div
+                requests.map(request => (
 
-                            key={request.requestId}
+                    <div
 
-                            className="flex justify-between items-center border-b py-4 last:border-0"
+                        key={request.requestId}
 
-                        >
+                        className="pending-item"
 
-                            <div>
+                    >
 
-                                <h3 className="font-semibold">
+                        <div className="pending-avatar">
 
-                                    {request.senderName}
-
-                                </h3>
-
-                                <p className="text-sm text-slate-500">
-
-                                    Wants to connect
-
-                                </p>
-
-                            </div>
-
-                            <div className="flex gap-2">
-
-                                <Button
-
-                                    onClick={() => accept(request.requestId)}
-
-                                >
-
-                                    Accept
-
-                                </Button>
-
-                                <Button
-
-                                    onClick={() => reject(request.requestId)}
-
-                                >
-
-                                    Reject
-
-                                </Button>
-
-                            </div>
+                            {request.senderName.charAt(0)}
 
                         </div>
 
-                    ))
+                        <div className="pending-info">
+
+                            <h3>
+
+                                {request.senderName}
+
+                            </h3>
+
+                            <p>
+
+                                Wants to connect with you
+
+                            </p>
+
+                        </div>
+
+                        <div className="pending-actions">
+
+                            <Button
+
+                                onClick={() => accept(request.requestId)}
+
+                            >
+
+                                Accept
+
+                            </Button>
+
+                            <button
+
+                                className="ignore-btn"
+
+                                onClick={() => reject(request.requestId)}
+
+                            >
+
+                                Ignore
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                ))
 
             }
 
