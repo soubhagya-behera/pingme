@@ -8,6 +8,8 @@ import ConfirmDialog from "../../../components/common/ConfirmDialog";
 import ChatService from "../../../services/ChatService";
 import { acknowledgeRead } from "../../../websocket/publisher";
 import { useSocket } from "../../../context/SocketProvider";
+import { MessageCircleMore, Plus } from "lucide-react";
+import "../../../styles/user/chat/chat.css";
 
 export default function Chat() {
     const [selectedFriend, setSelectedFriend] = useState(null);
@@ -192,11 +194,11 @@ export default function Chat() {
     if (loading) return <div className="flex justify-center items-center h-full">Loading chats...</div>;
 
     return (
-        <div className="flex h-[calc(100dvh-140px)] min-h-0">
-            <div className={`w-full md:w-[360px] ${showChat ? "hidden md:block" : "block"}`}>
+        <div className="chat-workspace">
+            <div className={`chat-sidebar-pane ${showChat ? "chat-pane-hidden-mobile" : ""}`}>
                 <ChatSidebar friends={friends} selectedFriend={selectedFriend} onSelect={selectFriend} />
             </div>
-            <div className={`flex-1 ${showChat ? "block" : "hidden md:flex"} rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden`}>
+            <div className={`chat-conversation-pane ${showChat ? "chat-pane-visible" : "chat-pane-hidden"}`}>
                 {selectedFriend ? <>
                     <ChatHeader friend={selectedFriend} onBack={() => setShowChat(false)} typing={
                         selectedFriend
@@ -218,7 +220,12 @@ export default function Chat() {
                         clearEditing={() => setEditingMessage(null)}
                         onMessageSent={message => setMessages(previous => previous.some(item => item.id === message.id || (message.clientId && item.clientId === message.clientId)) ? previous : [...previous, message])}
                     />
-                </> : <div className="flex-1 flex items-center justify-center text-slate-400 text-xl">Select a friend to start chatting</div>}
+                </> : <div className="chat-empty-state">
+                    <div className="chat-empty-icon"><MessageCircleMore size={34}/></div>
+                    <h2>Choose a conversation</h2>
+                    <p>Select a friend to start chatting.</p>
+                    <button type="button" className="chat-empty-cta" onClick={() => setShowChat(false)}><Plus size={18}/>Start New Chat</button>
+                </div>}
             </div>
 
             <ConfirmDialog
