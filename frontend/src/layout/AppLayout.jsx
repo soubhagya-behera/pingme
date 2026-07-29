@@ -15,11 +15,11 @@ export default function AppLayout({
 
     return(
 
-        <div className="flex h-screen bg-[var(--background)] text-[var(--text)]">
+        <div className="flex min-h-[100dvh] bg-[var(--background)] text-[var(--text)]">
 
             <Sidebar/>
 
-            <div className="flex flex-1 flex-col">
+            <div className="flex min-w-0 flex-1 flex-col">
 
                 <Navbar onMenuClick={() => setMobileSidebarOpen(true)}/>
 
