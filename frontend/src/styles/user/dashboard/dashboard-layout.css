@@ -1,0 +1,21 @@
+.dashboard-content-grid{
+
+display:flex;
+
+flex-direction:column;
+
+gap:0;
+
+margin-top:8px;
+
+min-width:0;
+
+}
+
+.dashboard-content-grid > *{
+
+width:100%;
+
+min-width:0;
+
+}

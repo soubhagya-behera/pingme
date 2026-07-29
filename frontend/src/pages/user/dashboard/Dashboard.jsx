@@ -4,6 +4,7 @@ import DashboardHeader from "../../../components/user/dashboard/DashboardHeader"
 import StatsCards from "../../../components/user/dashboard/StatsCards";
 import RecentChats from "../../../components/user/dashboard/RecentChats";
 import PendingRequests from "../../../components/user/dashboard/PendingRequests";
+import QuickActions from "../../../components/user/dashboard/QuickActions";
 
 import DashboardService from "../../../services/DashboardService";
 
@@ -11,6 +12,8 @@ import "../../../styles/user/dashboard/dashboard-header.css";
 import "../../../styles/user/dashboard/stats-cards.css";
 import "../../../styles/user/dashboard/recent-chats.css";
 import "../../../styles/user/dashboard/pending-requests.css";
+import "../../../styles/user/dashboard/quick-actions.css";
+import "../../../styles/user/dashboard/dashboard-layout.css";
 
 import {
     subscribeDashboard,
@@ -97,11 +100,17 @@ export default function Dashboard() {
 
             <DashboardHeader />
 
-            <StatsCards stats={dashboard.stats} />
+<StatsCards stats={dashboard.stats} />
 
-            <RecentChats chats={dashboard.recentChats} />
+<div className="dashboard-content-grid">
 
-            <PendingRequests requests={dashboard.pendingRequests} />
+    <QuickActions />
+
+    <RecentChats chats={dashboard.recentChats} />
+
+    <PendingRequests requests={dashboard.pendingRequests} />
+
+</div>
 
         </>
 
