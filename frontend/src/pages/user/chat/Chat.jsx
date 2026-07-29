@@ -10,6 +10,8 @@ import { acknowledgeRead } from "../../../websocket/publisher";
 import { useSocket } from "../../../context/SocketProvider";
 import { MessageCircleMore, Plus } from "lucide-react";
 import "../../../styles/user/chat/chat.css";
+import ImagePreviewModal from "../../../components/user/chat/ImagePreviewModal";
+import { v4 as uuid } from "uuid";
 
 export default function Chat() {
     const [selectedFriend, setSelectedFriend] = useState(null);
@@ -21,6 +23,14 @@ export default function Chat() {
     const [typingUsers, setTypingUsers] = useState(new Set());
     const [replyingTo, setReplyingTo] = useState(null);
     const [editingMessage, setEditingMessage] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(null);
+
+    const [imageCaption, setImageCaption] = useState("");
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [imageError, setImageError] = useState("");
+
+    const uploadInFlight = useRef(false);
 
     // ConfirmDialog states
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -128,6 +138,94 @@ export default function Chat() {
         finally { setLoading(false); }
     }
 
+    async function selectFriend(friend) {
+        setSelectedFriend(friend); setShowChat(true);
+        try {
+            const history = await ChatService.getHistory(friend.id);
+            setMessages(history.data.data);
+            await ChatService.markConversationRead(friend.id);
+            setMessages(previous => previous.map(message => message.senderId === friend.id ? { ...message, status: "READ" } : message));
+        } catch { setMessages([]); }
+    }
+
+    function resetImagePreview() {
+        setSelectedImage(null);
+        setImageCaption("");
+        setImageError("");
+        setUploadProgress(0);
+    }
+
+    async function sendImage() {
+        if (
+            !selectedImage ||
+            !selectedFriend ||
+            uploadInFlight.current
+        ) {
+            return;
+        }
+
+        uploadInFlight.current = true;
+
+        setUploadingImage(true);
+        setUploadProgress(0);
+        setImageError("");
+
+        try {
+            let uploadResponse;
+
+            for (let attempt = 0; attempt < 2; attempt++) {
+                try {
+                    uploadResponse = await ChatService.uploadImage(
+                        selectedImage,
+                        percent => {
+                            setUploadProgress(percent);
+                        }
+                    );
+                    break;
+                } catch (err) {
+                    if (
+                        attempt === 1 ||
+                        err?.response?.status
+                    ) {
+                        throw err;
+                    }
+                }
+            }
+
+            const payload = {
+                clientId: uuid(),
+                receiverId: selectedFriend.id,
+                content: imageCaption.trim(),
+                imageUrl: uploadResponse.data.data.imageUrl,
+                messageType: "IMAGE",
+                replyToId: replyingTo?.id
+            };
+
+            await ChatService.sendMessage(payload);
+
+            toast.success("Image sent");
+
+setTimeout(() => {
+
+    resetImagePreview();
+
+    setReplyingTo(null);
+
+}, 0);
+
+        } catch (err) {
+            console.error(err);
+            const errorMessage =
+                err?.response?.data?.message ||
+                "Image upload failed.";
+            setImageError(errorMessage);
+            toast.error(errorMessage);
+        } finally {
+            uploadInFlight.current = false;
+            setUploadingImage(false);
+        }
+    }
+
     function openConfirm(config, callback) {
         setConfirmConfig(config);
         setConfirmCallback(() => callback);
@@ -181,16 +279,6 @@ export default function Chat() {
         );
     }
 
-    async function selectFriend(friend) {
-        setSelectedFriend(friend); setShowChat(true);
-        try {
-            const history = await ChatService.getHistory(friend.id);
-            setMessages(history.data.data);
-            await ChatService.markConversationRead(friend.id);
-            setMessages(previous => previous.map(message => message.senderId === friend.id ? { ...message, status: "READ" } : message));
-        } catch { setMessages([]); }
-    }
-
     if (loading) return <div className="flex justify-center items-center h-full">Loading chats...</div>;
 
     return (
@@ -199,28 +287,49 @@ export default function Chat() {
                 <ChatSidebar friends={friends} selectedFriend={selectedFriend} onSelect={selectFriend} />
             </div>
             <div className={`chat-conversation-pane ${showChat ? "chat-pane-visible" : "chat-pane-hidden"}`}>
-                {selectedFriend ? <>
-                    <ChatHeader friend={selectedFriend} onBack={() => setShowChat(false)} typing={
-                        selectedFriend
-                            ? typingUsers.has(selectedFriend.id)
-                            : false
-                    }/>
-                    <ChatMessages
-                        messages={messages}
-                        onReply={setReplyingTo}
-                        onEdit={setEditingMessage}
-                        onDelete={deleteForEveryone}
-                        onDeleteMe={deleteForMe}
-                    />
-                    <ChatInput
-                        friend={selectedFriend}
-                        replyingTo={replyingTo}
-                        clearReply={() => setReplyingTo(null)}
-                        editingMessage={editingMessage}
-                        clearEditing={() => setEditingMessage(null)}
-                        onMessageSent={message => setMessages(previous => previous.some(item => item.id === message.id || (message.clientId && item.clientId === message.clientId)) ? previous : [...previous, message])}
-                    />
-                </> : <div className="chat-empty-state">
+                {selectedFriend ? (
+                    selectedImage ? (
+                        <ImagePreviewModal
+                            image={selectedImage}
+                            caption={imageCaption}
+                            setCaption={setImageCaption}
+                            uploading={uploadingImage}
+                            progress={uploadProgress}
+                            error={imageError}
+                            onCancel={resetImagePreview}
+                            onSend={sendImage}
+                        />
+                    ) : (
+                        <>
+                            <ChatHeader friend={selectedFriend} onBack={() => setShowChat(false)} typing={
+                                selectedFriend
+                                    ? typingUsers.has(selectedFriend.id)
+                                    : false
+                            }/>
+                            <ChatMessages
+                                messages={messages}
+                                onReply={setReplyingTo}
+                                onEdit={setEditingMessage}
+                                onDelete={deleteForEveryone}
+                                onDeleteMe={deleteForMe}
+                            />
+                            <ChatInput
+                                friend={selectedFriend}
+                                replyingTo={replyingTo}
+                                clearReply={() => setReplyingTo(null)}
+                                editingMessage={editingMessage}
+                                clearEditing={() => setEditingMessage(null)}
+                                onMessageSent={message => setMessages(previous => previous.some(item => item.id === message.id || (message.clientId && item.clientId === message.clientId)) ? previous : [...previous, message])}
+                                onImageSelected={(file) => {
+                                    setSelectedImage(file);
+                                    setImageCaption("");
+                                    setImageError("");
+                                    setUploadProgress(0);
+                                }}
+                            />
+                        </>
+                    )
+                ) : <div className="chat-empty-state">
                     <div className="chat-empty-icon"><MessageCircleMore size={34}/></div>
                     <h2>Choose a conversation</h2>
                     <p>Select a friend to start chatting.</p>
