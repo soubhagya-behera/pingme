@@ -6,7 +6,7 @@ import RecentChats from "../../../components/user/dashboard/RecentChats";
 import PendingRequests from "../../../components/user/dashboard/PendingRequests";
 
 import DashboardService from "../../../services/DashboardService";
-
+import "../../../styles/user/dashboard/dashboard-header.css";
 import {
     subscribeDashboard,
     subscribeFriendRequests

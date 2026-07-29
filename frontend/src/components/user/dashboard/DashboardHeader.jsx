@@ -1,25 +1,102 @@
 import { useAuth } from "../../../context/AuthContext";
-
+import {
+    CalendarDays,
+    Activity
+} from "lucide-react";
 
 export default function DashboardHeader() {
 
     const { user } = useAuth();
-    
+
+    const hour = new Date().getHours();
+
+    let greeting = "Good Evening";
+
+    if (hour < 12) greeting = "Good Morning";
+    else if (hour < 17) greeting = "Good Afternoon";
+
+    const today = new Date();
+
+    const date = today.toLocaleDateString("en-US", {
+        weekday: "long",
+        day: "numeric",
+        month: "long"
+    });
+
     return (
 
-        <div className="mb-8">
+        <div className="dashboard-header">
 
-            <h1 className="text-5xl font-bold">
+            <div>
 
-    Welcome, {user?.name?.split(" ")[0]} 👋
+                <span className="dashboard-greeting">
 
-</h1>
+                    {greeting} ☀️
 
-            <p className="text-slate-500 mt-2">
+                </span>
 
-                Stay connected with your friends.
+                <h1 className="dashboard-title">
 
-            </p>
+                    Welcome back,
+
+                    <span>
+
+                        {" "}
+                        {user?.name?.split(" ")[0]} 👋
+
+                    </span>
+
+                </h1>
+
+                <p className="dashboard-subtitle">
+
+                    Here's what's happening with your PingMe account today.
+
+                </p>
+
+            </div>
+
+            <div className="dashboard-status-card">
+
+                <div className="dashboard-status-item">
+
+                    <CalendarDays size={18} />
+
+                    <div>
+
+                        <h4>{date}</h4>
+
+                        <span>Today</span>
+
+                    </div>
+
+                </div>
+
+                <div className="dashboard-status-item">
+
+                    <Activity size={18} />
+
+                    <div>
+
+                        <h4>
+
+                            <span className="live-dot"></span>
+
+                            Connected
+
+                        </h4>
+
+                        <span>
+
+                            Last Sync • Just now
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
