@@ -40,7 +40,7 @@ border-radius:22px;
 
 .close-btn{
 
-background:#ef4444;
+background:var(--danger);
 
 }
 
@@ -74,7 +74,7 @@ padding:20px;
 
 .modal-card::-webkit-scrollbar-thumb{
 
-    background:#cbd5e1;
+    background:var(--border);
 
     border-radius:10px;
 

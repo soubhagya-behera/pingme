@@ -30,7 +30,7 @@ export default function SearchInput({
 
                 <div
 
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-400"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[var(--text-secondary)]"
 
                 >
 

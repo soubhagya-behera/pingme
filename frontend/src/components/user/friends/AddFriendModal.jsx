@@ -146,7 +146,7 @@ export default function AddFriendModal({ open, onClose }) {
         <div className="space-y-3 max-h-[450px] overflow-y-auto pr-1">
           {/* ✅ 6. Synchronized layout trim update */}
           {users.length === 0 && debouncedKeyword.trim().length >= 2 && !loading ? (
-            <div className="text-center py-8 text-slate-500">
+            <div className="text-center py-8 text-[var(--text-secondary)]">
               No users found
             </div>
           ) : (

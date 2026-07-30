@@ -18,23 +18,23 @@ export default function SearchResultCard({
 
     return (
 
-        <div className="flex items-center justify-between gap-4 p-4 border rounded-2xl hover:bg-slate-50 transition">
+        <div className="flex items-center justify-between gap-4 p-4 border border-[var(--border)] rounded-2xl hover:bg-[var(--row-hover)] transition">
 
             <div className="flex items-center gap-4 min-w-0">
 
                 <div className="relative">
 
                     <div
-                        className="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-bold"
+                        className="w-14 h-14 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center text-xl font-bold"
                     >
                         {user.fullName.charAt(0).toUpperCase()}
                     </div>
 
                     <span
-                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[var(--card)] ${
                             user.online
-                                ? "bg-green-500"
-                                : "bg-gray-400"
+                                ? "bg-[var(--success)]"
+                                : "bg-[var(--text-secondary)]"
                         }`}
                     />
                 </div>
@@ -47,7 +47,7 @@ export default function SearchResultCard({
 
                     </h3>
 
-                    <p className="text-sm text-slate-500 truncate">
+                    <p className="text-sm text-[var(--text-secondary)] truncate">
 
                         {user.profession || "No Profession"}
 
