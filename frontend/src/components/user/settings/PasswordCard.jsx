@@ -47,7 +47,7 @@ export default function PasswordCard() {
     }
 
     return (
-        <form onSubmit={submit} className="space-y-6">
+        <form onSubmit={submit} className="settings-form settings-password-form space-y-6">
             <Input
                 label="Current Password"
                 name="currentPassword"
@@ -74,7 +74,7 @@ export default function PasswordCard() {
                 onChange={handleChange}
             />
 
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="settings-submit-button">
                 {loading ? "Updating..." : "Update Password"}
             </Button>
         </form>

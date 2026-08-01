@@ -2,10 +2,11 @@ import SettingsHeader from "../../../components/user/settings/SettingsHeader";
 import SettingsSection from "../../../components/user/settings/SettingsSection";
 import PasswordCard from "../../../components/user/settings/PasswordCard";
 import AccountCard from "../../../components/user/settings/AccountCard";
+import "../../../styles/user/settings/settings.css";
 
 export default function Settings() {
   return (
-    <div>
+    <div className="settings-page">
       <SettingsHeader />
 
       <SettingsSection

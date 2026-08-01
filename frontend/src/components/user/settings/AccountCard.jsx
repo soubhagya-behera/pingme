@@ -126,11 +126,11 @@ export default function AccountCard() {
 
             onSubmit={saveProfile}
 
-            className="space-y-6"
+            className="settings-form settings-account-form space-y-6"
 
         >
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="settings-field-grid grid md:grid-cols-2 gap-6">
 
                 <Input
 
@@ -260,7 +260,7 @@ export default function AccountCard() {
 
             </div>
 
-            <div>
+            <div className="settings-bio-field">
 
                 <label className="block mb-2 font-medium text-[var(--text)]">
 
@@ -276,9 +276,9 @@ export default function AccountCard() {
 
                     onChange={handleChange}
 
-                    rows={5}
+                    rows={4}
 
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-[var(--text)] placeholder:text-[var(--text-secondary)] outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                    className="settings-textarea w-full rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-[var(--text)] placeholder:text-[var(--text-secondary)] outline-none focus:ring-2 focus:ring-[var(--primary)]"
 
                     placeholder="Tell everyone something about yourself..."
 
@@ -291,6 +291,8 @@ export default function AccountCard() {
                 type="submit"
 
                 disabled={loading}
+
+                className="settings-submit-button"
 
             >
 
