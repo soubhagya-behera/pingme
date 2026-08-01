@@ -212,6 +212,8 @@
 
 }
 
+
+
 @media (max-width: 768px) {
     .friend-stats {
         grid-template-columns: 1fr;

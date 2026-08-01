@@ -21,9 +21,15 @@ export default function EmptyRequests() {
 
             </h2>
 
-            <p className="text-slate-500 mt-3">
+            <p className="mt-3 text-[var(--text-secondary)]">
 
-                Friend requests will appear here when someone sends you one.
+                New friend requests will automatically appear here.
+
+            </p>
+
+            <p className="mt-2 text-sm text-[var(--text-secondary)] opacity-80">
+
+                Search people from the Friends page to grow your network.
 
             </p>
 
