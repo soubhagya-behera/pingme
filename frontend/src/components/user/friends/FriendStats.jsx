@@ -10,18 +10,21 @@ export default function FriendStats({ stats }) {
 
         {
             title: "Friends",
+            subtitle:"Connected people",
             value: stats.totalFriends,
             icon: <Users size={26} />
         },
 
         {
             title: "Online",
+            subtitle:"Available now",
             value: stats.onlineFriends,
             icon: <Wifi size={26} />
         },
 
         {
             title: "Offline",
+            subtitle:"Away currently",
             value: stats.offlineFriends,
             icon: <WifiOff size={26} />
         }
@@ -55,11 +58,21 @@ export default function FriendStats({ stats }) {
 
                             </h2>
 
-                            <p>
+                            <div className="friend-stat-copy">
 
-                                {card.title}
+    <p>
 
-                            </p>
+        {card.title}
+
+    </p>
+
+    <span>
+
+        {card.subtitle}
+
+    </span>
+
+</div>
 
                         </div>
 

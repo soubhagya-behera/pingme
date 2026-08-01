@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 
 import ConfirmModal from "../../../components/ui/ConfirmModal";
 import FriendStats from "../../../components/user/friends/FriendStats";
+import { MessageCircle, Trash2, UserPlus } from "lucide-react";
 
 export default function Friends() {
   const [friends, setFriends] = useState([]);
@@ -165,8 +166,21 @@ setStats(
   return (
     <div className="friends-page">
       <div className="friends-header">
-        <h1>Friends</h1>
-        <Button onClick={() => setOpen(true)}>+ Add Friend</Button>
+        <h1>
+
+    Friends
+
+    <span className="friend-total">
+
+        ({friends.length})
+
+    </span>
+
+</h1>
+        <Button onClick={() => setOpen(true)}>
+            <UserPlus size={18}/>
+            Add Friend
+        </Button>
       </div>
 
       {
@@ -183,48 +197,76 @@ setStats(
       />
 
       <div className="friends-list">
-        {filteredFriends.map((friend) => (
-          <Card
-    key={friend.id}
-    className="friend-card"
-    hover
->
-    <div className="friend-info">
-        <div className="friend-avatar">
-            {friend.fullName.charAt(0).toUpperCase()}
-            <span
-                className={`online-dot ${
-                    friend.online
-                        ? "online"
-                        : "offline"
-                }`}
-            />
-        </div>
-        <div>
-            <h3>{friend.fullName}</h3>
-            <p>
-                {
-                    friend.profession ||
-                    "No Profession"
-                }
-            </p>
-        </div>
-    </div>
+        {filteredFriends.length === 0 ? (
+          <div className="friends-empty">
+            <h3>No friends found</h3>
+            <p>Try another search.</p>
+          </div>
+        ) : (
+          filteredFriends.map((friend) => (
+            <Card
+              key={friend.id}
+              className="friend-card"
+              hover
+            >
+              <div className="friend-info">
+                  <div className="friend-avatar">
+                      {friend.fullName.charAt(0).toUpperCase()}
+                      <span
+                          className={`online-dot ${
+                              friend.online
+                                  ? "online"
+                                  : "offline"
+                          }`}
+                      />
+                  </div>
+                  <div className="friend-details">
 
-    <div className="flex gap-2">
-    <Button>
-        Message
-    </Button>
-      <Button
-    variant="danger"
-    disabled={removing}
-    onClick={() => setRemoveFriend(friend)}
->
-    Remove
-</Button>   
-</div>
-</Card>
-        ))}
+                      <h3>
+                          {friend.fullName}
+                      </h3>
+
+                      <p className="friend-profession">
+                          {friend.profession || "No Profession"}
+                      </p>
+
+                      <span
+                          className={
+                              friend.online
+                                  ? "friend-status online-text"
+                                  : "friend-status offline-text"
+                          }
+                      >
+                          <span className="status-dot"/>
+
+                          {
+                              friend.online
+                                  ? "Online now"
+                                  : "Offline"
+                          }
+
+                      </span>
+
+                  </div>
+              </div>
+
+              <div className="flex gap-2">
+              <Button>
+                  <MessageCircle size={17}/>
+                  Message
+              </Button>
+                <Button
+              variant="danger"
+              disabled={removing}
+              onClick={() => setRemoveFriend(friend)}
+          >
+              <Trash2 size={17}/>
+              Remove
+          </Button>   
+          </div>
+          </Card>
+          ))
+        )}
       </div>
 
       <AddFriendModal open={open} onClose={() => setOpen(false)} />

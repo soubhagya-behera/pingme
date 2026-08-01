@@ -1,213 +1,230 @@
-.friends-page{
+.friends-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.friends-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.friends-header h1 {
+    font-size: 34px;
+    font-weight: 700;
+}
+
+.friends-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.friend-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    transition: 
+        transform .25s ease, 
+        box-shadow .25s ease, 
+        border-color .25s ease;
+}
+
+.friend-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .12);
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+}
+
+.friend-card h3 {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.friend-card p {
+    color: var(--text-secondary);
+}
+
+.friend-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.friend-profession {
+    color: var(--text-secondary);
+}
+
+.friend-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.online-text {
+    color: var(--success);
+}
+
+.online-text .status-dot {
+    background: var(--success);
+}
+
+.offline-text {
+    color: var(--text-secondary);
+}
+
+.offline-text .status-dot {
+    background: var(--text-secondary);
+}
+
+.friend-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.friend-avatar {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: var(--on-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.online-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--card);
+}
+
+.online {
+    background: var(--success);
+}
+
+.offline {
+    background: var(--text-secondary);
+}
+
+.friend-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.friend-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    border-radius: 18px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    transition: .25s;
+}
+
+.friend-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+}
+
+.friend-stat-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--primary) 10%, var(--card));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--primary);
+}
+
+.friend-stat-card h2 {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.friend-stat-copy{
 
     display:flex;
 
     flex-direction:column;
 
-    gap:24px;
+    gap:3px;
 
 }
 
-.friends-header{
+.friend-stat-copy span{
 
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-}
-
-.friends-header h1{
-
-    font-size:34px;
-
-    font-weight:700;
-
-}
-
-.friends-list{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:18px;
-
-}
-
-.friend-card{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    padding:24px;
-
-}
-
-.friend-card h3{
-
-    font-size:20px;
-
-    margin-bottom:4px;
-
-}
-
-.friend-card p{
+    font-size:12px;
 
     color:var(--text-secondary);
 
 }
 
-.friend-info{
+.friend-stat-card p {
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
 
-display:flex;
+.friend-total{
 
-align-items:center;
+    color:var(--text-secondary);
 
-gap:16px;
+    font-size:.6em;
+
+    font-weight:500;
+
+    margin-left:8px;
 
 }
 
-.friend-avatar{
+.friends-empty{
 
-position:relative;
+    padding:60px;
 
-width:58px;
+    border:1px dashed var(--border);
 
-height:58px;
+    border-radius:20px;
 
-border-radius:50%;
+    text-align:center;
 
-background:var(--primary);
-
-color:var(--on-primary);
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-font-size:22px;
-
-font-weight:700;
+    color:var(--text-secondary);
 
 }
 
-.online-dot{
+@media (max-width: 768px) {
+    .friend-stats {
+        grid-template-columns: 1fr;
+    }
 
-position:absolute;
+    .friend-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+    }
 
-bottom:2px;
-
-right:2px;
-
-width:14px;
-
-height:14px;
-
-border-radius:50%;
-
-border:2px solid var(--card);
-
-}
-
-.online{
-
-background:var(--success);
-
-}
-
-.offline{
-
-background:var(--text-secondary);
-
-}
-
-.friend-stats{
-
-display:grid;
-
-grid-template-columns:repeat(3,1fr);
-
-gap:20px;
-
-}
-
-.friend-stat-card{
-
-display:flex;
-
-align-items:center;
-
-gap:20px;
-
-padding:24px;
-
-border-radius:18px;
-
-background:var(--card);
-
-border:1px solid var(--border);
-
-transition:.25s;
-
-}
-
-.friend-stat-card:hover{
-
-transform:translateY(-3px);
-
-box-shadow:var(--shadow);
-
-}
-
-.friend-stat-icon{
-
-width:58px;
-
-height:58px;
-
-border-radius:16px;
-
-background:color-mix(in srgb, var(--primary) 10%, var(--card));
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-color:var(--primary);
-
-}
-
-.friend-stat-card h2{
-
-font-size:28px;
-
-font-weight:700;
-
-}
-
-.friend-stat-card p{
-
-color:var(--text-secondary);
-
-margin-top:4px;
-
-}
-
-@media(max-width:768px){
-
-.friend-stats{
-
-grid-template-columns:1fr;
-
-}
-
+    .friend-card .flex {
+        width: 100%;
+        justify-content: flex-end;
+    }
 }
