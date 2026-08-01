@@ -17,7 +17,7 @@ export default function PasswordStrength({
 
         text = "Weak";
 
-        color = "text-red-500";
+        color = "text-[var(--danger)]";
 
     }
 
@@ -25,7 +25,7 @@ export default function PasswordStrength({
 
         text = "Medium";
 
-        color = "text-yellow-500";
+        color = "text-[var(--warning)]";
 
     }
 
@@ -33,7 +33,7 @@ export default function PasswordStrength({
 
         text = "Strong";
 
-        color = "text-green-600";
+        color = "text-[var(--success)]";
 
     }
 

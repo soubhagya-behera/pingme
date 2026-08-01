@@ -262,7 +262,7 @@ export default function AccountCard() {
 
             <div>
 
-                <label className="block mb-2 font-medium">
+                <label className="block mb-2 font-medium text-[var(--text)]">
 
                     Bio
 
@@ -278,7 +278,7 @@ export default function AccountCard() {
 
                     rows={5}
 
-                    className="w-full rounded-xl border p-4 outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-[var(--text)] placeholder:text-[var(--text-secondary)] outline-none focus:ring-2 focus:ring-[var(--primary)]"
 
                     placeholder="Tell everyone something about yourself..."
 
