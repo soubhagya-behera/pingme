@@ -82,14 +82,14 @@ deleteForMe(messageId){
 
 },
 
-uploadImage(file, onProgress) {
+uploadFile(file, onProgress) {
     const formData = new FormData();
 
-    formData.append("image", file);
+    formData.append("file", file);
 
     return api.post(
 
-        "/upload/image",
+        "/upload/file",
 
         formData,
 

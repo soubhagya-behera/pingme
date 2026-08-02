@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
 import {
-    Image as ImageIcon,
+    Paperclip,
     Reply,
     Send,
     Smile,
@@ -20,7 +20,7 @@ export default function ChatInput({
     editingMessage,
     clearEditing,
     onMessageSent,
-    onImageSelected
+    onAttachmentSelected
 }) {
     const [message, setMessage] = useState("");
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -87,12 +87,12 @@ export default function ChatInput({
         typingTimeout.current = setTimeout(stopTyping, 1500);
     }
 
-    function chooseImage(e) {
+    function chooseAttachment(e) {
         const file = e.target.files?.[0];
 
         if (!file) return;
 
-        onImageSelected?.(file);
+        onAttachmentSelected?.(file);
 
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
@@ -135,21 +135,25 @@ export default function ChatInput({
 
         stopTyping();
 
-        try {
-            await ChatService.sendMessage(payload);
-
-            onMessageSent?.({
+        const optimisticMessage = {
                 id: payload.clientId,
                 ...payload,
                 senderId: Number(localStorage.getItem("userId")),
                 status: "SENDING",
-                sentAt: new Date().toISOString()
-            });
+            sentAt: new Date().toISOString()
+            };
+        if (replyingTo) optimisticMessage.reply = replyingTo;
+        onMessageSent?.(optimisticMessage);
+
+        try {
+            await ChatService.sendMessage(payload);
 
             clearReply?.();
 
         } catch (err) {
             console.error(err);
+
+            onMessageSent?.({ ...optimisticMessage, status: "FAILED", failed: true });
 
             setMessage(payload.content);
 
@@ -189,8 +193,8 @@ export default function ChatInput({
                         {
                             replyingTo.content ||
                             (
-                                replyingTo.imageUrl
-                                    ? "a photo"
+                                replyingTo.attachmentUrl
+                                    ? "an attachment"
                                     : "a message"
                             )
                         }
@@ -224,9 +228,9 @@ export default function ChatInput({
             <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/gif"
+                accept="image/jpeg,image/png,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/zip,text/plain"
                 className="hidden"
-                onChange={chooseImage}
+                onChange={chooseAttachment}
             />
 
             <div className="chat-input-row">
@@ -248,7 +252,7 @@ export default function ChatInput({
                         fileInputRef.current?.click()
                     }
                 >
-                    <ImageIcon size={20}/>
+                    <Paperclip size={20}/>
                 </button>
 
                 <input

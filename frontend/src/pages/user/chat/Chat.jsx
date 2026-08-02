@@ -11,6 +11,8 @@ import { useSocket } from "../../../context/SocketProvider";
 import { MessageCircleMore, Plus } from "lucide-react";
 import "../../../styles/user/chat/chat.css";
 import ImagePreviewModal from "../../../components/user/chat/ImagePreviewModal";
+import FilePreviewModal from "../../../components/user/chat/FilePreviewModal";
+import { isImageAttachment } from "../../../components/user/chat/AttachmentUtils";
 import { v4 as uuid } from "uuid";
 
 export default function Chat() {
@@ -23,12 +25,12 @@ export default function Chat() {
     const [typingUsers, setTypingUsers] = useState(new Set());
     const [replyingTo, setReplyingTo] = useState(null);
     const [editingMessage, setEditingMessage] = useState(null);
-    const [selectedImage, setSelectedImage] = useState(null);
+    const [selectedAttachment, setSelectedAttachment] = useState(null);
 
-    const [imageCaption, setImageCaption] = useState("");
-    const [uploadingImage, setUploadingImage] = useState(false);
+    const [attachmentCaption, setAttachmentCaption] = useState("");
+    const [uploadingAttachment, setUploadingAttachment] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
-    const [imageError, setImageError] = useState("");
+    const [attachmentError, setAttachmentError] = useState("");
 
     const uploadInFlight = useRef(false);
 
@@ -148,16 +150,17 @@ export default function Chat() {
         } catch { setMessages([]); }
     }
 
-    function resetImagePreview() {
-        setSelectedImage(null);
-        setImageCaption("");
-        setImageError("");
+    function resetAttachmentPreview() {
+        setSelectedAttachment(null);
+        setAttachmentCaption("");
+        setAttachmentError("");
         setUploadProgress(0);
     }
 
-    async function sendImage() {
+    async function sendAttachment() {
+        let optimisticId = null;
         if (
-            !selectedImage ||
+            !selectedAttachment ||
             !selectedFriend ||
             uploadInFlight.current
         ) {
@@ -166,17 +169,17 @@ export default function Chat() {
 
         uploadInFlight.current = true;
 
-        setUploadingImage(true);
+        setUploadingAttachment(true);
         setUploadProgress(0);
-        setImageError("");
+        setAttachmentError("");
 
         try {
             let uploadResponse;
 
             for (let attempt = 0; attempt < 2; attempt++) {
                 try {
-                    uploadResponse = await ChatService.uploadImage(
-                        selectedImage,
+                    uploadResponse = await ChatService.uploadFile(
+                        selectedAttachment,
                         percent => {
                             setUploadProgress(percent);
                         }
@@ -192,37 +195,44 @@ export default function Chat() {
                 }
             }
 
+            const attachment = uploadResponse.data?.data ?? uploadResponse.data;
             const payload = {
                 clientId: uuid(),
                 receiverId: selectedFriend.id,
-                content: imageCaption.trim(),
-                imageUrl: uploadResponse.data.data.imageUrl,
-                messageType: "IMAGE",
+                content: attachmentCaption.trim(),
+                attachmentUrl: attachment.attachmentUrl,
+                attachmentName: attachment.attachmentName,
+                attachmentSize: attachment.attachmentSize,
+                attachmentMimeType: attachment.attachmentMimeType,
+                messageType: attachment.attachmentMimeType?.startsWith("image/") ? "IMAGE" : "FILE",
                 replyToId: replyingTo?.id
             };
-
+            const optimistic = {
+                id: payload.clientId,
+                ...payload,
+                senderId: Number(localStorage.getItem("userId")),
+                status: "SENDING",
+                sentAt: new Date().toISOString()
+            };
+            if (replyingTo) optimistic.reply = replyingTo;
+            optimisticId = optimistic.id;
+            setMessages(previous => [...previous, optimistic]);
             await ChatService.sendMessage(payload);
-
-            toast.success("Image sent");
-
-setTimeout(() => {
-
-    resetImagePreview();
-
-    setReplyingTo(null);
-
-}, 0);
+            toast.success("Attachment sent");
+            resetAttachmentPreview();
+            setReplyingTo(null);
 
         } catch (err) {
+            if (optimisticId) setMessages(previous => previous.filter(message => message.id !== optimisticId));
             console.error(err);
             const errorMessage =
                 err?.response?.data?.message ||
-                "Image upload failed.";
-            setImageError(errorMessage);
+                "Attachment upload failed.";
+            setAttachmentError(errorMessage);
             toast.error(errorMessage);
         } finally {
             uploadInFlight.current = false;
-            setUploadingImage(false);
+            setUploadingAttachment(false);
         }
     }
 
@@ -288,16 +298,27 @@ setTimeout(() => {
             </div>
             <div className={`chat-conversation-pane ${showChat ? "chat-pane-visible" : "chat-pane-hidden"}`}>
                 {selectedFriend ? (
-                    selectedImage ? (
+                    selectedAttachment ? (
+                        isImageAttachment({ attachmentMimeType: selectedAttachment.type }) ? (
                         <ImagePreviewModal
-                            image={selectedImage}
-                            caption={imageCaption}
-                            setCaption={setImageCaption}
-                            uploading={uploadingImage}
+                            image={selectedAttachment}
+                            caption={attachmentCaption}
+                            setCaption={setAttachmentCaption}
+                            uploading={uploadingAttachment}
                             progress={uploadProgress}
-                            error={imageError}
-                            onCancel={resetImagePreview}
-                            onSend={sendImage}
+                            error={attachmentError}
+                            onCancel={resetAttachmentPreview}
+                            onSend={sendAttachment}
+                        />
+                        ) : <FilePreviewModal
+                            file={selectedAttachment}
+                            caption={attachmentCaption}
+                            setCaption={setAttachmentCaption}
+                            uploading={uploadingAttachment}
+                            progress={uploadProgress}
+                            error={attachmentError}
+                            onCancel={resetAttachmentPreview}
+                            onSend={sendAttachment}
                         />
                     ) : (
                         <>
@@ -319,11 +340,17 @@ setTimeout(() => {
                                 clearReply={() => setReplyingTo(null)}
                                 editingMessage={editingMessage}
                                 clearEditing={() => setEditingMessage(null)}
-                                onMessageSent={message => setMessages(previous => previous.some(item => item.id === message.id || (message.clientId && item.clientId === message.clientId)) ? previous : [...previous, message])}
-                                onImageSelected={(file) => {
-                                    setSelectedImage(file);
-                                    setImageCaption("");
-                                    setImageError("");
+                                onMessageSent={message => setMessages(previous => {
+                                    const index = previous.findIndex(item => item.id === message.id || (message.clientId && item.clientId === message.clientId));
+                                    if (index === -1) return [...previous, message];
+                                    const next = [...previous];
+                                    next[index] = { ...next[index], ...message };
+                                    return next;
+                                })}
+                                onAttachmentSelected={(file) => {
+                                    setSelectedAttachment(file);
+                                    setAttachmentCaption("");
+                                    setAttachmentError("");
                                     setUploadProgress(0);
                                 }}
                             />
