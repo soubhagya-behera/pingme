@@ -35,8 +35,15 @@ public class Message {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    @Column(columnDefinition = "TEXT")
-private String imageUrl;
+    // Retains the existing database column so historic image messages remain readable.
+    @Column(name = "image_url", columnDefinition = "TEXT")
+private String attachmentUrl;
+
+private String attachmentName;
+
+private Long attachmentSize;
+
+private String attachmentMimeType;
 
     @Enumerated(EnumType.STRING)
     private MessageType messageType;

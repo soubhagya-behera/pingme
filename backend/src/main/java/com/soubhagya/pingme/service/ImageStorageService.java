@@ -6,4 +6,6 @@ public interface ImageStorageService {
 
     String upload(MultipartFile file);
 
+    boolean isManagedImage(String imageUrl);
+
 }

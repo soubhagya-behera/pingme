@@ -13,6 +13,8 @@ import com.soubhagya.pingme.repository.HiddenMessageRepository;
 import com.soubhagya.pingme.repository.MessageRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.ChatService;
+import com.soubhagya.pingme.service.AttachmentStorageService;
+import com.soubhagya.pingme.service.ImageStorageService;
 import com.soubhagya.pingme.websocket.MessageStatusUpdate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +37,8 @@ public class ChatServiceImpl implements ChatService {
     private final SimpMessagingTemplate messagingTemplate;
     private final FriendRepository friendRepository;
     private final HiddenMessageRepository hiddenMessageRepository;
+    private final AttachmentStorageService attachmentStorageService;
+    private final ImageStorageService imageStorageService;
 
     @Override
     @Transactional
@@ -54,23 +58,31 @@ public class ChatServiceImpl implements ChatService {
 
         String content = request.getContent() == null ? "" : request.getContent().trim();
         if (content.length() > 4000) throw new IllegalArgumentException("Message is too long.");
+        boolean hasAttachment = request.getAttachmentUrl() != null && !request.getAttachmentUrl().isBlank();
+        if (type == MessageType.TEXT && hasAttachment) {
+            type = request.getAttachmentMimeType() != null && request.getAttachmentMimeType().startsWith("image/")
+                    ? MessageType.IMAGE : MessageType.FILE;
+        }
         if (type == MessageType.TEXT && content.isBlank()) throw new IllegalArgumentException("Message cannot be empty.");
 
         if (
-                type == MessageType.IMAGE
+                type != MessageType.TEXT
                 &&
                 (
-                        request.getImageUrl() == null
+                        request.getAttachmentUrl() == null
                                 ||
-                        request.getImageUrl().isBlank()
+                        request.getAttachmentUrl().isBlank()
                 )
         ) {
             throw new RuntimeException(
-                    "Image URL is required."
+                    "Attachment is required."
             );
         }
-        if (type == MessageType.IMAGE && !request.getImageUrl().matches("^/uploads/chat-images/[0-9a-fA-F-]{36}\\.(jpg|jpeg|png|gif)$")) {
-            throw new IllegalArgumentException("Invalid image URL.");
+        if (type != MessageType.TEXT && !isManagedAttachment(request)) {
+            throw new IllegalArgumentException("Invalid attachment URL.");
+        }
+        if (request.getAttachmentUrl() != null && request.getAttachmentUrl().startsWith("/uploads/chat-files/")) {
+            validateGenericAttachmentMetadata(request);
         }
 
         Message.MessageBuilder builder =
@@ -78,7 +90,18 @@ public class ChatServiceImpl implements ChatService {
                         .sender(sender)
                         .receiver(receiver)
                         .content(content)
-                        .imageUrl(request.getImageUrl())
+                        .attachmentUrl(
+                                request.getAttachmentUrl()
+                        )
+                        .attachmentName(
+                                request.getAttachmentName()
+                        )
+                        .attachmentSize(
+                                request.getAttachmentSize()
+                        )
+                        .attachmentMimeType(
+                                request.getAttachmentMimeType()
+                        )
                         .messageType(type)
                         .status(MessageStatus.SENT)
                         .sentAt(LocalDateTime.now());
@@ -140,10 +163,10 @@ public class ChatServiceImpl implements ChatService {
         if (Boolean.TRUE.equals(message.getDeletedForEveryone())) {
             throw new IllegalArgumentException("Deleted messages cannot be edited.");
         }
-        if (message.getMessageType() == MessageType.IMAGE && updatedContent.length() > 4000) {
+        if (message.getAttachmentUrl() != null && updatedContent.length() > 4000) {
             throw new IllegalArgumentException("Caption is too long.");
         }
-        if (message.getMessageType() == MessageType.IMAGE && updatedContent.isBlank()) {
+        if (message.getAttachmentUrl() != null && updatedContent.isBlank()) {
             // An empty caption is a valid edit for an image message.
             updatedContent = "";
         } else if (updatedContent.isBlank()) {
@@ -340,7 +363,16 @@ public class ChatServiceImpl implements ChatService {
                     .id(message.getReplyTo().getId())
                     .senderId(message.getReplyTo().getSender().getId())
                     .content(message.getReplyTo().getContent())
-                    .imageUrl(message.getReplyTo().getImageUrl())
+                    .attachmentUrl(
+                            message.getReplyTo()
+                                   .getAttachmentUrl()
+                    )
+                    .attachmentMimeType(
+                            message.getReplyTo()
+                                   .getAttachmentMimeType()
+                    )
+                    .attachmentName(message.getReplyTo().getAttachmentName())
+                    .attachmentSize(message.getReplyTo().getAttachmentSize())
                     .build();
         }
 
@@ -350,8 +382,17 @@ public class ChatServiceImpl implements ChatService {
                 .senderId(message.getSender().getId())
                 .receiverId(message.getReceiver().getId())
                 .content(message.getContent())
-                .imageUrl(
-                        message.getImageUrl()
+                .attachmentUrl(
+                        message.getAttachmentUrl()
+                )
+                .attachmentName(
+                        message.getAttachmentName()
+                )
+                .attachmentSize(
+                        message.getAttachmentSize()
+                )
+                .attachmentMimeType(
+                        message.getAttachmentMimeType()
                 )
                 .messageType(
                         message.getMessageType().name()
@@ -364,6 +405,25 @@ public class ChatServiceImpl implements ChatService {
                 .deletedForEveryone(message.getDeletedForEveryone())
                 .deletedAt(message.getDeletedAt())
                 .build();
+    }
+
+    private boolean isManagedAttachment(ChatMessage request) {
+        String attachmentUrl = request.getAttachmentUrl();
+        return attachmentStorageService.isManagedAttachment(
+                attachmentUrl, request.getAttachmentSize(), request.getAttachmentMimeType())
+                || imageStorageService.isManagedImage(attachmentUrl);
+    }
+
+    private void validateGenericAttachmentMetadata(ChatMessage request) {
+        if (request.getAttachmentName() == null || request.getAttachmentName().isBlank()
+                || request.getAttachmentName().length() > 255
+                || request.getAttachmentName().contains("/") || request.getAttachmentName().contains("\\")
+                || request.getAttachmentName().contains("..")
+                || request.getAttachmentName().chars().anyMatch(Character::isISOControl)
+                || request.getAttachmentSize() == null || request.getAttachmentSize() <= 0
+                || request.getAttachmentMimeType() == null || request.getAttachmentMimeType().isBlank()) {
+            throw new IllegalArgumentException("Attachment metadata is invalid.");
+        }
     }
 
     private void afterCommit(Runnable action) {

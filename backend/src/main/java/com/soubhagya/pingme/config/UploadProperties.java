@@ -13,5 +13,7 @@ public class UploadProperties {
 
     private String imageDirectory;
     private long maxImageSizeBytes = 10 * 1024 * 1024;
+    private String fileDirectory = "uploads/chat-files";
+    private long maxFileSizeBytes = 10 * 1024 * 1024;
 
 }

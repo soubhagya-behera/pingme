@@ -15,6 +15,12 @@ public class ReplyPreview {
 
     private String content;
 
-    private String imageUrl;
+    private String attachmentUrl;
+
+private String attachmentMimeType;
+
+    private String attachmentName;
+
+    private Long attachmentSize;
 
 }

@@ -21,7 +21,13 @@ public class MessageResponse {
 
     private String content;
 
-    private String imageUrl;
+    private String attachmentUrl;
+
+private String attachmentName;
+
+private Long attachmentSize;
+
+private String attachmentMimeType;
 
     private String messageType;
 

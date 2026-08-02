@@ -25,6 +25,11 @@ public void addResourceHandlers(ResourceHandlerRegistry registry) {
             .addResourceHandler("/uploads/chat-images/**")
             .addResourceLocations(uploadPath.toUri().toString() + "/");
 
+    Path fileUploadPath = Paths.get(uploadProperties.getFileDirectory()).toAbsolutePath().normalize();
+    registry
+            .addResourceHandler("/uploads/chat-files/**")
+            .addResourceLocations(fileUploadPath.toUri().toString() + "/");
+
 }
 
 }

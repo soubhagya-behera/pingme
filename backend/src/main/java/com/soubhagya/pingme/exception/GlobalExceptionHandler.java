@@ -59,21 +59,27 @@ public class GlobalExceptionHandler {
 
     }
 
-    @ExceptionHandler({InvalidImageException.class, MissingServletRequestPartException.class})
+    @ExceptionHandler({InvalidImageException.class, InvalidAttachmentException.class, MissingServletRequestPartException.class})
     public ResponseEntity<ApiResponse<?>> invalidImage(Exception ex) {
-        String message = ex instanceof MissingServletRequestPartException ? "Please select an image." : ex.getMessage();
+        String message = ex instanceof MissingServletRequestPartException ? "Please select a file." : ex.getMessage();
         return ResponseEntity.badRequest().body(ApiResponse.failure(message));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiResponse<?>> uploadTooLarge(MaxUploadSizeExceededException ex) {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                .body(ApiResponse.failure("Maximum image size is 10 MB."));
+                .body(ApiResponse.failure("Maximum attachment size is 10 MB."));
     }
 
     @ExceptionHandler(MultipartException.class)
     public ResponseEntity<ApiResponse<?>> multipart(MultipartException ex) {
-        return ResponseEntity.badRequest().body(ApiResponse.failure("The image upload could not be processed."));
+        return ResponseEntity.badRequest().body(ApiResponse.failure("The file upload could not be processed."));
+    }
+
+    @ExceptionHandler(AttachmentStorageException.class)
+    public ResponseEntity<ApiResponse<?>> attachmentStorage(AttachmentStorageException ex) {
+        return ResponseEntity.internalServerError()
+                .body(ApiResponse.failure("Attachment storage is temporarily unavailable. Please try again."));
     }
 
     @ExceptionHandler(ImageStorageException.class)

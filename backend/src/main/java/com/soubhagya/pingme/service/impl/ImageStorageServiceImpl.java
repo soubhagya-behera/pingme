@@ -58,6 +58,15 @@ public class ImageStorageServiceImpl implements ImageStorageService {
         throw new ImageStorageException("Could not allocate an image filename.", null);
     }
 
+    @Override
+    public boolean isManagedImage(String imageUrl) {
+        if (!StringUtils.hasText(imageUrl) || !imageUrl.startsWith("/uploads/chat-images/")) return false;
+        String storedName = imageUrl.substring("/uploads/chat-images/".length());
+        if (!storedName.matches("[0-9a-fA-F-]{36}\\.(jpg|jpeg|png|gif)")) return false;
+        Path target = uploadPath.resolve(storedName).normalize();
+        return target.startsWith(uploadPath) && Files.isRegularFile(target);
+    }
+
     private String validate(MultipartFile file) {
         if (file == null || file.isEmpty()) throw new InvalidImageException("Please select a non-empty image.");
         if (file.getSize() > uploadProperties.getMaxImageSizeBytes()) throw new InvalidImageException("Maximum image size is 10 MB.");

@@ -1,5 +1,6 @@
 package com.soubhagya.pingme.dto.chat;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -24,7 +25,14 @@ public class ChatMessage {
 
     private String content;
 
-    private String imageUrl;
+    @JsonAlias("imageUrl")
+    private String attachmentUrl;
+
+private String attachmentName;
+
+private Long attachmentSize;
+
+private String attachmentMimeType;
 
 private String messageType;
 

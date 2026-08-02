@@ -95,7 +95,10 @@ public class MessageServiceImpl implements MessageService {
 
                         .content(message.getContent())
 
-                        .imageUrl(message.getImageUrl())
+                        .attachmentUrl(message.getAttachmentUrl())
+                        .attachmentName(message.getAttachmentName())
+                        .attachmentSize(message.getAttachmentSize())
+                        .attachmentMimeType(message.getAttachmentMimeType())
 
                         .messageType(message.getMessageType().name())
 
@@ -107,7 +110,10 @@ public class MessageServiceImpl implements MessageService {
                                 .id(message.getReplyTo().getId())
                                 .senderId(message.getReplyTo().getSender().getId())
                                 .content(message.getReplyTo().getContent())
-                                .imageUrl(message.getReplyTo().getImageUrl())
+                                .attachmentUrl(message.getReplyTo().getAttachmentUrl())
+                                .attachmentName(message.getReplyTo().getAttachmentName())
+                                .attachmentSize(message.getReplyTo().getAttachmentSize())
+                                .attachmentMimeType(message.getReplyTo().getAttachmentMimeType())
                                 .build())
                         .edited(message.getEdited())
                         .editedAt(message.getEditedAt())
@@ -245,7 +251,7 @@ public List<ChatSidebarResponse> getChatSidebar(String email) {
 
                                         ? null
 
-                                        : latestMessage.getContent()
+                                        : sidebarPreview(latestMessage)
 
                         )
 
@@ -310,6 +316,17 @@ public List<ChatSidebarResponse> getChatSidebar(String email) {
 
     return sidebar;
 
+}
+
+private String sidebarPreview(Message message) {
+    if (message.getContent() != null && !message.getContent().isBlank()) return message.getContent();
+    String mimeType = message.getAttachmentMimeType();
+    if (mimeType == null || mimeType.isBlank()) return "";
+    if (mimeType.startsWith("image/")) return "📷 Photo";
+    if (mimeType.equals("application/pdf")) return "📄 PDF";
+    if (mimeType.startsWith("audio/")) return "🎵 Audio";
+    if (mimeType.startsWith("video/")) return "📹 Video";
+    return "📁 File";
 }
 
 }
