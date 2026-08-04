@@ -121,6 +121,68 @@ export default function Chat() {
                 if (!isOpenConversation || previous.some(item => item.id === incoming.id)) return previous;
                 return [...previous, incoming];
             });
+
+            setFriends(previous => {
+                return previous
+                    .map(friend => {
+                        const friendId =
+                            incoming.senderId === myId
+                                ? incoming.receiverId
+                                : incoming.senderId;
+
+                        if (friend.id !== friendId) {
+                            return friend;
+                        }
+
+                        const opened =
+                            selectedFriendRef.current?.id === friend.id;
+
+                        return {
+                            ...friend,
+                            lastMessage:
+                                incoming.content ||
+                                (
+                                    incoming.attachmentMimeType?.startsWith("image/")
+                                        ?
+                                        "📷 Photo"
+                                        :
+                                    incoming.attachmentMimeType?.includes("pdf")
+                                        ?
+                                        "📄 PDF"
+                                        :
+                                    incoming.attachmentMimeType?.includes("video")
+                                        ?
+                                        "🎥 Video"
+                                        :
+                                    incoming.attachmentMimeType?.includes("audio")
+                                        ?
+                                        "🎵 Audio"
+                                        :
+                                    incoming.attachmentName ||
+                                    "📎 Attachment"
+                                ),
+                            lastMessageTime:
+                                incoming.sentAt,
+                            unreadCount:
+                                incoming.receiverId === myId &&
+                                !opened
+                                    ?
+                                    (friend.unreadCount || 0) + 1
+                                    :
+                                    0
+                        };
+                    })
+                    .sort(
+                        (a, b) =>
+                            new Date(
+                                b.lastMessageTime || 0
+                            )
+                            -
+                            new Date(
+                                a.lastMessageTime || 0
+                            )
+                    );
+            });
         });
         const removeReceipt = socket.onReceipt(receipt =>
             setMessages(previous => previous.map(message =>
@@ -146,6 +208,18 @@ export default function Chat() {
             const history = await ChatService.getHistory(friend.id);
             setMessages(history.data.data);
             await ChatService.markConversationRead(friend.id);
+            setFriends(previous =>
+                previous.map(item =>
+                    item.id === friend.id
+                        ?
+                        {
+                            ...item,
+                            unreadCount: 0
+                        }
+                        :
+                        item
+                )
+            );
             setMessages(previous => previous.map(message => message.senderId === friend.id ? { ...message, status: "READ" } : message));
         } catch { setMessages([]); }
     }

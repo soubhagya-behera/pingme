@@ -80,3 +80,6 @@ HELP.md
 ############################
 uploads/chat-images/*
 !uploads/chat-images/.gitkeep
+
+uploads/chat-files/*
+!uploads/chat-files/.gitkeep
