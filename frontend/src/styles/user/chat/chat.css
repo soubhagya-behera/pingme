@@ -114,6 +114,51 @@
     flex-shrink:0;
 }
 
+/* ==========================================
+   DATE SEPARATOR
+========================================== */
+
+.chat-date-separator{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    margin:22px 0 18px;
+
+}
+
+.chat-date-separator span{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:7px 16px;
+
+    border-radius:999px;
+
+    background:#EEF2FF;
+
+    color:#4F46E5;
+
+    font-size:12px;
+
+    font-weight:600;
+
+    letter-spacing:.3px;
+
+    border:1px solid #D9E1FF;
+
+    box-shadow:
+        0 4px 12px rgba(79,70,229,.08);
+
+}
+
 .chat-image-viewer { position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; padding:max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); background:color-mix(in srgb, var(--background) 95%, transparent); }.chat-image-viewer-close { position:absolute; top:max(16px, env(safe-area-inset-top)); right:max(16px, env(safe-area-inset-right)); display:grid; width:48px; height:48px; place-items:center; color:var(--text); border:1px solid var(--border); border-radius:50%; background:var(--card); }.chat-image-viewer-content { max-width:100%; max-height:88dvh; user-select:none; object-fit:contain; }
 
 .chat-attachment-card { display:flex; min-width:220px; max-width:100%; align-items:center; gap:10px; margin:0 0 7px; padding:10px; color:var(--text); border-radius:13px; background:color-mix(in srgb, var(--card) 86%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--text) 12%, transparent); }.chat-attachment-icon,.chat-file-preview-icon { display:grid; width:42px; height:42px; flex:0 0 auto; place-items:center; color:var(--primary); border-radius:12px; background:color-mix(in srgb, var(--primary) 13%, transparent); }.chat-attachment-copy { display:grid; min-width:0; flex:1; gap:3px; }.chat-attachment-copy b { overflow:hidden; font-size:13px; text-overflow:ellipsis; white-space:nowrap; }.chat-attachment-copy small { color:var(--text-secondary); font-size:11px; }.chat-attachment-actions { display:flex; gap:3px; }.chat-attachment-actions a { display:grid; width:32px; height:32px; place-items:center; color:var(--primary); border-radius:9px; }.chat-attachment-actions a:hover { background:color-mix(in srgb, var(--primary) 13%, transparent); }.chat-bubble.is-mine .chat-attachment-card { color:var(--text); }
