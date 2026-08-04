@@ -2,15 +2,27 @@ import api from "../api/axios";
 
 const ChatService = {
 
-    getHistory(friendId) {
+    getHistory(friendId, page = 0, size = 20) {
 
-        return api.get(
+    return api.get(
 
-            `/messages/history/${friendId}`
+        `/messages/history/${friendId}`,
 
-        );
+        {
 
-    },
+            params: {
+
+                page,
+
+                size
+
+            }
+
+        }
+
+    );
+
+},
 
     getRecentChats() {
 

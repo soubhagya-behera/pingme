@@ -15,11 +15,30 @@ import FilePreviewModal from "../../../components/user/chat/FilePreviewModal";
 import { isImageAttachment } from "../../../components/user/chat/AttachmentUtils";
 import { v4 as uuid } from "uuid";
 
+function uniqueMessages(messages) {
+    const seenIds = new Set();
+    const seenClientIds = new Set();
+    return messages.filter(message => {
+        const idKey = message.id;
+        const clientKey = message.clientId;
+        if ((idKey != null && seenIds.has(idKey)) || (clientKey && seenClientIds.has(clientKey))) return false;
+        if (idKey != null) seenIds.add(idKey);
+        if (clientKey) seenClientIds.add(clientKey);
+        return true;
+    });
+}
+
 export default function Chat() {
     const [selectedFriend, setSelectedFriend] = useState(null);
+    const [conversationKey, setConversationKey] = useState(null);
     const [showChat, setShowChat] = useState(false);
     const selectedFriendRef = useRef(null);
     const [messages, setMessages] = useState([]);
+    const [hasMoreMessages, setHasMoreMessages] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [historyLoaded, setHistoryLoaded] = useState(false);
+    const [prependVersion, setPrependVersion] = useState(0);
+    const [scrollToBottomRequest, setScrollToBottomRequest] = useState(0);
     const [friends, setFriends] = useState([]);
     const [loading, setLoading] = useState(true);
     const [typingUsers, setTypingUsers] = useState(new Set());
@@ -33,6 +52,8 @@ export default function Chat() {
     const [attachmentError, setAttachmentError] = useState("");
 
     const uploadInFlight = useRef(false);
+    const historyRequestRef = useRef(0);
+    const paginationRef = useRef({ friendId: null, nextPage: 0, hasMore: false, loading: false });
 
     // ConfirmDialog states
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -203,10 +224,31 @@ export default function Chat() {
     }
 
     async function selectFriend(friend) {
-        setSelectedFriend(friend); setShowChat(true);
+        const requestId = ++historyRequestRef.current;
+        selectedFriendRef.current = friend;
+        setSelectedFriend(friend);
+        setConversationKey(`${friend.id}:${requestId}`);
+        setShowChat(true);
+        setMessages([]);
+        setHasMoreMessages(true);
+        setLoadingMore(false);
+        setHistoryLoaded(false);
+        paginationRef.current = { friendId: friend.id, nextPage: 0, hasMore: true, loading: false };
+
         try {
-            const history = await ChatService.getHistory(friend.id);
-            setMessages(history.data.data);
+            const response = await ChatService.getHistory(
+                friend.id,
+                0,
+                20
+            );
+            if (requestId !== historyRequestRef.current) return;
+            const page = response.data.data;
+            const history = [...page.content].reverse();
+            setMessages(previous => uniqueMessages([...history, ...previous]));
+            setHasMoreMessages(!page.last);
+            setHistoryLoaded(true);
+            paginationRef.current = { friendId: friend.id, nextPage: 1, hasMore: !page.last, loading: false };
+
             await ChatService.markConversationRead(friend.id);
             setFriends(previous =>
                 previous.map(item =>
@@ -220,8 +262,58 @@ export default function Chat() {
                         item
                 )
             );
-            setMessages(previous => previous.map(message => message.senderId === friend.id ? { ...message, status: "READ" } : message));
-        } catch { setMessages([]); }
+            setMessages(previous =>
+                previous.map(message =>
+                    message.senderId === friend.id
+                        ?
+                        {
+                            ...message,
+                            status: "READ"
+                        }
+                        :
+                        message
+                )
+            );
+        }
+        catch {
+            if (requestId === historyRequestRef.current) {
+                setMessages([]);
+                setHistoryLoaded(true);
+                paginationRef.current = { friendId: friend.id, nextPage: 0, hasMore: false, loading: false };
+            }
+        }
+    }
+
+    async function loadOlderMessages() {
+        const pagination = paginationRef.current;
+        if (pagination.loading || !pagination.hasMore || !pagination.friendId) return;
+
+        try {
+            pagination.loading = true;
+            setLoadingMore(true);
+            const response = await ChatService.getHistory(
+                pagination.friendId,
+                pagination.nextPage,
+                20
+            );
+            if (pagination !== paginationRef.current) return;
+            const page = response.data.data;
+            const olderMessages = [...page.content].reverse();
+            setMessages(previous => uniqueMessages([...olderMessages, ...previous]));
+            pagination.nextPage += 1;
+            pagination.hasMore = !page.last;
+            setHasMoreMessages(pagination.hasMore);
+            setPrependVersion(version => version + 1);
+        }
+        catch (error) {
+            console.error(error);
+        }
+        finally {
+            if (pagination === paginationRef.current) {
+                pagination.loading = false;
+                setLoadingMore(false);
+            }
+        }
     }
 
     function resetAttachmentPreview() {
@@ -291,6 +383,7 @@ export default function Chat() {
             if (replyingTo) optimistic.reply = replyingTo;
             optimisticId = optimistic.id;
             setMessages(previous => [...previous, optimistic]);
+            setScrollToBottomRequest(request => request + 1);
             await ChatService.sendMessage(payload);
             toast.success("Attachment sent");
             resetAttachmentPreview();
@@ -372,30 +465,7 @@ export default function Chat() {
             </div>
             <div className={`chat-conversation-pane ${showChat ? "chat-pane-visible" : "chat-pane-hidden"}`}>
                 {selectedFriend ? (
-                    selectedAttachment ? (
-                        isImageAttachment({ attachmentMimeType: selectedAttachment.type }) ? (
-                        <ImagePreviewModal
-                            image={selectedAttachment}
-                            caption={attachmentCaption}
-                            setCaption={setAttachmentCaption}
-                            uploading={uploadingAttachment}
-                            progress={uploadProgress}
-                            error={attachmentError}
-                            onCancel={resetAttachmentPreview}
-                            onSend={sendAttachment}
-                        />
-                        ) : <FilePreviewModal
-                            file={selectedAttachment}
-                            caption={attachmentCaption}
-                            setCaption={setAttachmentCaption}
-                            uploading={uploadingAttachment}
-                            progress={uploadProgress}
-                            error={attachmentError}
-                            onCancel={resetAttachmentPreview}
-                            onSend={sendAttachment}
-                        />
-                    ) : (
-                        <>
+                    <>
                             <ChatHeader friend={selectedFriend} onBack={() => setShowChat(false)} typing={
                                 selectedFriend
                                     ? typingUsers.has(selectedFriend.id)
@@ -403,6 +473,13 @@ export default function Chat() {
                             }/>
                             <ChatMessages
                                 messages={messages}
+                                conversationId={conversationKey}
+                                historyLoaded={historyLoaded}
+                                loadingMore={loadingMore}
+                                hasMoreMessages={hasMoreMessages}
+                                prependVersion={prependVersion}
+                                scrollToBottomRequest={scrollToBottomRequest}
+                                onLoadMore={loadOlderMessages}
                                 onReply={setReplyingTo}
                                 onEdit={setEditingMessage}
                                 onDelete={deleteForEveryone}
@@ -414,13 +491,16 @@ export default function Chat() {
                                 clearReply={() => setReplyingTo(null)}
                                 editingMessage={editingMessage}
                                 clearEditing={() => setEditingMessage(null)}
-                                onMessageSent={message => setMessages(previous => {
-                                    const index = previous.findIndex(item => item.id === message.id || (message.clientId && item.clientId === message.clientId));
-                                    if (index === -1) return [...previous, message];
-                                    const next = [...previous];
-                                    next[index] = { ...next[index], ...message };
-                                    return next;
-                                })}
+                                onMessageSent={message => {
+                                    setMessages(previous => {
+                                        const index = previous.findIndex(item => item.id === message.id || (message.clientId && item.clientId === message.clientId));
+                                        if (index === -1) return [...previous, message];
+                                        const next = [...previous];
+                                        next[index] = { ...next[index], ...message };
+                                        return next;
+                                    });
+                                    if (message.status === "SENDING") setScrollToBottomRequest(request => request + 1);
+                                }}
                                 onAttachmentSelected={(file) => {
                                     setSelectedAttachment(file);
                                     setAttachmentCaption("");
@@ -428,8 +508,16 @@ export default function Chat() {
                                     setUploadProgress(0);
                                 }}
                             />
-                        </>
-                    )
+                        {selectedAttachment && (isImageAttachment({ attachmentMimeType: selectedAttachment.type }) ? (
+                            <ImagePreviewModal image={selectedAttachment} caption={attachmentCaption} setCaption={setAttachmentCaption}
+                                uploading={uploadingAttachment} progress={uploadProgress} error={attachmentError}
+                                onCancel={resetAttachmentPreview} onSend={sendAttachment} />
+                        ) : (
+                            <FilePreviewModal file={selectedAttachment} caption={attachmentCaption} setCaption={setAttachmentCaption}
+                                uploading={uploadingAttachment} progress={uploadProgress} error={attachmentError}
+                                onCancel={resetAttachmentPreview} onSend={sendAttachment} />
+                        ))}
+                    </>
                 ) : <div className="chat-empty-state">
                     <div className="chat-empty-icon"><MessageCircleMore size={34}/></div>
                     <h2>Choose a conversation</h2>
