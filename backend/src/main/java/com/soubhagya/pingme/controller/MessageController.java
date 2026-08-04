@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 
 @RestController
@@ -21,75 +22,84 @@ public class MessageController {
     private final MessageService messageService;
 
     @GetMapping("/history/{friendId}")
-public ResponseEntity<ApiResponse<List<MessageResponse>>> getChatHistory(
+    public ResponseEntity<ApiResponse<Page<MessageResponse>>> getChatHistory(
 
-        @PathVariable Long friendId,
+            @PathVariable Long friendId,
 
-        Authentication authentication){
+            @RequestParam(defaultValue = "0") int page,
 
-    return ResponseEntity.ok(
+            @RequestParam(defaultValue = "20") int size,
 
-            ResponseUtil.success(
+            Authentication authentication
+    ) {
 
-                    "Chat History",
+        return ResponseEntity.ok(
 
-                    messageService.getChatHistory(
+                ResponseUtil.success(
 
-                            authentication.getName(),
+                        "Chat History",
 
-                            friendId
+                        messageService.getChatHistory(
 
-                    )
+                                authentication.getName(),
 
-            )
+                                friendId,
 
-    );
+                                page,
 
-}
+                                size
 
-@GetMapping("/recent")
-public ResponseEntity<ApiResponse<List<RecentChatResponse>>> recentChats(
-        Authentication authentication){
+                        )
 
-    return ResponseEntity.ok(
+                )
 
-            ResponseUtil.success(
+        );
 
-                    "Recent Chats",
+    }
 
-                    messageService.getRecentChats(
-                            authentication.getName()
-                    )
+    @GetMapping("/recent")
+    public ResponseEntity<ApiResponse<List<RecentChatResponse>>> recentChats(
+            Authentication authentication){
 
-            )
+        return ResponseEntity.ok(
 
-    );
+                ResponseUtil.success(
 
-}
+                        "Recent Chats",
 
-@GetMapping("/chat-sidebar")
-public ResponseEntity<ApiResponse<List<ChatSidebarResponse>>> getChatSidebar(
+                        messageService.getRecentChats(
+                                authentication.getName()
+                        )
 
-        Authentication authentication
+                )
 
-) {
+        );
 
-    return ResponseEntity.ok(
+    }
 
-            ResponseUtil.success(
+    @GetMapping("/chat-sidebar")
+    public ResponseEntity<ApiResponse<List<ChatSidebarResponse>>> getChatSidebar(
 
-                    "Chat Sidebar",
+            Authentication authentication
 
-                    messageService.getChatSidebar(
+    ) {
 
-                            authentication.getName()
+        return ResponseEntity.ok(
 
-                    )
+                ResponseUtil.success(
 
-            )
+                        "Chat Sidebar",
 
-    );
+                        messageService.getChatSidebar(
 
-}
+                                authentication.getName()
+
+                        )
+
+                )
+
+        );
+
+    }
 
 }

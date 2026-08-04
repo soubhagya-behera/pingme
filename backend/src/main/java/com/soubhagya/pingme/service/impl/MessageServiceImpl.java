@@ -23,6 +23,11 @@ import com.soubhagya.pingme.entity.Friend;
 import com.soubhagya.pingme.dto.response.ChatSidebarResponse;
 import com.soubhagya.pingme.repository.HiddenMessageRepository;
 import com.soubhagya.pingme.dto.chat.ReplyPreview;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @Service
 @RequiredArgsConstructor
@@ -36,54 +41,92 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MessageResponse> getChatHistory(
+    public Page<MessageResponse> getChatHistory(
 
-        String email,
+            String email,
 
-        Long friendId) {
+            Long friendId,
+
+            int page,
+
+            int size
+
+    ) {
 
         User sender =
-        userRepository.findByEmail(email)
 
-                .orElseThrow(() ->
+                userRepository
 
-                        new RuntimeException(
+                        .findByEmail(email)
 
-                                "User not found"
+                        .orElseThrow(
 
-                        ));
+                                () ->
+
+                                        new RuntimeException(
+
+                                                "User not found"
+
+                                        )
+
+                        );
 
         User receiver =
-        userRepository.findById(friendId)
 
-                .orElseThrow(() ->
+                userRepository
 
-                        new RuntimeException(
+                        .findById(friendId)
 
-                                "Friend not found"
+                        .orElseThrow(
 
-                        ));
+                                () ->
 
-        List<Message> messages =
-        messageRepository.getConversation(
-                sender,
-                receiver
-        );
+                                        new RuntimeException(
 
-        messages = messages.stream()
+                                                "Friend not found"
 
-        .filter(message ->
+                                        )
 
-                !hiddenMessageRepository.existsByMessageAndUser(
-                        message,
-                        sender
+                        );
+
+        Pageable pageable =
+
+                PageRequest.of(
+
+                        page,
+
+                        size,
+
+                        Sort.by("sentAt").descending()
+
+                );
+
+        Page<Message> messages =
+
+                messageRepository.getConversation(
+
+                        sender,
+
+                        receiver,
+
+                        pageable
+
+                );
+
+        List<Message> filteredMessages = messages.getContent().stream()
+
+                .filter(message ->
+
+                        !hiddenMessageRepository.existsByMessageAndUser(
+                                message,
+                                sender
+                        )
+
                 )
 
-        )
+                .toList();
 
-        .toList();
-
-        return messages.stream()
+        List<MessageResponse> responseList = filteredMessages.stream()
 
                 .map(message -> MessageResponse.builder()
 
@@ -124,6 +167,8 @@ public class MessageServiceImpl implements MessageService {
                         .build())
 
                 .collect(Collectors.toList());
+
+        return new PageImpl<>(responseList, pageable, messages.getTotalElements());
 
     }
 

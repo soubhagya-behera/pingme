@@ -12,8 +12,8 @@ import org.springframework.data.jpa.repository.Lock;
 
 import java.util.List;
 
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface MessageRepository
         extends JpaRepository<Message, Long> {
@@ -21,80 +21,74 @@ public interface MessageRepository
     @Query("""
 SELECT m
 FROM Message m
-JOIN FETCH m.sender
-JOIN FETCH m.receiver
 LEFT JOIN FETCH m.replyTo replyTo
 LEFT JOIN FETCH replyTo.sender
+JOIN FETCH m.sender
+JOIN FETCH m.receiver
 WHERE
-(m.sender = :user1 AND m.receiver = :user2)
-
+(
+    m.sender = :user1
+    AND
+    m.receiver = :user2
+)
 OR
-
-(m.sender = :user2 AND m.receiver = :user1)
-
-ORDER BY m.sentAt ASC
+(
+    m.sender = :user2
+    AND
+    m.receiver = :user1
+)
 """)
-List<Message> getConversation(
+    Page<Message> getConversation(
+            @Param("user1") User user1,
+            @Param("user2") User user2,
+            Pageable pageable
+    );
 
-        @Param("user1") User user1,
-
-        @Param("user2") User user2
-
-);
-
-@Query("""
+    @Query("""
 SELECT m
 FROM Message m
 JOIN FETCH m.sender
 JOIN FETCH m.receiver
 WHERE
-
 m.sender = :user
-
 OR
-
 m.receiver = :user
-
 ORDER BY m.sentAt DESC
 """)
-List<Message> findRecentMessages(
+    List<Message> findRecentMessages(
+            @Param("user") User user
+    );
 
-        @Param("user") User user
+    List<Message> findBySenderAndReceiverAndStatus(
+            User sender,
+            User receiver,
+            MessageStatus status
+    );
 
-);
+    List<Message> findByReceiverAndStatus(User receiver, MessageStatus status);
 
-List<Message> findBySenderAndReceiverAndStatus(
-        User sender,
-        User receiver,
-        MessageStatus status
-);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select m from Message m where m.id = :messageId")
+    java.util.Optional<Message> findByIdForReceipt(@Param("messageId") Long messageId);
 
-List<Message> findByReceiverAndStatus(User receiver, MessageStatus status);
-
-@Lock(LockModeType.PESSIMISTIC_WRITE)
-@Query("select m from Message m where m.id = :messageId")
-java.util.Optional<Message> findByIdForReceipt(@Param("messageId") Long messageId);
-
-@Lock(LockModeType.PESSIMISTIC_WRITE)
-@Query("""
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
 SELECT m
 FROM Message m
 WHERE m.id = :messageId
 """)
-java.util.Optional<Message> findByIdForEdit(
+    java.util.Optional<Message> findByIdForEdit(
+            @Param("messageId") Long messageId
+    );
 
-        @Param("messageId") Long messageId
+    void deleteBySenderOrReceiver(User sender, User receiver);
 
-);
+    long countByReceiverAndStatus(
+            User receiver,
+            MessageStatus status
+    );
 
-void deleteBySenderOrReceiver(User sender, User receiver);
-
-long countByReceiverAndStatus(
-        User receiver,
-        MessageStatus status
-);
-
-@Query("""
+    @Query("""
 SELECT m
 FROM Message m
 WHERE
@@ -105,22 +99,15 @@ WHERE
 )
 ORDER BY m.sentAt DESC
 """)
-List<Message> findLatestConversationMessages(
+    List<Message> findLatestConversationMessages(
+            @Param("me") User me,
+            @Param("friend") User friend
+    );
 
-        @Param("me") User me,
-
-        @Param("friend") User friend
-
-);
-
-long countBySenderAndReceiverAndStatus(
-
-        User sender,
-
-        User receiver,
-
-        MessageStatus status
-
-);
+    long countBySenderAndReceiverAndStatus(
+            User sender,
+            User receiver,
+            MessageStatus status
+    );
 
 }
