@@ -41,6 +41,7 @@ private final DashboardRealtimeService dashboardRealtimeService;
         return friendRepository.findAllForUserWithUsers(user).stream()
                 .map(friend -> friend.getUserOne().getId().equals(user.getId())
                         ? friend.getUserTwo() : friend.getUserOne())
+                .filter(friend -> !friend.getId().equals(user.getId()))
                 .map(f -> FriendResponse.builder()
                         .id(f.getId()).fullName(f.getFullName()).email(f.getEmail())
                         .profession(f.getProfession()).profilePicture(f.getProfilePicture())
@@ -60,6 +61,10 @@ private final DashboardRealtimeService dashboardRealtimeService;
         User friend = userRepository.findById(friendId)
                 .orElseThrow(() ->
                         new RuntimeException("Friend not found"));
+
+        if (me.getId().equals(friend.getId())) {
+            throw new IllegalArgumentException("You cannot remove yourself as a friend.");
+        }
 
         Friend friendship = friendRepository
                 .findByUserOneAndUserTwoOrUserOneAndUserTwo(

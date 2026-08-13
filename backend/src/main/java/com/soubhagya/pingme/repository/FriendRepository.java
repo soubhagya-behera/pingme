@@ -15,7 +15,8 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
             select f from Friend f
             join fetch f.userOne
             join fetch f.userTwo
-            where f.userOne = :user or f.userTwo = :user
+            where (f.userOne = :user or f.userTwo = :user)
+              and f.userOne <> f.userTwo
             """)
     List<Friend> findAllForUserWithUsers(@Param("user") User user);
 

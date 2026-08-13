@@ -45,6 +45,9 @@ public class ChatServiceImpl implements ChatService {
     public void sendMessage(ChatMessage request, String senderEmail) {
         User sender = userRepository.findByEmail(senderEmail).orElseThrow(() -> new RuntimeException("Sender not found"));
         User receiver = userRepository.findById(request.getReceiverId()).orElseThrow(() -> new RuntimeException("Receiver not found"));
+        if (sender.getId().equals(receiver.getId())) {
+            throw new IllegalArgumentException("You cannot send a message to yourself.");
+        }
         if (!friendRepository.existsByUserOneAndUserTwoOrUserOneAndUserTwo(sender, receiver, receiver, sender)) {
             throw new RuntimeException("You can only chat with accepted friends.");
         }

@@ -41,11 +41,28 @@ FROM User u
 
 WHERE
 
-u.status='APPROVED'
+u.status = :approvedStatus
 
 AND
 
-u.id <> :userId
+u.role = :userRole
+
+AND
+
+u.id <> :currentUserId
+
+AND NOT EXISTS (
+    SELECT 1 FROM Friend f
+    WHERE (f.userOne.id = :currentUserId AND f.userTwo = u)
+       OR (f.userTwo.id = :currentUserId AND f.userOne = u)
+)
+
+AND NOT EXISTS (
+    SELECT 1 FROM FriendRequest fr
+    WHERE fr.status = :pendingStatus
+      AND ((fr.sender.id = :currentUserId AND fr.receiver = u)
+        OR (fr.receiver.id = :currentUserId AND fr.sender = u))
+)
 
 AND
 
@@ -68,7 +85,13 @@ ORDER BY u.fullName
 """)
 List<User> searchUsers(
 
-        @Param("userId") Long userId,
+        @Param("currentUserId") Long currentUserId,
+
+        @Param("approvedStatus") UserStatus approvedStatus,
+
+        @Param("userRole") UserRole userRole,
+
+        @Param("pendingStatus") com.soubhagya.pingme.enums.FriendRequestStatus pendingStatus,
 
         @Param("keyword") String keyword
 

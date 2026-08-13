@@ -66,8 +66,8 @@ User sender =
 
                     if(sender.getId().equals(receiver.getId())){
 
-    throw new RuntimeException(
-            "You cannot send request to yourself");
+    throw new IllegalArgumentException(
+            "You cannot send a friend request to yourself.");
 
 }
 
@@ -288,6 +288,10 @@ public FriendRequestResponse acceptRequest(
         throw new RuntimeException(
                 "Request already processed");
 
+    }
+
+    if (request.getSender().getId().equals(request.getReceiver().getId())) {
+        throw new IllegalArgumentException("A friendship cannot be created with yourself.");
     }
 
     // Check if users are already friends

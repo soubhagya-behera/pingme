@@ -331,6 +331,10 @@ public List<RecentChatResponse> getRecentChats(String email) {
 
         }
 
+        if (friend.getId().equals(user.getId())) {
+            continue;
+        }
+
         if (addedUsers.contains(friend.getId())) {
 
             continue;
@@ -381,6 +385,9 @@ public List<ChatSidebarResponse> getChatSidebar(String email) {
     for (Message message : conversationMessages) {
         User otherUser = message.getSender().getId().equals(me.getId())
                 ? message.getReceiver() : message.getSender();
+        if (otherUser.getId().equals(me.getId())) {
+            continue;
+        }
         latestByFriend.putIfAbsent(otherUser.getId(), message);
         if (message.getReceiver().getId().equals(me.getId())
                 && message.getStatus() == MessageStatus.DELIVERED) {
@@ -402,6 +409,10 @@ public List<ChatSidebarResponse> getChatSidebar(String email) {
 
             friend = friendship.getUserOne();
 
+        }
+
+        if (friend.getId().equals(me.getId())) {
+            continue;
         }
 
         Message latestMessage = latestByFriend.get(friend.getId());

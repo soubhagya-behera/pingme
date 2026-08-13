@@ -2,6 +2,8 @@ package com.soubhagya.pingme.service.impl;
 
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.enums.UserStatus;
+import com.soubhagya.pingme.enums.UserRole;
+import com.soubhagya.pingme.enums.FriendRequestStatus;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +70,12 @@ public List<UserSearchResponse> searchUsers(
             userRepository.searchUsers(
 
                     currentUser.getId(),
+
+                    UserStatus.APPROVED,
+
+                    UserRole.USER,
+
+                    FriendRequestStatus.PENDING,
 
                     keyword
 
