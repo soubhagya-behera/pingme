@@ -24,6 +24,8 @@ export default function ActivateAccount() {
 
     const [loading, setLoading] = useState(false);
 
+    const [activationError, setActivationError] = useState("");
+
     const {
 
         register,
@@ -50,7 +52,7 @@ export default function ActivateAccount() {
 
             }catch(error){
 
-                toast.error("Activation link is invalid or expired.");
+                setActivationError("Activation link is invalid or expired.");
 
             }finally{
 
@@ -78,6 +80,8 @@ export default function ActivateAccount() {
 
             setLoading(true);
 
+            setActivationError("");
+
             await AuthService.setPassword({
 
                 token,
@@ -90,19 +94,15 @@ export default function ActivateAccount() {
 
             setTimeout(()=>{
 
-                navigate("/login");
+                navigate("/login", { replace: true });
 
             },2000);
 
         }catch(error){
 
-            toast.error(
-
-                error.response?.data?.message ||
-
-                "Unable to activate account"
-
-            );
+            const message = error?.response?.data?.message || "Unable to activate account";
+            setActivationError(message);
+            toast.error(message);
 
         }finally{
 
@@ -140,7 +140,7 @@ export default function ActivateAccount() {
 
                     <h2>Invalid or Expired Link</h2>
 
-                    <p>Please contact the administrator.</p>
+                    <p>{activationError || "Please contact the administrator."}</p>
 
                 </Card>
 
@@ -161,6 +161,8 @@ export default function ActivateAccount() {
                 <p>Your account has been approved.</p>
 
                 <form onSubmit={handleSubmit(onSubmit)}>
+
+                    {activationError && <p className="activate-error" role="alert">{activationError}</p>}
 
                     <div className="form-group">
 

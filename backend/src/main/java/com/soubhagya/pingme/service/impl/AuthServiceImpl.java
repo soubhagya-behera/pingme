@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.soubhagya.pingme.dto.request.LoginRequest;
 import com.soubhagya.pingme.dto.response.LoginResponse;
 
@@ -132,12 +133,17 @@ public boolean validateActivationToken(String token) {
 }
 
 @Override
+@Transactional
 public void setPassword(SetPasswordRequest request) {
 
     PasswordResetToken resetToken =
             tokenService.validateToken(request.getToken());
 
     User user = resetToken.getUser();
+
+    if (user.getStatus() != UserStatus.APPROVED) {
+        throw new IllegalArgumentException("Account is not approved.");
+    }
 
     user.setPassword(
 
@@ -175,6 +181,7 @@ public void forgotPassword(String email) {
 }
 
 @Override
+@Transactional
 public void resetPassword(
         String email,
         String otp,

@@ -1,5 +1,6 @@
 import EmptyState from "./EmptyState";
 import UserRow from "./UserRow";
+import { UserRound } from "lucide-react";
 
 export default function UsersTable({
 
@@ -86,6 +87,8 @@ className="px-5 py-14"
 >
 
 <EmptyState
+
+icon={UserRound}
 
 title="No users found"
 

@@ -59,6 +59,13 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ApiResponse<?>> invalidToken(InvalidTokenException ex) {
+        return ResponseEntity.badRequest().body(
+                ApiResponse.failure("Activation link is invalid or expired.")
+        );
+    }
+
     @ExceptionHandler({InvalidImageException.class, InvalidAttachmentException.class, MissingServletRequestPartException.class})
     public ResponseEntity<ApiResponse<?>> invalidImage(Exception ex) {
         String message = ex instanceof MissingServletRequestPartException ? "Please select a file." : ex.getMessage();

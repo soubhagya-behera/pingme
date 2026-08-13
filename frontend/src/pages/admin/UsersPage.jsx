@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -23,6 +23,7 @@ import UsersToolbar from "../../components/admin/users/UsersToolbar";
 import Pagination from "../../components/admin/users/Pagination";
 import UsersTable from "../../components/admin/users/UsersTable";
 import DeleteUserModal from "../../components/admin/users/DeleteUserModal";
+import EmptyState from "../../components/admin/users/EmptyState";
 
 const statuses = ["ALL", "PENDING", "APPROVED", "REJECTED", "SUSPENDED"];
 
@@ -37,6 +38,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
+  const actionInFlightRef = useRef(false);
   const [activeView, setActiveView] = useState("users");
   
   // Modal state variables
@@ -131,7 +133,9 @@ export default function UsersPage() {
   }
 
   async function handleAction(user, action) {
+    if (actionInFlightRef.current) return;
     const actionKey = `${action}-${user.id}`;
+    actionInFlightRef.current = true;
     setActionLoading(actionKey);
     try {
       let response;
@@ -153,6 +157,7 @@ export default function UsersPage() {
     } catch (error) {
       toast.error(error.response?.data?.message || "Action failed");
     } finally {
+      actionInFlightRef.current = false;
       setActionLoading(null);
     }
   }
