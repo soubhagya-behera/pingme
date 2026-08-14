@@ -49,4 +49,10 @@ void deleteForMe(
         String email
 );
 
+void forwardMessage(
+        Long messageId,
+        Long receiverId,
+        String senderEmail
+);
+
 }

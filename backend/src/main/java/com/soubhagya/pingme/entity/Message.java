@@ -69,4 +69,7 @@ private Boolean deletedForEveryone = false;
 
 private LocalDateTime deletedAt;
 
+@Column(nullable = false)
+@Builder.Default
+private Boolean forwarded = false;
 }

@@ -192,4 +192,29 @@ public ResponseEntity<ApiResponse<Void>> deleteForMe(
 
 }
 
+@PostMapping("/messages/{messageId}/forward/{receiverId}")
+public ResponseEntity<ApiResponse<String>> forwardMessage(
+
+        @PathVariable Long messageId,
+
+        @PathVariable Long receiverId,
+
+        Authentication authentication
+
+) {
+
+    chatService.forwardMessage(
+            messageId,
+            receiverId,
+            authentication.getName()
+    );
+
+    return ResponseEntity.ok(
+            ApiResponse.success(
+                    "Message forwarded successfully."
+            )
+    );
+
+}
+
 }

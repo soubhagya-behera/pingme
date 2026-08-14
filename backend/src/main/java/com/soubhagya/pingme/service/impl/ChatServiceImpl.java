@@ -407,6 +407,7 @@ public class ChatServiceImpl implements ChatService {
                 .editedAt(message.getEditedAt())
                 .deletedForEveryone(message.getDeletedForEveryone())
                 .deletedAt(message.getDeletedAt())
+                .forwarded(message.getForwarded())
                 .build();
     }
 
@@ -482,5 +483,101 @@ public class ChatServiceImpl implements ChatService {
                         .build();
 
         hiddenMessageRepository.save(hiddenMessage);
+    }
+
+    @Override
+    @Transactional
+    public void forwardMessage(Long messageId, Long receiverId, String email) {
+        User sender = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Sender not found"));
+                
+        User receiver = userRepository.findById(receiverId)
+                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+                
+        Message originalMessage = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+
+        boolean belongsToConversation = 
+                originalMessage.getSender()
+                        .getId()
+                        .equals(sender.getId())
+                ||
+                originalMessage.getReceiver()
+                        .getId()
+                        .equals(sender.getId());
+
+        if (!belongsToConversation) {
+            throw new SecurityException(
+                    "You cannot forward this message."
+            );
+        }
+
+        // 7. Create a completely NEW message
+        Message forwardedMessage =
+                Message.builder()
+                        .sender(sender)
+                        .receiver(receiver)
+                        .content(
+                                originalMessage.getContent()
+                        )
+                        .attachmentUrl(
+                                originalMessage.getAttachmentUrl()
+                        )
+                        .attachmentName(
+                                originalMessage.getAttachmentName()
+                        )
+                        .attachmentSize(
+                                originalMessage.getAttachmentSize()
+                        )
+                        .attachmentMimeType(
+                                originalMessage.getAttachmentMimeType()
+                        )
+                        .messageType(
+                                originalMessage.getMessageType()
+                        )
+                        .status(
+                                MessageStatus.SENT
+                        )
+                        .sentAt(
+                                LocalDateTime.now()
+                        )
+                        .forwarded(true)
+                        .build();
+
+        // 8. Save the new message
+        Message saved =
+                messageRepository.save(
+                        forwardedMessage
+                );
+
+        // 9. Convert it to the normal WebSocket event
+        ChatMessage event =
+                toEvent(
+                        saved,
+                        null
+                );
+
+        String senderEmailForDelivery =
+                sender.getEmail();
+
+        String receiverEmailForDelivery =
+                receiver.getEmail();
+
+        // 10. Send the forwarded message to both users
+        afterCommit(() -> {
+
+            messagingTemplate.convertAndSendToUser(
+                    senderEmailForDelivery,
+                    "/queue/messages",
+                    event
+            );
+
+            messagingTemplate.convertAndSendToUser(
+                    receiverEmailForDelivery,
+                    "/queue/messages",
+                    event
+            );
+
+        });
     }
 }
