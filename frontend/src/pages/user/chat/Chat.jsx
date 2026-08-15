@@ -12,6 +12,7 @@ import { MessageCircleMore, Plus } from "lucide-react";
 import "../../../styles/user/chat/chat.css";
 import ImagePreviewModal from "../../../components/user/chat/ImagePreviewModal";
 import FilePreviewModal from "../../../components/user/chat/FilePreviewModal";
+import ForwardMessageModal from "../../../components/user/chat/ForwardMessageModal";
 import { isImageAttachment } from "../../../components/user/chat/AttachmentUtils";
 import { v4 as uuid } from "uuid";
 
@@ -44,8 +45,10 @@ export default function Chat() {
     const [typingUsers, setTypingUsers] = useState(new Set());
     const [replyingTo, setReplyingTo] = useState(null);
     const [editingMessage, setEditingMessage] = useState(null);
-    const [selectedAttachment, setSelectedAttachment] = useState(null);
     const [forwardingMessage, setForwardingMessage] = useState(null);
+const [forwarding, setForwarding] = useState(false);
+    const [selectedAttachment, setSelectedAttachment] = useState(null);
+
 
     const [attachmentCaption, setAttachmentCaption] = useState("");
     const [uploadingAttachment, setUploadingAttachment] = useState(false);
@@ -408,6 +411,46 @@ export default function Chat() {
         }
     }
 
+    async function forwardMessage(message, friend) {
+
+    if (!message || !friend || forwarding) {
+        return;
+    }
+
+    setForwarding(true);
+
+    try {
+
+        await ChatService.forwardMessage(
+            message.id,
+            friend.id
+        );
+
+        toast.success(
+            `Message forwarded to ${friend.fullName}`
+        );
+
+        setForwardingMessage(null);
+
+    } catch (error) {
+
+        console.error(
+            "Forward message failed:",
+            error
+        );
+
+        toast.error(
+            error?.response?.data?.message ||
+            "Couldn't forward the message."
+        );
+
+    } finally {
+
+        setForwarding(false);
+
+    }
+}
+
     function openConfirm(config, callback) {
         setConfirmConfig(config);
         setConfirmCallback(() => callback);
@@ -489,7 +532,7 @@ export default function Chat() {
                                 onEdit={setEditingMessage}
                                 onDelete={deleteForEveryone}
                                 onDeleteMe={deleteForMe}
-                                onForward={handleForward}
+                                onForward={setForwardingMessage}
                             />
                             <ChatInput
                                 friend={selectedFriend}
@@ -531,6 +574,20 @@ export default function Chat() {
                     <button type="button" className="chat-empty-cta" onClick={() => setShowChat(false)}><Plus size={18}/>Start New Chat</button>
                 </div>}
             </div>
+
+            {forwardingMessage && (
+    <ForwardMessageModal
+        message={forwardingMessage}
+        friends={friends}
+        loading={forwarding}
+        onClose={() => {
+            if (!forwarding) {
+                setForwardingMessage(null);
+            }
+        }}
+        onForward={forwardMessage}
+    />
+)}
 
             <ConfirmDialog
                 open={confirmOpen}

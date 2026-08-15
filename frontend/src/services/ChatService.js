@@ -94,6 +94,15 @@ deleteForMe(messageId){
 
 },
 
+forwardMessage(messageId, receiverId) {
+    return api.post(
+        `/chat/messages/${messageId}/forward`,
+        {
+            receiverId
+        }
+    );
+},
+
 uploadFile(file, onProgress) {
     const formData = new FormData();
 
