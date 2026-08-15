@@ -45,4 +45,6 @@ private Boolean deletedForEveryone;
 
 private LocalDateTime deletedAt;
 
+private Boolean forwarded;
+
 }

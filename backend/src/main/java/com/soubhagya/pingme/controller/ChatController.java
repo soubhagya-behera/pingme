@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 import com.soubhagya.pingme.dto.request.EditMessageRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import com.soubhagya.pingme.dto.request.ForwardMessageRequest;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -188,6 +189,39 @@ public ResponseEntity<ApiResponse<Void>> deleteForMe(
             ApiResponse.success(
                     "Deleted"
             )
+    );
+
+}
+
+@PostMapping("/messages/{messageId}/forward")
+public ResponseEntity<ApiResponse<String>> forwardMessage(
+
+        @PathVariable Long messageId,
+
+        @RequestBody ForwardMessageRequest request,
+
+        Authentication authentication
+
+) {
+
+    chatService.forwardMessage(
+
+            messageId,
+
+            request.getReceiverId(),
+
+            authentication.getName()
+
+    );
+
+    return ResponseEntity.ok(
+
+            ApiResponse.success(
+
+                    "Message forwarded successfully."
+
+            )
+
     );
 
 }

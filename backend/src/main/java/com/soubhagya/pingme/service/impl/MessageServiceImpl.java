@@ -283,6 +283,10 @@ public class MessageServiceImpl implements MessageService {
 
                                         )
 
+                                        .forwarded(
+        message.getForwarded()
+)
+
                                         .build()
 
                         )

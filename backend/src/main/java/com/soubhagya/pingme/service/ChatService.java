@@ -52,7 +52,7 @@ void deleteForMe(
 void forwardMessage(
         Long messageId,
         Long receiverId,
-        String senderEmail
+        String email
 );
 
 }
