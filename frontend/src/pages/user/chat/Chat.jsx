@@ -45,6 +45,7 @@ export default function Chat() {
     const [replyingTo, setReplyingTo] = useState(null);
     const [editingMessage, setEditingMessage] = useState(null);
     const [selectedAttachment, setSelectedAttachment] = useState(null);
+    const [forwardingMessage, setForwardingMessage] = useState(null);
 
     const [attachmentCaption, setAttachmentCaption] = useState("");
     const [uploadingAttachment, setUploadingAttachment] = useState(false);
@@ -316,6 +317,10 @@ export default function Chat() {
         }
     }
 
+    function handleForward(message) {
+    setForwardingMessage(message);
+}
+
     function resetAttachmentPreview() {
         setSelectedAttachment(null);
         setAttachmentCaption("");
@@ -484,6 +489,7 @@ export default function Chat() {
                                 onEdit={setEditingMessage}
                                 onDelete={deleteForEveryone}
                                 onDeleteMe={deleteForMe}
+                                onForward={handleForward}
                             />
                             <ChatInput
                                 friend={selectedFriend}

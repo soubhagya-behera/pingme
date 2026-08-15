@@ -18,7 +18,8 @@ export default function ChatMessages({
   onReply,
   onEdit,
   onDelete,
-  onDeleteMe
+  onDeleteMe,
+  onForward
 }) {
   const { user } = useAuth();
   const containerRef = useRef(null);
@@ -108,7 +109,7 @@ export default function ChatMessages({
       const previousDate = index === 0 ? null : new Date(messages[index - 1].sentAt).toDateString();
       return <React.Fragment key={message.id}>
         {currentDate !== previousDate && <DateSeparator date={message.sentAt} />}
-        <MessageBubble message={message} mine={message.senderId === user.id} text={message.content} time={message.sentAt} status={message.status} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onDeleteMe={onDeleteMe} />
+        <MessageBubble message={message} mine={message.senderId === user.id} text={message.content} time={message.sentAt} status={message.status} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onDeleteMe={onDeleteMe} onForward={onForward} />
       </React.Fragment>;
     })}
   </section>;

@@ -3,7 +3,7 @@ import { ChevronDown, Reply, Pencil, Trash2, Copy, Forward } from "lucide-react"
 import { useEffect, useRef, useState } from "react";
 import { EDIT_WINDOW_MS, DELETE_WINDOW_MS } from "../../../constants/chatConstants";
 
-export default function MessageActionsMenu({ mine, onReply, onEdit, onDelete, onDeleteMe, message }) {
+export default function MessageActionsMenu({ mine, onReply, onEdit, onDelete, onDeleteMe, onForward, message }) {
   const [open, setOpen] = useState(false); const menuRef = useRef(null);
   const canEdit = mine && !message.deletedForEveryone && Date.now() - new Date(message.sentAt).getTime() < EDIT_WINDOW_MS;
   const canDeleteForEveryone = mine && !message.deletedForEveryone && Date.now() - new Date(message.sentAt).getTime() < DELETE_WINDOW_MS;
@@ -15,6 +15,6 @@ export default function MessageActionsMenu({ mine, onReply, onEdit, onDelete, on
     {!message.deletedForEveryone && item("Copy", <Copy size={17}/>, () => { navigator.clipboard.writeText(message.content); toast.success("Copied to clipboard"); })}
     {canDeleteForEveryone && item("Delete for Everyone", <Trash2 size={17}/>, () => onDelete(message), true)}
     {!message.deletedForEveryone && item("Delete for Me", <Trash2 size={17}/>, () => onDeleteMe(message))}
-    {item("Forward", <Forward size={17}/>, () => {})}
+    {!message.deletedForEveryone && item("Forward", <Forward size={17}/>, () => onForward(message))}
   </div>}</div>;
 }
