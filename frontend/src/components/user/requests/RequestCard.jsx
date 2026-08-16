@@ -19,18 +19,22 @@ export default function RequestCard({
         >
             <div className="flex gap-4 items-center">
                 <div
-                    className="relative w-16 h-16 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-[var(--on-primary)] flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden"
+                    className="relative w-16 h-16 flex-none"
                 >
-                    <Avatar
-                        name={request.senderName}
-                        src={request.senderProfilePicture}
-                        fill
-                    />
+                    <div
+                        className="w-full h-full rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-[var(--on-primary)] flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden"
+                    >
+                        <Avatar
+                            name={request.senderName}
+                            src={request.senderProfilePicture}
+                            fill
+                        />
+                    </div>
                     <span
-                        className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white ${
+                        className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-[var(--card)] ${
                             request.senderOnline
-                                ? "bg-green-500"
-                                : "bg-gray-400"
+                                ? "bg-[var(--success)]"
+                                : "bg-[var(--text-secondary)]"
                         }`}
                     />
                 </div>
@@ -47,7 +51,7 @@ export default function RequestCard({
                                     : "text-[var(--text-secondary)]"
                             }`}
                         >
-                            ● {request.senderOnline ? "Online" : "Offline"}
+                            {request.senderOnline ? "Online" : "Offline"}
                         </span>
                     </div>
 

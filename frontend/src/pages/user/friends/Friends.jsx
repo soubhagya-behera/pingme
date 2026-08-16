@@ -214,11 +214,13 @@ setStats(
             >
               <div className="friend-info">
                   <div className="friend-avatar">
-                      <Avatar
-                          name={friend.fullName}
-                          src={friend.profilePicture}
-                          fill
-                      />
+                      <div className="friend-avatar-photo">
+                          <Avatar
+                              name={friend.fullName}
+                              src={friend.profilePicture}
+                              fill
+                          />
+                      </div>
                       <span
                           className={`online-dot ${
                               friend.online
@@ -244,8 +246,6 @@ setStats(
                                   : "friend-status offline-text"
                           }
                       >
-                          <span className="status-dot"/>
-
                           {
                               friend.online
                                   ? "Online now"
