@@ -92,6 +92,17 @@ public class ChatServiceImpl implements ChatService {
             validateGenericAttachmentMetadata(request);
         }
 
+        if (type == MessageType.VOICE) {
+            if (request.getAttachmentMimeType() == null
+                    || !request.getAttachmentMimeType().startsWith("audio/")) {
+                throw new IllegalArgumentException("Unsupported audio format.");
+            }
+            if (request.getAttachmentDuration() != null
+                    && (request.getAttachmentDuration() < 1 || request.getAttachmentDuration() > 300)) {
+                throw new IllegalArgumentException("Voice message duration is invalid.");
+            }
+        }
+
         Message.MessageBuilder builder =
                 Message.builder()
                         .sender(sender)
@@ -108,6 +119,9 @@ public class ChatServiceImpl implements ChatService {
                         )
                         .attachmentMimeType(
                                 request.getAttachmentMimeType()
+                        )
+                        .attachmentDuration(
+                                request.getAttachmentDuration()
                         )
                         .messageType(type)
                         .status(MessageStatus.SENT)
@@ -404,6 +418,9 @@ public class ChatServiceImpl implements ChatService {
                 .attachmentMimeType(
                         message.getAttachmentMimeType()
                 )
+                .attachmentDuration(
+                        message.getAttachmentDuration()
+                )
                 .messageType(
                         message.getMessageType().name()
                 )
@@ -468,6 +485,10 @@ public class ChatServiceImpl implements ChatService {
         if (saved.getAttachmentMimeType() != null
                 && saved.getAttachmentMimeType().startsWith("image/")) {
             return "sent you a photo";
+        }
+        if (saved.getAttachmentMimeType() != null
+                && saved.getAttachmentMimeType().startsWith("audio/")) {
+            return "sent you a voice message";
         }
         if (saved.getAttachmentName() != null) {
             return "sent you a file";
@@ -635,6 +656,10 @@ public void forwardMessage(
 
                     .attachmentMimeType(
                             originalMessage.getAttachmentMimeType()
+                    )
+
+                    .attachmentDuration(
+                            originalMessage.getAttachmentDuration()
                     )
 
                     .messageType(

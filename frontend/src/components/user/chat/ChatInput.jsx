@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
 import {
+    Mic,
     Paperclip,
     Reply,
     Send,
     Smile,
+    Square,
     X
 } from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
@@ -12,6 +14,14 @@ import toast from "react-hot-toast";
 
 import ChatService from "../../../services/ChatService";
 import { sendTyping, sendStopTyping } from "../../../websocket/publisher";
+import { useVoiceRecorder } from "./useVoiceRecorder";
+
+function formatTimer(totalSeconds) {
+    const seconds = Math.floor(totalSeconds);
+    const minutes = Math.floor(seconds / 60);
+    const rest = seconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
+}
 
 export default function ChatInput({
     friend,
@@ -20,7 +30,8 @@ export default function ChatInput({
     editingMessage,
     clearEditing,
     onMessageSent,
-    onAttachmentSelected
+    onAttachmentSelected,
+    onVoiceRecorded
 }) {
     const [message, setMessage] = useState("");
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -31,6 +42,17 @@ export default function ChatInput({
 
     const typingRef = useRef(false);
     const typingTimeout = useRef(null);
+
+    const {
+        recording,
+        seconds,
+        startRecording: startRecordingFn,
+        stopRecording,
+        cancelRecording
+    } = useVoiceRecorder({
+        onError: message => toast.error(message),
+        onStop: result => onVoiceRecorded?.(result.file, result.durationSeconds, result.mimeType)
+    });
 
     useEffect(() => {
         if (editingMessage) {
@@ -161,6 +183,28 @@ export default function ChatInput({
         }
     }
 
+    async function startRecording() {
+        if (!friend || editingMessage) return;
+        setShowEmojiPicker(false);
+        stopTyping();
+        await startRecordingFn();
+    }
+
+    async function handleStopRecording() {
+        const result = await stopRecording();
+        if (result) {
+            onVoiceRecorded?.(
+                result.file,
+                result.durationSeconds,
+                result.mimeType
+            );
+        }
+    }
+
+    function handleCancelRecording() {
+        cancelRecording();
+    }
+
     return (
         <div className="chat-input-area">
 
@@ -228,11 +272,36 @@ export default function ChatInput({
             <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/zip,text/plain"
+                accept="image/jpeg,image/png,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/zip,text/plain,audio/webm,audio/ogg,audio/mp4,audio/mpeg,audio/wav"
                 className="hidden"
                 onChange={chooseAttachment}
             />
 
+            {recording ? (
+                <div className="chat-voice-recording" role="status" aria-live="polite">
+                    <button
+                        type="button"
+                        className="chat-voice-recording-cancel"
+                        onClick={handleCancelRecording}
+                        aria-label="Cancel recording"
+                        title="Cancel recording"
+                    >
+                        <X size={18}/>
+                    </button>
+                    <span className="chat-voice-recording-dot" aria-hidden="true"/>
+                    <span className="chat-voice-recording-timer">{formatTimer(seconds)}</span>
+                    <span className="chat-voice-recording-hint">Recording</span>
+                    <button
+                        type="button"
+                        className="chat-voice-recording-stop"
+                        onClick={handleStopRecording}
+                        aria-label="Stop recording"
+                        title="Stop recording"
+                    >
+                        <Square size={16} fill="currentColor"/>
+                    </button>
+                </div>
+            ) : (
             <div className="chat-input-row">
 
                 <button
@@ -276,6 +345,16 @@ export default function ChatInput({
 
                 <button
                     type="button"
+                    className="chat-input-icon-button"
+                    onClick={startRecording}
+                    aria-label="Record a voice message"
+                    title="Record a voice message"
+                >
+                    <Mic size={20}/>
+                </button>
+
+                <button
+                    type="button"
                     className="chat-send-button"
                     disabled={!message.trim()}
                     onClick={send}
@@ -284,6 +363,7 @@ export default function ChatInput({
                 </button>
 
             </div>
+            )}
 
         </div>
     );

@@ -45,6 +45,8 @@ private Long attachmentSize;
 
 private String attachmentMimeType;
 
+private Long attachmentDuration;
+
     @Enumerated(EnumType.STRING)
     private MessageType messageType;
 

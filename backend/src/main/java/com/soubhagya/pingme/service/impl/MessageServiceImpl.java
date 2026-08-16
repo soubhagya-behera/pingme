@@ -185,6 +185,12 @@ public class MessageServiceImpl implements MessageService {
 
                                         )
 
+                                        .attachmentDuration(
+
+                                                message.getAttachmentDuration()
+
+                                        )
+
                                         .messageType(
 
                                                 message.getMessageType().name()

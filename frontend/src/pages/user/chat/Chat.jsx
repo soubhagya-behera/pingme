@@ -17,6 +17,7 @@ import "../../../styles/user/chat/chat.css";
 import ImagePreviewModal from "../../../components/user/chat/ImagePreviewModal";
 import FilePreviewModal from "../../../components/user/chat/FilePreviewModal";
 import ForwardMessageModal from "../../../components/user/chat/ForwardMessageModal";
+import VoicePreviewModal from "../../../components/user/chat/VoicePreviewModal";
 import { isImageAttachment } from "../../../components/user/chat/AttachmentUtils";
 import { v4 as uuid } from "uuid";
 
@@ -61,6 +62,11 @@ const [forwarding, setForwarding] = useState(false);
     const [uploadingAttachment, setUploadingAttachment] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [attachmentError, setAttachmentError] = useState("");
+
+    const [voicePreview, setVoicePreview] = useState(null);
+    const [sendingVoice, setSendingVoice] = useState(false);
+    const [voiceUploadProgress, setVoiceUploadProgress] = useState(0);
+    const [voiceError, setVoiceError] = useState("");
 
     const uploadInFlight = useRef(false);
     const historyRequestRef = useRef(0);
@@ -448,6 +454,80 @@ const [forwarding, setForwarding] = useState(false);
         }
     }
 
+    function resetVoicePreview() {
+        setVoicePreview(null);
+        setVoiceError("");
+        setVoiceUploadProgress(0);
+    }
+
+    async function sendVoiceMessage() {
+        if (
+            !voicePreview ||
+            !selectedFriend ||
+            uploadInFlight.current
+        ) {
+            return;
+        }
+
+        uploadInFlight.current = true;
+
+        setSendingVoice(true);
+        setVoiceUploadProgress(0);
+        setVoiceError("");
+
+        let optimisticId = null;
+
+        try {
+            const uploadResponse = await ChatService.uploadFile(
+                voicePreview.file,
+                percent => {
+                    setVoiceUploadProgress(percent);
+                }
+            );
+
+            const attachment = uploadResponse.data?.data ?? uploadResponse.data;
+            const payload = {
+                clientId: uuid(),
+                receiverId: selectedFriend.id,
+                content: "",
+                attachmentUrl: attachment.attachmentUrl,
+                attachmentName: attachment.attachmentName,
+                attachmentSize: attachment.attachmentSize,
+                attachmentMimeType: attachment.attachmentMimeType,
+                attachmentDuration: voicePreview.duration,
+                messageType: "VOICE",
+                replyToId: replyingTo?.id
+            };
+            const optimistic = {
+                id: payload.clientId,
+                ...payload,
+                senderId: Number(localStorage.getItem("userId")),
+                status: "SENDING",
+                sentAt: new Date().toISOString()
+            };
+            if (replyingTo) optimistic.reply = replyingTo;
+            optimisticId = optimistic.id;
+            setMessages(previous => [...previous, optimistic]);
+            setScrollToBottomRequest(request => request + 1);
+            await ChatService.sendMessage(payload);
+            toast.success("Voice message sent");
+            resetVoicePreview();
+            setReplyingTo(null);
+
+        } catch (err) {
+            if (optimisticId) setMessages(previous => previous.filter(message => message.id !== optimisticId));
+            console.error(err);
+            const errorMessage =
+                err?.response?.data?.message ||
+                "Voice message upload failed.";
+            setVoiceError(errorMessage);
+            toast.error(errorMessage);
+        } finally {
+            uploadInFlight.current = false;
+            setSendingVoice(false);
+        }
+    }
+
     async function forwardMessage(message, friend) {
 
     if (!message || !friend || forwarding) {
@@ -593,6 +673,11 @@ const [forwarding, setForwarding] = useState(false);
                                     setAttachmentError("");
                                     setUploadProgress(0);
                                 }}
+                                onVoiceRecorded={(file, duration) => {
+                                    setVoicePreview({ file, duration });
+                                    setVoiceError("");
+                                    setVoiceUploadProgress(0);
+                                }}
                             />
                         {selectedAttachment && (isImageAttachment({ attachmentMimeType: selectedAttachment.type }) ? (
                             <ImagePreviewModal image={selectedAttachment} caption={attachmentCaption} setCaption={setAttachmentCaption}
@@ -603,6 +688,17 @@ const [forwarding, setForwarding] = useState(false);
                                 uploading={uploadingAttachment} progress={uploadProgress} error={attachmentError}
                                 onCancel={resetAttachmentPreview} onSend={sendAttachment} />
                         ))}
+                        {voicePreview && (
+                            <VoicePreviewModal
+                                file={voicePreview.file}
+                                duration={voicePreview.duration}
+                                uploading={sendingVoice}
+                                progress={voiceUploadProgress}
+                                error={voiceError}
+                                onCancel={resetVoicePreview}
+                                onSend={sendVoiceMessage}
+                            />
+                        )}
                     </>
                 ) : <div className="chat-empty-state">
                     <div className="chat-empty-icon"><MessageCircleMore size={34}/></div>

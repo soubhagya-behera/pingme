@@ -34,7 +34,12 @@ public class AttachmentStorageServiceImpl implements AttachmentStorageService {
             Map.entry("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
             Map.entry("ppt", "application/vnd.ms-powerpoint"),
             Map.entry("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
-            Map.entry("zip", "application/zip"), Map.entry("txt", "text/plain"));
+            Map.entry("zip", "application/zip"), Map.entry("txt", "text/plain"),
+            Map.entry("webm", "audio/webm"), Map.entry("weba", "audio/webm"),
+            Map.entry("ogg", "audio/ogg"), Map.entry("oga", "audio/ogg"),
+            Map.entry("opus", "audio/ogg"),
+            Map.entry("m4a", "audio/mp4"), Map.entry("mp4", "audio/mp4"),
+            Map.entry("mp3", "audio/mpeg"), Map.entry("wav", "audio/wav"));
 
     private final UploadProperties uploadProperties;
     private Path uploadPath;

@@ -34,6 +34,8 @@ private Long attachmentSize;
 
 private String attachmentMimeType;
 
+private Long attachmentDuration;
+
 private String messageType;
 
     private LocalDateTime sentAt;
