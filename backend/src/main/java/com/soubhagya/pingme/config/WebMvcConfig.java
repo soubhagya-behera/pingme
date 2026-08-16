@@ -25,10 +25,17 @@ public void addResourceHandlers(ResourceHandlerRegistry registry) {
             .addResourceHandler("/uploads/chat-images/**")
             .addResourceLocations(uploadPath.toUri().toString() + "/");
 
-    Path fileUploadPath = Paths.get(uploadProperties.getFileDirectory()).toAbsolutePath().normalize();
+Path fileUploadPath = Paths.get(uploadProperties.getFileDirectory()).toAbsolutePath().normalize();
     registry
             .addResourceHandler("/uploads/chat-files/**")
             .addResourceLocations(fileUploadPath.toUri().toString() + "/");
+
+    Path profileUploadPath = Paths.get(
+            uploadProperties.getProfileImageDirectory()
+    ).toAbsolutePath().normalize();
+    registry
+            .addResourceHandler("/uploads/profile-photos/**")
+            .addResourceLocations(profileUploadPath.toUri().toString() + "/");
 
 }
 

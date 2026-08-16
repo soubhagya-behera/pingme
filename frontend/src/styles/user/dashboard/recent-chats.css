@@ -120,6 +120,8 @@ background:linear-gradient(135deg,#6366F1,#8B5CF6);
 
 color:white;
 
+overflow:hidden;
+
 }
 
 .recent-online{

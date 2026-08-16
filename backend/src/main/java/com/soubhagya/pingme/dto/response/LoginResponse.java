@@ -25,4 +25,6 @@ public class LoginResponse {
 
     private boolean online;
 
+    private String profilePicture;
+
 }

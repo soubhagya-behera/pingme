@@ -1,5 +1,6 @@
 import Card from "../../ui/Card";
 import Button from "../../ui/Button";
+import Avatar from "../../ui/Avatar";
 import {
     Clock3,
     Mail,
@@ -18,13 +19,13 @@ export default function RequestCard({
         >
             <div className="flex gap-4 items-center">
                 <div
-                    className="relative w-16 h-16 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-[var(--on-primary)] flex items-center justify-center text-2xl font-bold shadow-lg"
+                    className="relative w-16 h-16 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] text-[var(--on-primary)] flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden"
                 >
-                    {
-                        request.senderName
-                            .charAt(0)
-                            .toUpperCase()
-                    }
+                    <Avatar
+                        name={request.senderName}
+                        src={request.senderProfilePicture}
+                        fill
+                    />
                     <span
                         className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white ${
                             request.senderOnline

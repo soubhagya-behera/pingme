@@ -53,6 +53,7 @@ export default function ProfilePanel({
 
                     <UserAvatar
                         name={user.fullName}
+                        src={user.profilePicture}
                         size="large"
                     />
 

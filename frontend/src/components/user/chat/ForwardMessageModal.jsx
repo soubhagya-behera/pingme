@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Search, X, Forward } from "lucide-react";
+import Avatar from "../../ui/Avatar";
 import "../../../styles/user/chat/forward-message.css";
 
 export default function ForwardMessageModal({
@@ -172,9 +173,11 @@ export default function ForwardMessageModal({
 
                                     <span className="chat-forward-avatar">
 
-                                        {friend.fullName
-                                            ?.charAt(0)
-                                            ?.toUpperCase()}
+                                        <Avatar
+                                            name={friend.fullName}
+                                            src={friend.profilePicture}
+                                            fill
+                                        />
 
                                         {friend.online && (
                                             <span className="chat-forward-online" />

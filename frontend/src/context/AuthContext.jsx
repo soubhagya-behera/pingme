@@ -101,6 +101,12 @@ export function AuthProvider({ children }) {
 
 };
 
+    const updateUser = (updates) => {
+
+        setUser(prev => (prev ? { ...prev, ...updates } : prev));
+
+    };
+
     const logout = ()=>{
 
         disconnectSocket();
@@ -124,6 +130,8 @@ export function AuthProvider({ children }) {
                 token,
 
                 login,
+
+                updateUser,
 
                 logout
 

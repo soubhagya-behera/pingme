@@ -1,4 +1,5 @@
 import Card from "../../ui/Card";
+import Avatar from "../../ui/Avatar";
 import {
     MessageCircle,
     ChevronRight
@@ -80,7 +81,11 @@ export default function RecentChats({ chats }) {
 
                             <div className="recent-avatar">
 
-                                {chat.fullName.charAt(0)}
+                                <Avatar
+                                    name={chat.fullName}
+                                    src={chat.profilePicture}
+                                    fill
+                                />
 
                             </div>
 

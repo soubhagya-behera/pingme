@@ -5,6 +5,7 @@ import com.soubhagya.pingme.dto.request.UpdateProfileRequest;
 import com.soubhagya.pingme.dto.response.ProfileResponse;
 import com.soubhagya.pingme.dto.response.UserSearchResponse;
 import com.soubhagya.pingme.entity.User;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -26,6 +27,13 @@ public interface UserService {
             String email,
             UpdateProfileRequest request
     );
+
+    ProfileResponse updateProfilePhoto(
+            String email,
+            MultipartFile file
+    );
+
+    ProfileResponse removeProfilePhoto(String email);
 
     void changePassword(
         String email,

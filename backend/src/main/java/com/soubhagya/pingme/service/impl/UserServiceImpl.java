@@ -23,6 +23,8 @@ import com.soubhagya.pingme.entity.FriendRequest;
 import com.soubhagya.pingme.enums.RelationshipStatus;
 import com.soubhagya.pingme.repository.FriendRepository;
 import com.soubhagya.pingme.repository.FriendRequestRepository;
+import com.soubhagya.pingme.service.ImageStorageService;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +36,8 @@ public class UserServiceImpl implements UserService {
 private final FriendRequestRepository friendRequestRepository;
 
 private final PasswordEncoder passwordEncoder;
+
+private final ImageStorageService imageStorageService;
 
     @Override
     public List<User> getAllUsers() {
@@ -251,6 +255,87 @@ public ProfileResponse updateProfile(
             .bio(savedUser.getBio())
             .phone(savedUser.getPhone())
             .profilePicture(savedUser.getProfilePicture())
+            .build();
+
+}
+
+@Override
+public ProfileResponse updateProfilePhoto(
+        String email,
+        MultipartFile file
+) {
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+    String newUrl = imageStorageService.uploadProfilePhoto(file);
+
+    String oldUrl = user.getProfilePicture();
+
+    user.setProfilePicture(newUrl);
+
+    User savedUser = userRepository.save(user);
+
+    if (oldUrl != null && !oldUrl.isBlank() && !oldUrl.equals(newUrl)) {
+
+        imageStorageService.delete(oldUrl);
+
+    }
+
+    return toProfileResponse(savedUser);
+
+}
+
+@Override
+public ProfileResponse removeProfilePhoto(String email) {
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+    String oldUrl = user.getProfilePicture();
+
+    if (oldUrl != null && !oldUrl.isBlank()) {
+
+        user.setProfilePicture(null);
+
+        userRepository.save(user);
+
+        imageStorageService.delete(oldUrl);
+
+    }
+
+    return toProfileResponse(user);
+
+}
+
+private ProfileResponse toProfileResponse(User user) {
+
+    return ProfileResponse.builder()
+
+            .id(user.getId())
+
+            .fullName(user.getFullName())
+
+            .email(user.getEmail())
+
+            .profession(user.getProfession())
+
+            .bio(user.getBio())
+
+            .phone(user.getPhone())
+
+            .profilePicture(user.getProfilePicture())
+
+            .role(user.getRole() != null ? user.getRole().name() : null)
+
+            .emailVerified(user.getEmailVerified())
+
+            .createdAt(user.getCreatedAt())
+
+            .lastSeen(user.getLastSeen())
+
             .build();
 
 }

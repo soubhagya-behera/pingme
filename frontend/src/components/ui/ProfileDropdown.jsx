@@ -84,6 +84,8 @@ className="flex items-center gap-2"
 
 name={user?.name}
 
+src={user?.profilePicture}
+
 size={42}
 
 />
@@ -151,6 +153,8 @@ className="absolute right-0 mt-3 w-72 rounded-2xl bg-[var(--card)] border border
 <Avatar
 
 name={user?.name}
+
+src={user?.profilePicture}
 
 size={56}
 

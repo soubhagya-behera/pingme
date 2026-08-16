@@ -45,7 +45,7 @@ type="button"
 
 >
 
-<UserAvatar name={user.fullName}/>
+<UserAvatar name={user.fullName} src={user.profilePicture}/>
 
 <span>
 

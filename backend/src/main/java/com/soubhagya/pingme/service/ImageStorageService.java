@@ -8,4 +8,8 @@ public interface ImageStorageService {
 
     boolean isManagedImage(String imageUrl);
 
+    String uploadProfilePhoto(MultipartFile file);
+
+    void delete(String imageUrl);
+
 }

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -83,6 +84,50 @@ public class UserController {
                         userService.updateProfile(
                                 authentication.getName(),
                                 request
+                        )
+
+                )
+
+        );
+
+    }
+
+    @PostMapping(value = "/profile/photo", consumes = "multipart/form-data")
+    public ResponseEntity<ApiResponse<ProfileResponse>> updateProfilePhoto(
+            @RequestParam("photo") MultipartFile photo,
+            Authentication authentication
+    ) {
+
+        return ResponseEntity.ok(
+
+                ResponseUtil.success(
+
+                        "Profile photo updated",
+
+                        userService.updateProfilePhoto(
+                                authentication.getName(),
+                                photo
+                        )
+
+                )
+
+        );
+
+    }
+
+    @DeleteMapping("/profile/photo")
+    public ResponseEntity<ApiResponse<ProfileResponse>> removeProfilePhoto(
+            Authentication authentication
+    ) {
+
+        return ResponseEntity.ok(
+
+                ResponseUtil.success(
+
+                        "Profile photo removed",
+
+                        userService.removeProfilePhoto(
+                                authentication.getName()
                         )
 
                 )

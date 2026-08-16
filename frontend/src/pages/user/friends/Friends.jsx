@@ -12,6 +12,7 @@ import {
 import Card from "../../../components/ui/Card";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
+import Avatar from "../../../components/ui/Avatar";
 import AddFriendModal from "../../../components/user/friends/AddFriendModal";
 import "./Friends.css";
 
@@ -213,7 +214,11 @@ setStats(
             >
               <div className="friend-info">
                   <div className="friend-avatar">
-                      {friend.fullName.charAt(0).toUpperCase()}
+                      <Avatar
+                          name={friend.fullName}
+                          src={friend.profilePicture}
+                          fill
+                      />
                       <span
                           className={`online-dot ${
                               friend.online

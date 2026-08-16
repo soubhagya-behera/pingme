@@ -1,4 +1,5 @@
 import RelationshipButton from "./RelationshipButton";
+import Avatar from "../../ui/Avatar";
 
 export default function SearchResultCard({
 
@@ -22,12 +23,16 @@ export default function SearchResultCard({
 
             <div className="flex items-center gap-4 min-w-0">
 
-                <div className="relative">
+<div className="relative">
 
                     <div
-                        className="w-14 h-14 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center text-xl font-bold"
+                        className="w-14 h-14 rounded-full bg-[var(--primary)] text-[var(--on-primary)] flex items-center justify-center text-xl font-bold overflow-hidden"
                     >
-                        {user.fullName.charAt(0).toUpperCase()}
+                        <Avatar
+                            name={user.fullName}
+                            src={user.profilePicture}
+                            fill
+                        />
                     </div>
 
                     <span

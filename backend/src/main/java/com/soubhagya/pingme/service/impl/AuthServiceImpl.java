@@ -119,6 +119,7 @@ public LoginResponse login(LoginRequest request) {
             .role(user.getRole().name())
             .status(user.getStatus().name())
             .online(user.getOnline())
+            .profilePicture(user.getProfilePicture())
             .build();
 
 }

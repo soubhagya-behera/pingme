@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import Avatar from "../../ui/Avatar";
 
 export default function ChatSidebar({ selectedFriend, onSelect, friends }) {
   return (
@@ -32,7 +33,11 @@ export default function ChatSidebar({ selectedFriend, onSelect, friends }) {
           >
             <span className="chat-avatar-wrap">
               <span className="chat-avatar">
-                {friend.fullName.charAt(0)}
+                <Avatar
+                  name={friend.fullName}
+                  src={friend.profilePicture}
+                  fill
+                />
               </span>
               {friend.online && <span className="chat-online-dot" />}
             </span>
