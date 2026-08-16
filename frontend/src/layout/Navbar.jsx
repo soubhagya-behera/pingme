@@ -1,6 +1,7 @@
-import { Bell, Menu, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import ProfileDropdown from "../components/ui/ProfileDropdown";
+import NotificationBell from "../components/ui/NotificationBell";
 
 export default function Navbar({
   onMenuClick
@@ -23,7 +24,7 @@ export default function Navbar({
 
       <div className="flex items-center gap-5">
         <ThemeToggle />
-        <Bell size={22} />
+        <NotificationBell />
         <ProfileDropdown />
       </div>
     </header>

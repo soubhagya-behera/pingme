@@ -9,6 +9,7 @@ import com.soubhagya.pingme.enums.UserStatus;
 import com.soubhagya.pingme.repository.FriendRepository;
 import com.soubhagya.pingme.repository.FriendRequestRepository;
 import com.soubhagya.pingme.repository.MessageRepository;
+import com.soubhagya.pingme.repository.NotificationRepository;
 import com.soubhagya.pingme.repository.PasswordResetTokenRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.AdminService;
@@ -47,6 +48,8 @@ public class AdminServiceImpl implements AdminService {
     private final FriendRequestRepository friendRequestRepository;
 
     private final FriendRepository friendRepository;
+
+    private final NotificationRepository notificationRepository;
 
     private final PasswordResetTokenRepository tokenRepository;
 
@@ -369,6 +372,9 @@ public void deleteUser(Long id) {
 
     // Delete friendships
     friendRepository.deleteByUserOneOrUserTwo(user, user);
+
+    // Delete notifications
+    notificationRepository.deleteByRecipient(user);
 
     // Finally delete user
     userRepository.delete(user);

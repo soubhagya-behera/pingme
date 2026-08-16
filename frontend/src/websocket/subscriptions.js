@@ -184,3 +184,25 @@ export function subscribeMessageDeleted(callback) {
     );
 
 }
+
+export function subscribeNotifications(callback) {
+
+    const userId = localStorage.getItem("userId");
+
+    return getSocketClient().subscribe(
+
+        `/topic/notifications/${userId}`,
+
+        message => {
+
+            callback(
+
+                JSON.parse(message.body)
+
+            );
+
+        }
+
+    );
+
+}
