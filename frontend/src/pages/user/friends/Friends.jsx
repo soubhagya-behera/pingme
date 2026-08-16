@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import FriendService from "../../../services/FriendService";
 
 // STEP 1: Added subscribePresence to imports
@@ -21,6 +22,7 @@ import FriendStats from "../../../components/user/friends/FriendStats";
 import { MessageCircle, Trash2, UserPlus } from "lucide-react";
 
 export default function Friends() {
+  const navigate = useNavigate();
   const [friends, setFriends] = useState([]);
   const [stats, setStats] = useState(null);
   const [search, setSearch] = useState("");
@@ -251,7 +253,15 @@ setStats(
               </div>
 
               <div className="flex gap-2">
-              <Button>
+              <Button
+                  onClick={() =>
+                      navigate("/chat", {
+                          state: {
+                              openFriendId: friend.id
+                          }
+                      })
+                  }
+              >
                   <MessageCircle size={17}/>
                   Message
               </Button>
