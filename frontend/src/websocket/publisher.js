@@ -63,3 +63,19 @@ export function sendStopTyping(receiverId) {
     );
 
 }
+
+export function sendActiveConversation(friendId) {
+
+    publish(
+
+        "/app/chat.active",
+
+        {
+
+            friendId
+
+        }
+
+    );
+
+}

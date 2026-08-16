@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import ChatSidebar from "../../../components/user/chat/ChatSidebar";
 import ChatHeader from "../../../components/user/chat/ChatHeader";
@@ -7,7 +8,10 @@ import ChatInput from "../../../components/user/chat/ChatInput";
 import ConfirmDialog from "../../../components/common/ConfirmDialog";
 import ChatService from "../../../services/ChatService";
 import { acknowledgeRead } from "../../../websocket/publisher";
+import { sendActiveConversation } from "../../../websocket/publisher";
+import { whenSocketConnected } from "../../../websocket/socket";
 import { useSocket } from "../../../context/SocketProvider";
+import { useNotifications } from "../../../context/NotificationContext";
 import { MessageCircleMore, Plus } from "lucide-react";
 import "../../../styles/user/chat/chat.css";
 import ImagePreviewModal from "../../../components/user/chat/ImagePreviewModal";
@@ -34,6 +38,9 @@ export default function Chat() {
     const [conversationKey, setConversationKey] = useState(null);
     const [showChat, setShowChat] = useState(false);
     const selectedFriendRef = useRef(null);
+    const initialOpenFriendIdRef = useRef(
+        useLocation().state?.openFriendId ?? null
+    );
     const [messages, setMessages] = useState([]);
     const [hasMoreMessages, setHasMoreMessages] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -72,8 +79,25 @@ const [forwarding, setForwarding] = useState(false);
         onMessageDeleted
     } = socket;
 
+    const { markConversationNotificationsRead } = useNotifications();
+
     useEffect(() => { loadChatSidebar(); }, []);
     useEffect(() => { selectedFriendRef.current = selectedFriend; }, [selectedFriend]);
+
+    useEffect(() => {
+        return () => {
+            sendActiveConversation(null);
+        };
+    }, []);
+
+    function setActiveChat(friendId) {
+        whenSocketConnected(() => sendActiveConversation(friendId));
+    }
+
+    function closeConversation() {
+        setActiveChat(null);
+        setShowChat(false);
+    }
     
     useEffect(() => {
         const unsubscribe = onTyping(event => {
@@ -222,7 +246,18 @@ const [forwarding, setForwarding] = useState(false);
     }, [socket]);
 
     async function loadChatSidebar() {
-        try { setFriends((await ChatService.getChatSidebar()).data.data); }
+        try {
+            const data = (await ChatService.getChatSidebar()).data.data;
+            setFriends(data);
+            const openId = initialOpenFriendIdRef.current;
+            if (openId) {
+                const target = data.find(friend => friend.id === openId);
+                if (target) {
+                    initialOpenFriendIdRef.current = null;
+                    selectFriend(target);
+                }
+            }
+        }
         catch { setFriends([]); }
         finally { setLoading(false); }
     }
@@ -231,6 +266,7 @@ const [forwarding, setForwarding] = useState(false);
         const requestId = ++historyRequestRef.current;
         selectedFriendRef.current = friend;
         setSelectedFriend(friend);
+        setActiveChat(friend.id);
         setConversationKey(`${friend.id}:${requestId}`);
         setShowChat(true);
         setMessages([]);
@@ -254,6 +290,7 @@ const [forwarding, setForwarding] = useState(false);
             paginationRef.current = { friendId: friend.id, nextPage: 1, hasMore: !page.last, loading: false };
 
             await ChatService.markConversationRead(friend.id);
+            markConversationNotificationsRead(friend.id);
             setFriends(previous =>
                 previous.map(item =>
                     item.id === friend.id
@@ -514,7 +551,7 @@ const [forwarding, setForwarding] = useState(false);
             <div className={`chat-conversation-pane ${showChat ? "chat-pane-visible" : "chat-pane-hidden"}`}>
                 {selectedFriend ? (
                     <>
-                            <ChatHeader friend={selectedFriend} onBack={() => setShowChat(false)} typing={
+                            <ChatHeader friend={selectedFriend} onBack={closeConversation} typing={
                                 selectedFriend
                                     ? typingUsers.has(selectedFriend.id)
                                     : false
@@ -571,7 +608,7 @@ const [forwarding, setForwarding] = useState(false);
                     <div className="chat-empty-icon"><MessageCircleMore size={34}/></div>
                     <h2>Choose a conversation</h2>
                     <p>Select a friend to start chatting.</p>
-                    <button type="button" className="chat-empty-cta" onClick={() => setShowChat(false)}><Plus size={18}/>Start New Chat</button>
+                    <button type="button" className="chat-empty-cta" onClick={closeConversation}><Plus size={18}/>Start New Chat</button>
                 </div>}
             </div>
 

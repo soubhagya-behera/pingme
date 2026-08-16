@@ -10,6 +10,7 @@ import com.soubhagya.pingme.repository.FriendRequestRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.DashboardRealtimeService;
 import com.soubhagya.pingme.service.FriendRequestService;
+import com.soubhagya.pingme.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -40,6 +41,8 @@ public class FriendRequestServiceImpl implements FriendRequestService {
     private final DashboardRealtimeService dashboardRealtimeService;
 
     private final SimpMessagingTemplate messagingTemplate;
+
+    private final NotificationService notificationService;
     
 
     @Override
@@ -163,6 +166,12 @@ FriendRequest friendRequest =
 
 FriendRequest saved =
         friendRequestRepository.save(friendRequest);
+
+        notificationService.createFriendRequestNotification(
+                receiver.getId(),
+                sender.getId(),
+                sender.getFullName()
+        );
 
         messagingTemplate.convertAndSend(
 
@@ -331,6 +340,12 @@ public FriendRequestResponse acceptRequest(
             .build();
 
     friendRepository.save(friend);
+
+    notificationService.createFriendRequestAcceptedNotification(
+            request.getSender().getId(),
+            request.getReceiver().getId(),
+            request.getReceiver().getFullName()
+    );
 
     messagingTemplate.convertAndSend(
 

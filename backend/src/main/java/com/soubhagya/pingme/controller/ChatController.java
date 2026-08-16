@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.soubhagya.pingme.dto.request.EditMessageRequest;
 import com.soubhagya.pingme.dto.request.UpdateMessageStatusRequest;
+import com.soubhagya.pingme.dto.request.ActiveConversationRequest;
 import com.soubhagya.pingme.payload.ApiResponse;
 
 import org.springframework.security.core.Authentication;
@@ -100,6 +101,19 @@ public void typing(
     );
 
 }
+
+    @MessageMapping("/chat.active")
+    public void setActiveConversation(
+            ActiveConversationRequest request,
+            Principal principal
+    ) {
+
+        chatService.setActiveConversation(
+                request.getFriendId(),
+                principal.getName()
+        );
+
+    }
 
 @PostMapping("/read/{friendId}")
 public void markConversationRead(

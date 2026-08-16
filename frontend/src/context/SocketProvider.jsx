@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef } from "react";
 import { connectSocket, disconnectSocket, onSocketConnected } from "../websocket/socket";
-import { subscribeMessages, subscribePresence, subscribeMessageStatus, subscribeTyping, subscribeMessageEdited, subscribeMessageDeleted } from "../websocket/subscriptions";
+import { subscribeMessages, subscribePresence, subscribeMessageStatus, subscribeTyping, subscribeMessageEdited, subscribeMessageDeleted, subscribeNotifications } from "../websocket/subscriptions";
 import { acknowledgeDelivery, announceSocketReady } from "../websocket/publisher";
 import { useAuth } from "./AuthContext";
 
@@ -14,6 +14,7 @@ export function SocketProvider({ children }) {
     const typingListeners = useRef(new Set());
     const messageEditedListeners = useRef(new Set());
     const messageDeletedListeners = useRef(new Set());
+    const notificationListeners = useRef(new Set());
 
     useEffect(() => {
         if (!token) return;
@@ -24,6 +25,7 @@ export function SocketProvider({ children }) {
         let typingSubscription;
         let messageEditedSubscription;
         let messageDeletedSubscription;
+        let notificationSubscription;
         let removeReconnectListener;
 
         const subscribeToSocketEvents = () => {
@@ -37,6 +39,7 @@ export function SocketProvider({ children }) {
             typingSubscription?.unsubscribe();
             messageEditedSubscription?.unsubscribe();
             messageDeletedSubscription?.unsubscribe();
+            notificationSubscription?.unsubscribe();
 
             // These subscriptions are application-wide: delivery cannot depend on Chat being mounted.
             messageSubscription = subscribeMessages(message => {
@@ -72,6 +75,13 @@ export function SocketProvider({ children }) {
                     )
             );
 
+            notificationSubscription = subscribeNotifications(
+                notification =>
+                    notificationListeners.current.forEach(
+                        listener => listener(notification)
+                    )
+            );
+
             // Sent after all inbox subscriptions exist, so reconnects replay unacknowledged messages safely.
             announceSocketReady();
         };
@@ -87,6 +97,7 @@ export function SocketProvider({ children }) {
             typingSubscription?.unsubscribe();
             messageEditedSubscription?.unsubscribe();
             messageDeletedSubscription?.unsubscribe();
+            notificationSubscription?.unsubscribe();
             removeReconnectListener?.();
             disconnectSocket();
         };
@@ -122,6 +133,11 @@ export function SocketProvider({ children }) {
             messageDeletedListeners.current.add(listener);
             return () =>
                 messageDeletedListeners.current.delete(listener);
+        },
+        onNotification: listener => {
+            notificationListeners.current.add(listener);
+            return () =>
+                notificationListeners.current.delete(listener);
         }
     };
 

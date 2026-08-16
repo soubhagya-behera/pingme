@@ -55,4 +55,9 @@ void forwardMessage(
         String email
 );
 
+void setActiveConversation(
+        Long friendId,
+        String email
+);
+
 }

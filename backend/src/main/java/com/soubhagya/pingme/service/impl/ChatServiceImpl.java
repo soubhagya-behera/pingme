@@ -15,6 +15,8 @@ import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.ChatService;
 import com.soubhagya.pingme.service.AttachmentStorageService;
 import com.soubhagya.pingme.service.ImageStorageService;
+import com.soubhagya.pingme.service.NotificationService;
+import com.soubhagya.pingme.service.ActiveChatTracker;
 import com.soubhagya.pingme.websocket.MessageStatusUpdate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,6 +41,8 @@ public class ChatServiceImpl implements ChatService {
     private final HiddenMessageRepository hiddenMessageRepository;
     private final AttachmentStorageService attachmentStorageService;
     private final ImageStorageService imageStorageService;
+    private final NotificationService notificationService;
+    private final ActiveChatTracker activeChatTracker;
 
     @Override
     @Transactional
@@ -128,6 +132,9 @@ public class ChatServiceImpl implements ChatService {
         }
 
         Message saved = messageRepository.save(builder.build());
+
+        notifyReceiverAboutNewMessage(receiver, sender, saved);
+
         ChatMessage event = toEvent(saved, request.getClientId());
         String senderEmailForDelivery = sender.getEmail();
         String receiverEmailForDelivery = receiver.getEmail();
@@ -430,6 +437,44 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
+    private void notifyReceiverAboutNewMessage(User receiver, User sender, Message saved) {
+        try {
+            boolean receiverIsViewing =
+                    activeChatTracker.isViewingChat(
+                            receiver.getId(),
+                            sender.getId()
+                    );
+
+            if (receiverIsViewing) {
+                return;
+            }
+
+            notificationService.createMessageNotification(
+                    receiver.getId(),
+                    sender.getId(),
+                    sender.getFullName(),
+                    buildMessagePreview(saved)
+            );
+        } catch (Exception ignored) {
+            // A notification failure must never break message delivery.
+        }
+    }
+
+    private String buildMessagePreview(Message saved) {
+        if (saved.getContent() != null && !saved.getContent().isBlank()) {
+            String content = saved.getContent();
+            return content.length() > 120 ? content.substring(0, 120) : content;
+        }
+        if (saved.getAttachmentMimeType() != null
+                && saved.getAttachmentMimeType().startsWith("image/")) {
+            return "sent you a photo";
+        }
+        if (saved.getAttachmentName() != null) {
+            return "sent you a file";
+        }
+        return "sent you a message";
+    }
+
     private void afterCommit(Runnable action) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
             action.run();
@@ -642,4 +687,18 @@ public void forwardMessage(
 
     });
 }
+
+@Override
+    @Transactional(readOnly = true)
+    public void setActiveConversation(
+            Long friendId,
+            String email
+    ) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found")
+                );
+
+        activeChatTracker.setActiveChat(user.getId(), friendId);
+    }
 }

@@ -10,6 +10,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { SocketProvider } from "./context/SocketProvider";
 
 import { ChatRealtimeProvider } from "./context/ChatRealtimeContext";
+import { NotificationProvider } from "./context/NotificationContext";
 
 import { Toaster } from "react-hot-toast";
 
@@ -20,6 +21,8 @@ createRoot(document.getElementById("root")).render(
     <SocketProvider>
 
         <ChatRealtimeProvider>
+
+            <NotificationProvider>
 
             <ThemeProvider>
 
@@ -54,6 +57,8 @@ createRoot(document.getElementById("root")).render(
                 <App/>
 
             </ThemeProvider>
+
+            </NotificationProvider>
 
         </ChatRealtimeProvider>
 
