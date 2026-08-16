@@ -2,6 +2,8 @@ package com.soubhagya.pingme.websocket;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -14,5 +16,7 @@ public class UserStatusMessage {
     private String fullName;
 
     private boolean online;
+
+    private LocalDateTime lastSeen;
 
 }

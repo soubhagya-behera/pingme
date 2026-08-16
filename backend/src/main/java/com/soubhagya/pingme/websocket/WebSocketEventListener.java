@@ -3,6 +3,7 @@ package com.soubhagya.pingme.websocket;
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -76,6 +77,8 @@ public void handleConnect(SessionConnectEvent event) {
 
                     .online(true)
 
+                    .lastSeen(user.getLastSeen())
+
                     .build()
 
     );
@@ -118,6 +121,8 @@ public void handleConnect(SessionConnectEvent event) {
 
         user.setOnline(false);
 
+        user.setLastSeen(LocalDateTime.now());
+
         userRepository.save(user);
 
         messagingTemplate.convertAndSend(
@@ -131,6 +136,8 @@ public void handleConnect(SessionConnectEvent event) {
                         .fullName(user.getFullName())
 
                         .online(false)
+
+                        .lastSeen(user.getLastSeen())
 
                         .build()
 

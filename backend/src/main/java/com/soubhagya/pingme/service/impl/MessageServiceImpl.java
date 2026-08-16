@@ -434,6 +434,8 @@ public List<ChatSidebarResponse> getChatSidebar(String email) {
 
                         .online(friend.getOnline())
 
+                        .lastSeen(friend.getLastSeen())
+
                         .lastMessage(
 
                                 latestMessage == null

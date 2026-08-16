@@ -215,8 +215,8 @@ const [forwarding, setForwarding] = useState(false);
             ))
         );
         const removePresence = socket.onPresence(status => {
-            setFriends(previous => previous.map(friend => friend.id === status.userId ? { ...friend, online: status.online } : friend));
-            setSelectedFriend(previous => !previous || previous.id !== status.userId ? previous : { ...previous, online: status.online });
+            setFriends(previous => previous.map(friend => friend.id === status.userId ? { ...friend, online: status.online, lastSeen: status.online ? friend.lastSeen : status.lastSeen } : friend));
+            setSelectedFriend(previous => !previous || previous.id !== status.userId ? previous : { ...previous, online: status.online, lastSeen: status.online ? previous.lastSeen : status.lastSeen });
         });
         return () => { removeMessage(); removeReceipt(); removePresence(); };
     }, [socket]);

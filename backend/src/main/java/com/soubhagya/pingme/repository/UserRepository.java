@@ -99,7 +99,7 @@ List<User> searchUsers(
 
 @Modifying
 @Transactional
-@Query("UPDATE User u SET u.online = false")
+@Query("UPDATE User u SET u.online = false, u.lastSeen = CURRENT_TIMESTAMP WHERE u.online = true")
 void resetAllUsersOffline();
 
 }

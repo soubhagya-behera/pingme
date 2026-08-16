@@ -19,6 +19,8 @@ public class ChatSidebarResponse {
 
     private Boolean online;
 
+    private LocalDateTime lastSeen;
+
     private String lastMessage;
 
     private LocalDateTime lastMessageTime;
