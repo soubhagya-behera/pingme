@@ -6,7 +6,6 @@ import com.soubhagya.pingme.entity.FriendRequest;
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.enums.FriendRequestStatus;
 import com.soubhagya.pingme.enums.UserStatus;
-import com.soubhagya.pingme.enums.NotificationType;
 import com.soubhagya.pingme.repository.FriendRequestRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.DashboardRealtimeService;
@@ -202,20 +201,6 @@ FriendRequest saved =
 
 );
 
-        notificationService.createNotification(
-
-                receiver,
-
-                NotificationType.NEW_FRIEND_REQUEST,
-
-                "New friend request",
-
-                sender.getFullName() + " sent you a friend request",
-
-                sender.getId()
-
-        );
-
         return FriendRequestResponse.builder()
 
         .requestId(saved.getId())
@@ -394,20 +379,6 @@ dashboardRealtimeService.sendDashboardUpdate(
         request.getReceiver().getId()
 
 );
-
-    notificationService.createNotification(
-
-            request.getSender(),
-
-            NotificationType.FRIEND_REQUEST_ACCEPTED,
-
-            "Friend request accepted",
-
-            request.getReceiver().getFullName() + " accepted your friend request",
-
-            request.getReceiver().getId()
-
-    );
 
     // Response
     return FriendRequestResponse.builder()

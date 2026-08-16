@@ -23,4 +23,6 @@ public interface NotificationRepository
 
     List<Notification> findByRecipientAndReadFalse(User recipient);
 
+    void deleteByRecipient(User recipient);
+
 }
