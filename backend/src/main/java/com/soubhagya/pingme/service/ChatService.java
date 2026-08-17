@@ -2,6 +2,9 @@ package com.soubhagya.pingme.service;
 
 import com.soubhagya.pingme.dto.chat.ChatMessage;
 import com.soubhagya.pingme.dto.chat.TypingEvent;
+import com.soubhagya.pingme.enums.MessageType;
+
+import java.time.LocalDateTime;
 
 public interface ChatService {
 
@@ -58,6 +61,14 @@ void forwardMessage(
 void setActiveConversation(
         Long friendId,
         String email
+);
+
+void createCallHistoryMessage(
+        String callerEmail,
+        String receiverEmail,
+        MessageType messageType,
+        String content,
+        LocalDateTime endedAt
 );
 
 }

@@ -21,6 +21,8 @@ import com.soubhagya.pingme.websocket.MessageStatusUpdate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,8 @@ import com.soubhagya.pingme.dto.chat.ReplyPreview;
 @Service
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
+    private static final Logger log = LoggerFactory.getLogger(ChatServiceImpl.class);
+
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
@@ -506,6 +510,44 @@ public class ChatServiceImpl implements ChatService {
             public void afterCommit() {
                 action.run();
             }
+        });
+    }
+
+    @Override
+    @Transactional
+    public void createCallHistoryMessage(
+            String callerEmail,
+            String receiverEmail,
+            MessageType messageType,
+            String content,
+            LocalDateTime endedAt
+    ) {
+        User caller = userRepository.findByEmail(callerEmail)
+                .orElseThrow(() -> new RuntimeException("Caller not found"));
+        User receiver = userRepository.findByEmail(receiverEmail)
+                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+
+        Message saved = messageRepository.save(
+                Message.builder()
+                        .sender(caller)
+                        .receiver(receiver)
+                        .content(content)
+                        .messageType(messageType)
+                        .status(MessageStatus.SENT)
+                        .sentAt(endedAt)
+                        .build()
+        );
+
+        log.info("[CALL-HISTORY] Persisted message id={} type={} from {} to {}: \"{}\"",
+                saved.getId(), messageType, callerEmail, receiverEmail, content);
+
+        ChatMessage event = toEvent(saved, null);
+        String callerMail = caller.getEmail();
+        String receiverMail = receiver.getEmail();
+
+        afterCommit(() -> {
+            messagingTemplate.convertAndSendToUser(callerMail, "/queue/messages", event);
+            messagingTemplate.convertAndSendToUser(receiverMail, "/queue/messages", event);
         });
     }
 

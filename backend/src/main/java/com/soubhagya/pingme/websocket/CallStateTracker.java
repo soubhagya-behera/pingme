@@ -1,5 +1,6 @@
 package com.soubhagya.pingme.websocket;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
@@ -11,7 +12,8 @@ public class CallStateTracker {
             String callId,
             String callerEmail,
             String receiverEmail,
-            String callType
+            String callType,
+            LocalDateTime connectedAt
     ) {}
 
     private final ConcurrentHashMap<String, CallSession> sessions = new ConcurrentHashMap<>();
@@ -30,10 +32,24 @@ public class CallStateTracker {
     }
 
     public void beginCall(String callId, String callerEmail, String receiverEmail, String callType) {
-        CallSession session = new CallSession(callId, callerEmail, receiverEmail, callType);
+        CallSession session = new CallSession(callId, callerEmail, receiverEmail, callType, null);
         sessions.put(callId, session);
         callByUser.put(callerEmail, callId);
         callByUser.put(receiverEmail, callId);
+    }
+
+    public void markConnected(String callId) {
+        CallSession session = sessions.get(callId);
+        if (session == null || session.connectedAt() != null) {
+            return;
+        }
+        sessions.put(callId, new CallSession(
+                session.callId(),
+                session.callerEmail(),
+                session.receiverEmail(),
+                session.callType(),
+                LocalDateTime.now()
+        ));
     }
 
     public void rememberPendingOffer(String callId, String callerEmail) {

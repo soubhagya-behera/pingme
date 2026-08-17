@@ -204,27 +204,31 @@ const [forwarding, setForwarding] = useState(false);
                         return {
                             ...friend,
                             lastMessage:
-                                incoming.content ||
-                                (
-                                    incoming.attachmentMimeType?.startsWith("image/")
-                                        ?
-                                        "📷 Photo"
-                                        :
-                                    incoming.attachmentMimeType?.includes("pdf")
-                                        ?
-                                        "📄 PDF"
-                                        :
-                                    incoming.attachmentMimeType?.includes("video")
-                                        ?
-                                        "🎥 Video"
-                                        :
-                                    incoming.attachmentMimeType?.includes("audio")
-                                        ?
-                                        "🎵 Audio"
-                                        :
-                                    incoming.attachmentName ||
-                                    "📎 Attachment"
-                                ),
+                                incoming.messageType === "AUDIO_CALL" || incoming.messageType === "VIDEO_CALL"
+                                    ?
+                                    (incoming.messageType === "AUDIO_CALL" ? "📞 " : "📹 ") + (incoming.content || "")
+                                    :
+                                    incoming.content ||
+                                    (
+                                        incoming.attachmentMimeType?.startsWith("image/")
+                                            ?
+                                            "📷 Photo"
+                                            :
+                                        incoming.attachmentMimeType?.includes("pdf")
+                                            ?
+                                            "📄 PDF"
+                                            :
+                                        incoming.attachmentMimeType?.includes("video")
+                                            ?
+                                            "🎥 Video"
+                                            :
+                                        incoming.attachmentMimeType?.includes("audio")
+                                            ?
+                                            "🎵 Audio"
+                                            :
+                                        incoming.attachmentName ||
+                                        "📎 Attachment"
+                                    ),
                             lastMessageTime:
                                 incoming.sentAt,
                             unreadCount:

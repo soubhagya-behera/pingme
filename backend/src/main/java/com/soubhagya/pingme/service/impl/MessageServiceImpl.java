@@ -5,6 +5,7 @@ import com.soubhagya.pingme.dto.response.RecentChatResponse;
 import com.soubhagya.pingme.entity.Message;
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.enums.MessageStatus;
+import com.soubhagya.pingme.enums.MessageType;
 import com.soubhagya.pingme.repository.FriendRepository;
 import com.soubhagya.pingme.repository.MessageRepository;
 import com.soubhagya.pingme.repository.UserRepository;
@@ -516,6 +517,8 @@ public List<ChatSidebarResponse> getChatSidebar(String email) {
 }
 
 private String sidebarPreview(Message message) {
+    if (message.getMessageType() == MessageType.AUDIO_CALL) return "📞 " + message.getContent();
+    if (message.getMessageType() == MessageType.VIDEO_CALL) return "📹 " + message.getContent();
     if (message.getContent() != null && !message.getContent().isBlank()) return message.getContent();
     String mimeType = message.getAttachmentMimeType();
     if (mimeType == null || mimeType.isBlank()) return "";

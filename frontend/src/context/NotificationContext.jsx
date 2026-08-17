@@ -1,12 +1,15 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import NotificationService from "../services/NotificationService";
 import { useSocket } from "./SocketProvider";
+import { useAuth } from "./AuthContext";
+import { onSocketConnected } from "../websocket/socket";
 
 const NotificationContext = createContext(null);
 
 export function NotificationProvider({ children }) {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const { user } = useAuth();
     const socket = useSocket();
 
     const loadAll = useCallback(async () => {
@@ -23,10 +26,9 @@ export function NotificationProvider({ children }) {
     }, []);
 
     useEffect(() => {
-        const userId = localStorage.getItem("userId");
-        if (!userId) return;
+        if (!user?.id) return;
         loadAll();
-    }, [loadAll]);
+    }, [user?.id, loadAll]);
 
     useEffect(() => {
         if (!socket?.onNotification) return;
@@ -41,6 +43,15 @@ export function NotificationProvider({ children }) {
         });
         return remove;
     }, [socket]);
+
+    // Reconnect creates a fresh server session, so persisted notifications
+    // (e.g. missed calls created while this client was offline) must be
+    // re-fetched to stay in sync with the database.
+    useEffect(() => {
+        if (!user?.id) return;
+        const remove = onSocketConnected(() => loadAll());
+        return remove;
+    }, [user?.id, loadAll]);
 
     const markRead = useCallback(async id => {
         setNotifications(prev =>

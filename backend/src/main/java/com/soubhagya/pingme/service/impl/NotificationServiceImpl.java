@@ -8,6 +8,8 @@ import com.soubhagya.pingme.repository.NotificationRepository;
 import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
     private final NotificationRepository notificationRepository;
 
@@ -149,12 +153,12 @@ public class NotificationServiceImpl implements NotificationService {
     ) {
 
         String title = "VOICE".equalsIgnoreCase(callType)
-                ? "Missed Voice Call"
+                ? "Missed Audio Call"
                 : "Missed Video Call";
 
         String preview = "VOICE".equalsIgnoreCase(callType)
-                ? callerName + " called you."
-                : callerName + " video called you.";
+                ? "Missed audio call from " + callerName
+                : "Missed video call from " + callerName;
 
         create(
                 recipientId,
@@ -179,6 +183,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .orElse(null);
 
         if (recipient == null) {
+            log.warn("[NOTIFICATION] Skipped {} for missing recipientId={}", type, recipientId);
             return;
         }
 
@@ -195,6 +200,9 @@ public class NotificationServiceImpl implements NotificationService {
 
         Notification saved =
                 notificationRepository.save(notification);
+
+        log.info("[NOTIFICATION] Persisted id={} type={} recipientId={} msg=\"{}\"",
+                saved.getId(), type, recipientId, message);
 
         NotificationResponse response =
                 toResponse(saved);

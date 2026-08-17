@@ -1,0 +1,64 @@
+/* ==========================================
+   CALL HISTORY / CALL SYSTEM MESSAGE
+========================================== */
+.chat-message-row.is-call-history {
+    justify-content: center;
+}
+
+.call-history {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    margin: 2px 0;
+    padding: 6px 14px 6px 10px;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--card) 92%, transparent);
+    box-shadow: 0 3px 10px color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.call-history-icon {
+    display: grid;
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    color: var(--primary);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.call-history.is-video .call-history-icon {
+    color: var(--secondary);
+    background: color-mix(in srgb, var(--secondary) 12%, transparent);
+}
+
+.call-history-copy {
+    display: grid;
+    min-width: 0;
+    gap: 1px;
+}
+
+.call-history-text {
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.call-history-time {
+    color: var(--text-secondary);
+    font-size: 10.5px;
+    line-height: 1.3;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+@media (max-width: 480px) {
+    .call-history-text {
+        white-space: normal;
+    }
+}

@@ -8,6 +8,10 @@ public enum MessageType {
 
     FILE,
 
-    VOICE
+    VOICE,
+
+    AUDIO_CALL,
+
+    VIDEO_CALL
 
 }

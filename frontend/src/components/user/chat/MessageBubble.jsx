@@ -3,10 +3,15 @@ import MessageActionsMenu from "./MessageActionsMenu";
 import ImageViewer from "./ImageViewer";
 import AttachmentCard from "./AttachmentCard";
 import VoiceMessagePlayer from "./VoiceMessagePlayer";
+import CallHistoryMessage from "./CallHistoryMessage";
 import { attachmentLabel, attachmentUrl, isImageAttachment, isVoiceMessage } from "./AttachmentUtils";
 
 export default function MessageBubble({ message, mine, text, time, status, onReply, onEdit, onDelete, onDeleteMe, onForward }) {
   const [viewerOpen, setViewerOpen] = useState(false);
+  const isCallHistory = message.messageType === "AUDIO_CALL" || message.messageType === "VIDEO_CALL";
+  if (isCallHistory) {
+    return <div className="chat-message-row is-call-history"><CallHistoryMessage message={message} /></div>;
+  }
   const isImage = isImageAttachment(message);
   const isVoice = isVoiceMessage(message);
   const imageSrc = attachmentUrl(message.attachmentUrl);
