@@ -140,6 +140,32 @@ public class NotificationServiceImpl implements NotificationService {
 
     }
 
+    @Override
+    public void createMissedCallNotification(
+            Long recipientId,
+            Long callerId,
+            String callerName,
+            String callType
+    ) {
+
+        String title = "VOICE".equalsIgnoreCase(callType)
+                ? "Missed Voice Call"
+                : "Missed Video Call";
+
+        String preview = "VOICE".equalsIgnoreCase(callType)
+                ? callerName + " called you."
+                : callerName + " video called you.";
+
+        create(
+                recipientId,
+                NotificationType.MISSED_CALL,
+                title,
+                preview,
+                callerId
+        );
+
+    }
+
     private void create(
             Long recipientId,
             NotificationType type,

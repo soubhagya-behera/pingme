@@ -206,3 +206,23 @@ export function subscribeNotifications(callback) {
     );
 
 }
+
+export function subscribeCalls(callback) {
+
+    return getSocketClient().subscribe(
+
+        "/user/queue/call",
+
+        message => {
+
+            callback(
+
+                JSON.parse(message.body)
+
+            );
+
+        }
+
+    );
+
+}

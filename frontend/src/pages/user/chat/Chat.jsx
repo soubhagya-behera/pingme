@@ -68,6 +68,8 @@ const [forwarding, setForwarding] = useState(false);
     const [voiceUploadProgress, setVoiceUploadProgress] = useState(0);
     const [voiceError, setVoiceError] = useState("");
 
+    const sidebarSearchRef = useRef(null);
+
     const uploadInFlight = useRef(false);
     const historyRequestRef = useRef(0);
     const paginationRef = useRef({ friendId: null, nextPage: 0, hasMore: false, loading: false });
@@ -103,6 +105,13 @@ const [forwarding, setForwarding] = useState(false);
     function closeConversation() {
         setActiveChat(null);
         setShowChat(false);
+    }
+
+    function handleHeaderSearch() {
+        if (window.matchMedia("(max-width: 767px)").matches) {
+            setShowChat(false);
+        }
+        requestAnimationFrame(() => sidebarSearchRef.current?.focus());
     }
     
     useEffect(() => {
@@ -626,12 +635,12 @@ const [forwarding, setForwarding] = useState(false);
     return (
         <div className="chat-workspace">
             <div className={`chat-sidebar-pane ${showChat ? "chat-pane-hidden-mobile" : ""}`}>
-                <ChatSidebar friends={friends} selectedFriend={selectedFriend} onSelect={selectFriend} />
+                <ChatSidebar friends={friends} selectedFriend={selectedFriend} onSelect={selectFriend} searchRef={sidebarSearchRef} />
             </div>
             <div className={`chat-conversation-pane ${showChat ? "chat-pane-visible" : "chat-pane-hidden"}`}>
                 {selectedFriend ? (
                     <>
-                            <ChatHeader friend={selectedFriend} onBack={closeConversation} typing={
+                            <ChatHeader friend={selectedFriend} onBack={closeConversation} onSearch={handleHeaderSearch} typing={
                                 selectedFriend
                                     ? typingUsers.has(selectedFriend.id)
                                     : false

@@ -33,4 +33,11 @@ public interface NotificationService {
             String preview
     );
 
+    void createMissedCallNotification(
+            Long recipientId,
+            Long callerId,
+            String callerName,
+            String callType
+    );
+
 }

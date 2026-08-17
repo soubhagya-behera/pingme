@@ -6,6 +6,8 @@ public enum NotificationType {
 
     FRIEND_REQUEST_ACCEPTED,
 
-    NEW_MESSAGE
+    NEW_MESSAGE,
+
+    MISSED_CALL
 
 }

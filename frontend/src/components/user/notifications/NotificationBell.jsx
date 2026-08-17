@@ -6,6 +6,7 @@ import {
     UserPlus,
     UserCheck,
     MessageCircle,
+    PhoneMissed,
     Inbox
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -29,12 +30,14 @@ function timeAgo(dateString) {
 function typeIcon(type) {
     if (type === "NEW_FRIEND_REQUEST") return UserPlus;
     if (type === "FRIEND_REQUEST_ACCEPTED") return UserCheck;
+    if (type === "MISSED_CALL") return PhoneMissed;
     return MessageCircle;
 }
 
 function typeColor(type) {
     if (type === "NEW_FRIEND_REQUEST") return "text-orange-500 bg-orange-500/10";
     if (type === "FRIEND_REQUEST_ACCEPTED") return "text-emerald-500 bg-emerald-500/10";
+    if (type === "MISSED_CALL") return "text-rose-500 bg-rose-500/10";
     return "text-indigo-500 bg-indigo-500/10";
 }
 
@@ -79,6 +82,12 @@ export default function NotificationBell() {
             navigate("/requests");
         } else if (notification.type === "FRIEND_REQUEST_ACCEPTED") {
             navigate("/friends");
+        } else if (notification.type === "MISSED_CALL") {
+            navigate("/chat", {
+                state: {
+                    openFriendId: notification.relatedUserId
+                }
+            });
         }
     }
 

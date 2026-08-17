@@ -1,7 +1,7 @@
 import { Search } from "lucide-react";
 import Avatar from "../../ui/Avatar";
 
-export default function ChatSidebar({ selectedFriend, onSelect, friends }) {
+export default function ChatSidebar({ selectedFriend, onSelect, friends, searchRef }) {
   return (
     <aside className="chat-sidebar">
       <div className="chat-sidebar-top">
@@ -15,6 +15,7 @@ export default function ChatSidebar({ selectedFriend, onSelect, friends }) {
         <label className="chat-search">
           <Search size={18} />
           <input
+            ref={searchRef}
             type="search"
             placeholder="Search conversations"
             aria-label="Search conversations"

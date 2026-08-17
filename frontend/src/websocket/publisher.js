@@ -79,3 +79,9 @@ export function sendActiveConversation(friendId) {
     );
 
 }
+
+export function publishCallSignal(signal) {
+
+    publish("/app/call.signal", signal);
+
+}
