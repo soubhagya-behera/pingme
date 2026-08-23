@@ -8,6 +8,8 @@ import QuickActions from "../../../components/user/dashboard/QuickActions";
 
 import DashboardService from "../../../services/DashboardService";
 
+import Button from "../../../components/ui/Button";
+
 import "../../../styles/user/dashboard/dashboard-header.css";
 import "../../../styles/user/dashboard/stats-cards.css";
 import "../../../styles/user/dashboard/recent-chats.css";
@@ -24,6 +26,8 @@ import { whenSocketConnected } from "../../../websocket/socket";
 export default function Dashboard() {
 
     const [dashboard, setDashboard] = useState(null);
+
+    const [error, setError] = useState(null);
 
     useEffect(() => {
 
@@ -65,6 +69,8 @@ export default function Dashboard() {
 
     async function loadDashboard() {
 
+        setError(null);
+
         try {
 
             const response =
@@ -76,11 +82,34 @@ export default function Dashboard() {
 
             console.log(error);
 
+            setError(
+                error.response?.data?.message ||
+                    "Unable to load your dashboard. Please check your connection and try again."
+            );
+
         }
 
     }
 
     if (!dashboard) {
+
+        if (error) {
+
+            return (
+
+                <div className="flex flex-col justify-center items-center h-96 gap-4">
+
+                    <p className="text-red-500 text-sm">{error}</p>
+
+                    <Button onClick={loadDashboard}>
+                        Retry
+                    </Button>
+
+                </div>
+
+            );
+
+        }
 
         return (
 

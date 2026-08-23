@@ -3,5 +3,6 @@
 @import "./styles/variables.css";
 @import "./styles/animations.css";
 @import "./styles/globals.css";
+@import "./styles/app-shell.css";
 @import "./styles/auth/index.css";
 @import "./styles/user/chat/chat.css";

@@ -50,7 +50,7 @@ export default function AppRouter() {
           path="/chat"
           element={
             <ProtectedRoute>
-              <AppLayout>
+              <AppLayout fullBleed>
                 <Chat />
               </AppLayout>
             </ProtectedRoute>

@@ -2,7 +2,7 @@ import { Moon, Sun } from "lucide-react";
 
 import { useTheme } from "../../context/ThemeContext";
 
-export default function ThemeToggle(){
+export default function ThemeToggle({ className = "" }){
 
     const {
 
@@ -18,7 +18,9 @@ export default function ThemeToggle(){
 
             onClick={toggleTheme}
 
-            className="rounded-xl border border-slate-300 p-2 transition hover:bg-slate-100"
+            aria-label="Toggle theme"
+
+            className={`theme-toggle-button ${className}`}
 
         >
 

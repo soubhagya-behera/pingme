@@ -41,7 +41,7 @@ function typeColor(type) {
     return "text-indigo-500 bg-indigo-500/10";
 }
 
-export default function NotificationBell() {
+export default function NotificationBell({ align = "right" }) {
     const {
         notifications,
         unreadCount,
@@ -52,6 +52,7 @@ export default function NotificationBell() {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const leftAligned = align === "left";
 
     useEffect(() => {
         const handler = event => {
@@ -114,7 +115,11 @@ export default function NotificationBell() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 z-50 mt-3 w-[22rem] max-w-[calc(100vw-2rem)] rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xl"
+                        className={
+                            leftAligned
+                                ? "absolute bottom-0 left-full z-50 ml-3 w-[22rem] max-w-[calc(100vw-6.5rem)] rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xl"
+                                : "absolute right-0 z-50 mt-3 w-[22rem] max-w-[calc(100vw-2rem)] rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xl"
+                        }
                     >
                         <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
                             <h3 className="text-sm font-bold text-[var(--text)]">

@@ -1,29 +1,31 @@
 import { useState } from "react";
 
-import Navbar from "./Navbar";
-import Sidebar from "./Sidebar";
+import AppRail from "./AppRail";
 import PageContainer from "./PageContainer";
-import MobileSidebar from "./MobileSidebar";
+import MobileHeader from "./MobileHeader";
+import MobileNavDrawer from "./MobileNavDrawer";
 
 export default function AppLayout({
 
-    children
+    children,
+
+    fullBleed = false
 
 }){
 
-    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
     return(
 
-        <div className="flex min-h-[100dvh] bg-[var(--background)] text-[var(--text)]">
+        <div className="flex h-[100dvh] w-full overflow-hidden bg-[var(--background)] text-[var(--text)]">
 
-            <Sidebar/>
+            <AppRail/>
 
             <div className="flex min-w-0 flex-1 flex-col">
 
-                <Navbar onMenuClick={() => setMobileSidebarOpen(true)}/>
+                <MobileHeader onMenuClick={() => setMobileNavOpen(true)}/>
 
-                <PageContainer>
+                <PageContainer fullBleed={fullBleed}>
 
                     {children}
 
@@ -31,9 +33,9 @@ export default function AppLayout({
 
             </div>
 
-            <MobileSidebar
-                open={mobileSidebarOpen}
-                onClose={() => setMobileSidebarOpen(false)}
+            <MobileNavDrawer
+                open={mobileNavOpen}
+                onClose={() => setMobileNavOpen(false)}
             />
 
         </div>

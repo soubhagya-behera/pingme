@@ -20,7 +20,7 @@ import { useAuth } from "../../context/AuthContext";
 
 import { useNavigate } from "react-router-dom";
 
-export default function ProfileDropdown(){
+export default function ProfileDropdown({ align = "right" }){
 
 const { user, logout } = useAuth();
 
@@ -29,6 +29,8 @@ const navigate = useNavigate();
 const [open,setOpen]=useState(false);
 
 const dropdownRef = useRef();
+
+const leftAligned = align === "left";
 
 useEffect(()=>{
 
@@ -86,15 +88,21 @@ name={user?.name}
 
 src={user?.profilePicture}
 
-size={42}
+size={leftAligned ? 40 : 42}
 
 />
 
-<ChevronDown
+{
 
-size={18}
+    !leftAligned &&
 
-/>
+    <ChevronDown
+
+        size={18}
+
+    />
+
+}
 
 </button>
 
@@ -144,7 +152,13 @@ duration:.2
 
 }}
 
-className="absolute right-0 mt-3 w-72 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xl p-5 z-50"
+className={
+    leftAligned
+        ?
+        "absolute bottom-0 left-full ml-3 w-72 max-w-[calc(100vw-6.5rem)] rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xl p-5 z-50"
+        :
+        "absolute right-0 mt-3 w-72 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xl p-5 z-50"
+}
 
 >
 
