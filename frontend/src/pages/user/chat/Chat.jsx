@@ -5,6 +5,8 @@ import ChatSidebar from "../../../components/user/chat/ChatSidebar";
 import ChatHeader from "../../../components/user/chat/ChatHeader";
 import ChatMessages from "../../../components/user/chat/ChatMessages";
 import ChatInput from "../../../components/user/chat/ChatInput";
+import ChatSearchBar from "../../../components/user/chat/ChatSearchBar";
+import ChatSearchResults from "../../../components/user/chat/ChatSearchResults";
 import ConfirmDialog from "../../../components/common/ConfirmDialog";
 import ChatService from "../../../services/ChatService";
 import { acknowledgeRead } from "../../../websocket/publisher";
@@ -12,6 +14,7 @@ import { sendActiveConversation } from "../../../websocket/publisher";
 import { whenSocketConnected } from "../../../websocket/socket";
 import { useSocket } from "../../../context/SocketProvider";
 import { useNotifications } from "../../../context/NotificationContext";
+import { useAuth } from "../../../context/AuthContext";
 import { MessageCircleMore, Plus } from "lucide-react";
 import "../../../styles/user/chat/chat.css";
 import ImagePreviewModal from "../../../components/user/chat/ImagePreviewModal";
@@ -19,6 +22,7 @@ import FilePreviewModal from "../../../components/user/chat/FilePreviewModal";
 import ForwardMessageModal from "../../../components/user/chat/ForwardMessageModal";
 import VoicePreviewModal from "../../../components/user/chat/VoicePreviewModal";
 import { isImageAttachment } from "../../../components/user/chat/AttachmentUtils";
+import useDebounce from "../../../hooks/useDebounce";
 import { v4 as uuid } from "uuid";
 
 function uniqueMessages(messages) {
@@ -68,7 +72,27 @@ const [forwarding, setForwarding] = useState(false);
     const [voiceUploadProgress, setVoiceUploadProgress] = useState(0);
     const [voiceError, setVoiceError] = useState("");
 
-    const sidebarSearchRef = useRef(null);
+    // Message search state (scoped to the selected conversation).
+    const { user } = useAuth();
+    const [messageSearchOpen, setMessageSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
+    const [searching, setSearching] = useState(false);
+    const [searchError, setSearchError] = useState(false);
+    const [resultsVisible, setResultsVisible] = useState(true);
+    const [activeResultIndex, setActiveResultIndex] = useState(-1);
+    const [jumpLoading, setJumpLoading] = useState(false);
+    const [searchJump, setSearchJump] = useState({ messageId: null, version: 0 });
+
+    const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+    const searchRequestIdRef = useRef(0);
+    const searchJumpVersionRef = useRef(0);
+    const messagesRef = useRef([]);
+
+    useEffect(() => {
+        messagesRef.current = messages;
+    }, [messages]);
 
     const uploadInFlight = useRef(false);
     const historyRequestRef = useRef(0);
@@ -107,12 +131,140 @@ const [forwarding, setForwarding] = useState(false);
         setShowChat(false);
     }
 
-    function handleHeaderSearch() {
-        if (window.matchMedia("(max-width: 767px)").matches) {
-            setShowChat(false);
-        }
-        requestAnimationFrame(() => sidebarSearchRef.current?.focus());
+    function openMessageSearch() {
+        setMessageSearchOpen(true);
     }
+
+    function closeMessageSearch() {
+        searchRequestIdRef.current += 1;
+        setMessageSearchOpen(false);
+        setSearchQuery("");
+        setSearchResults([]);
+        setSearching(false);
+        setSearchError(false);
+        setResultsVisible(true);
+        setActiveResultIndex(-1);
+        setJumpLoading(false);
+        triggerJump(null);
+    }
+
+    function resetMessageSearch() {
+        closeMessageSearch();
+    }
+
+    function triggerJump(messageId) {
+        searchJumpVersionRef.current += 1;
+        setSearchJump({
+            messageId,
+            version: searchJumpVersionRef.current
+        });
+    }
+
+    async function selectSearchResult(message, index) {
+        if (!message) return;
+        setResultsVisible(false);
+        if (index != null) setActiveResultIndex(index);
+
+        const isLoaded = () =>
+            messagesRef.current.some(item => item.id === message.id);
+
+        if (isLoaded()) {
+            triggerJump(message.id);
+            return;
+        }
+
+        // The match may live in history that has not been paginated in yet.
+        // Reuse the existing incremental history loading until it appears.
+        setJumpLoading(true);
+        try {
+            for (let attempt = 0; attempt < 150; attempt++) {
+                if (isLoaded()) break;
+                const pagination = paginationRef.current;
+                if (!pagination.friendId || !pagination.hasMore) break;
+                if (pagination.loading) {
+                    await new Promise(resolve => setTimeout(resolve, 60));
+                    continue;
+                }
+                await loadOlderMessages();
+                await new Promise(resolve => setTimeout(resolve, 40));
+            }
+        } finally {
+            setJumpLoading(false);
+        }
+
+        if (isLoaded()) {
+            triggerJump(message.id);
+        } else {
+            toast.error("Couldn't locate that message.");
+        }
+    }
+
+    function goToResult(index) {
+        if (searchResults.length === 0) return;
+        const total = searchResults.length;
+        const wrapped = ((index % total) + total) % total;
+        selectSearchResult(searchResults[wrapped], wrapped);
+    }
+
+    function goToNextResult() {
+        goToResult(activeResultIndex < 0 ? 0 : activeResultIndex + 1);
+    }
+
+    function goToPrevResult() {
+        goToResult(activeResultIndex < 0 ? -1 : activeResultIndex - 1);
+    }
+
+    // Debounced, conversation-scoped server search.
+    useEffect(() => {
+        if (!messageSearchOpen) return undefined;
+        const friend = selectedFriendRef.current;
+        if (!friend) return undefined;
+
+        const trimmed = debouncedSearchQuery.trim();
+        if (!trimmed) {
+            searchRequestIdRef.current += 1;
+            setSearching(false);
+            setSearchError(false);
+            setSearchResults([]);
+            setActiveResultIndex(-1);
+            setResultsVisible(true);
+            return undefined;
+        }
+
+        const requestId = ++searchRequestIdRef.current;
+        let cancelled = false;
+
+        setSearching(true);
+        setSearchError(false);
+
+        (async () => {
+            try {
+                const response = await ChatService.searchMessages(friend.id, trimmed);
+                if (
+                    cancelled ||
+                    requestId !== searchRequestIdRef.current ||
+                    selectedFriendRef.current?.id !== friend.id
+                ) return;
+                const data = Array.isArray(response.data?.data) ? response.data.data : [];
+                setSearchResults([...data].reverse());
+                setActiveResultIndex(-1);
+                setResultsVisible(true);
+            } catch {
+                if (cancelled || requestId !== searchRequestIdRef.current) return;
+                setSearchError(true);
+                setSearchResults([]);
+                setActiveResultIndex(-1);
+            } finally {
+                if (!cancelled && requestId === searchRequestIdRef.current) {
+                    setSearching(false);
+                }
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [debouncedSearchQuery, messageSearchOpen, selectedFriend?.id]);
     
     useEffect(() => {
         const unsubscribe = onTyping(event => {
@@ -293,6 +445,7 @@ const [forwarding, setForwarding] = useState(false);
         setLoadingMore(false);
         setHistoryLoaded(false);
         paginationRef.current = { friendId: friend.id, nextPage: 0, hasMore: true, loading: false };
+        resetMessageSearch();
 
         try {
             const response = await ChatService.getHistory(
@@ -639,16 +792,49 @@ const [forwarding, setForwarding] = useState(false);
     return (
         <div className="chat-workspace">
             <div className={`chat-sidebar-pane ${showChat ? "chat-pane-hidden-mobile" : ""}`}>
-                <ChatSidebar friends={friends} selectedFriend={selectedFriend} onSelect={selectFriend} searchRef={sidebarSearchRef} />
+                <ChatSidebar friends={friends} selectedFriend={selectedFriend} onSelect={selectFriend} />
             </div>
             <div className={`chat-conversation-pane ${showChat ? "chat-pane-visible" : "chat-pane-hidden"}`}>
                 {selectedFriend ? (
                     <>
-                            <ChatHeader friend={selectedFriend} onBack={closeConversation} onSearch={handleHeaderSearch} typing={
-                                selectedFriend
-                                    ? typingUsers.has(selectedFriend.id)
-                                    : false
-                            }/>
+                            {messageSearchOpen ? (
+                                <ChatSearchBar
+                                    query={searchQuery}
+                                    onQueryChange={setSearchQuery}
+                                    onClose={closeMessageSearch}
+                                    onNext={goToNextResult}
+                                    onPrev={goToPrevResult}
+                                    onToggleResults={() => setResultsVisible(visible => !visible)}
+                                    resultsVisible={resultsVisible}
+                                    results={searchResults}
+                                    activeIndex={activeResultIndex}
+                                    searching={searching}
+                                    error={searchError}
+                                    jumpLoading={jumpLoading}
+                                />
+                            ) : (
+                                <ChatHeader friend={selectedFriend} onBack={closeConversation} onSearch={openMessageSearch} typing={
+                                    selectedFriend
+                                        ? typingUsers.has(selectedFriend.id)
+                                        : false
+                                }/>
+                            )}
+                            {messageSearchOpen && (
+                                <ChatSearchResults
+                                    results={searchResults}
+                                    query={searchQuery}
+                                    activeIndex={activeResultIndex}
+                                    searching={searching}
+                                    error={searchError}
+                                    friend={selectedFriend}
+                                    me={{
+                                        id: Number(localStorage.getItem("userId")),
+                                        name: user?.name,
+                                        profilePicture: user?.profilePicture
+                                    }}
+                                    onSelect={selectSearchResult}
+                                />
+                            )}
                             <ChatMessages
                                 messages={messages}
                                 conversationId={conversationKey}
@@ -663,6 +849,10 @@ const [forwarding, setForwarding] = useState(false);
                                 onDelete={deleteForEveryone}
                                 onDeleteMe={deleteForMe}
                                 onForward={setForwardingMessage}
+                                highlightQuery={searchQuery.trim()}
+                                searchActive={messageSearchOpen}
+                                scrollToMessageId={searchJump.messageId ?? null}
+                                scrollToMessageVersion={searchJump.version}
                             />
                             <ChatInput
                                 friend={selectedFriend}

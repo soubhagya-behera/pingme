@@ -77,6 +77,42 @@ public class MessageController {
 
     }
 
+    @GetMapping("/search/{friendId}")
+    public ResponseEntity<ApiResponse<List<MessageResponse>>> searchMessages(
+
+            @PathVariable Long friendId,
+
+            @RequestParam String query,
+
+            @RequestParam(defaultValue = "100") int limit,
+
+            Authentication authentication
+    ) {
+
+        return ResponseEntity.ok(
+
+                ResponseUtil.success(
+
+                        "Message Search Results",
+
+                        messageService.searchChatMessages(
+
+                                authentication.getName(),
+
+                                friendId,
+
+                                query,
+
+                                limit
+
+                        )
+
+                )
+
+        );
+
+    }
+
     @GetMapping("/chat-sidebar")
     public ResponseEntity<ApiResponse<List<ChatSidebarResponse>>> getChatSidebar(
 

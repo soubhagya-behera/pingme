@@ -21,4 +21,11 @@ public interface MessageService {
     // ⭐ NEW
     List<ChatSidebarResponse> getChatSidebar(String email);
 
+    List<MessageResponse> searchChatMessages(
+            String email,
+            Long friendId,
+            String query,
+            int limit
+    );
+
 }

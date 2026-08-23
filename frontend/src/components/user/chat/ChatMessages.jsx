@@ -1,10 +1,11 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import MessageBubble from "./MessageBubble";
 import DateSeparator from "./DateSeparator";
 import { useAuth } from "../../../context/AuthContext";
 
 const NEAR_BOTTOM_PX = 120;
 const TOP_LOAD_THRESHOLD_PX = 100;
+const HIGHLIGHT_DURATION_MS = 1800;
 
 export default function ChatMessages({
   conversationId,
@@ -19,7 +20,11 @@ export default function ChatMessages({
   onEdit,
   onDelete,
   onDeleteMe,
-  onForward
+  onForward,
+  highlightQuery = "",
+  searchActive = false,
+  scrollToMessageId = null,
+  scrollToMessageVersion = 0
 }) {
   const { user } = useAuth();
   const containerRef = useRef(null);
@@ -32,6 +37,16 @@ export default function ChatMessages({
   const lastScrollRequestRef = useRef(scrollToBottomRequest);
   const previousMessageCountRef = useRef(0);
   const loadRequestedRef = useRef(false);
+  const pendingJumpRef = useRef(null);
+  const lastJumpVersionRef = useRef(scrollToMessageVersion);
+  const highlightTimerRef = useRef(null);
+  const [highlightedId, setHighlightedId] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(highlightTimerRef.current);
+    };
+  }, []);
 
   const isNearBottom = container =>
     container.scrollHeight - container.scrollTop - container.clientHeight <= NEAR_BOTTOM_PX;
@@ -53,6 +68,15 @@ export default function ChatMessages({
       nearBottomRef.current = true;
       lastPrependVersionRef.current = prependVersion;
       lastScrollRequestRef.current = scrollToBottomRequest;
+      pendingJumpRef.current = null;
+      lastJumpVersionRef.current = scrollToMessageVersion;
+      setHighlightedId(null);
+    }
+
+    // Register newly requested search jumps.
+    if (scrollToMessageVersion !== lastJumpVersionRef.current) {
+      lastJumpVersionRef.current = scrollToMessageVersion;
+      pendingJumpRef.current = scrollToMessageId;
     }
 
     if (!historyLoaded) {
@@ -73,15 +97,43 @@ export default function ChatMessages({
     } else if (scrollToBottomRequest !== lastScrollRequestRef.current) {
       scrollToBottom("smooth");
       lastScrollRequestRef.current = scrollToBottomRequest;
-    } else if (messages.length > previousMessageCountRef.current && nearBottomRef.current) {
+    } else if (
+      messages.length > previousMessageCountRef.current
+      && nearBottomRef.current
+      && !searchActive
+    ) {
       // Incoming websocket messages only move the viewport when the reader is already at the bottom.
       scrollToBottom("smooth");
+    }
+
+    // Navigate to a searched message once it exists in the DOM.
+    if (pendingJumpRef.current != null) {
+      let target = null;
+      try {
+        target = container.querySelector(
+          `[data-message-id="${CSS.escape(String(pendingJumpRef.current))}"]`
+        );
+      } catch {
+        target = null;
+      }
+      if (target) {
+        const jumpedId = pendingJumpRef.current;
+        pendingJumpRef.current = null;
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        setHighlightedId(jumpedId);
+        clearTimeout(highlightTimerRef.current);
+        highlightTimerRef.current = setTimeout(
+          () => setHighlightedId(null),
+          HIGHLIGHT_DURATION_MS
+        );
+      }
+      // Without a DOM match the jump stays pending until history loading brings the message in.
     }
 
     previousMessageCountRef.current = messages.length;
     previousScrollHeightRef.current = container.scrollHeight;
     previousScrollTopRef.current = container.scrollTop;
-  }, [conversationId, historyLoaded, messages, prependVersion, scrollToBottomRequest]);
+  }, [conversationId, historyLoaded, messages, prependVersion, scrollToBottomRequest, scrollToMessageId, scrollToMessageVersion, searchActive]);
 
   const handleScroll = event => {
     const container = event.currentTarget;
@@ -109,7 +161,10 @@ export default function ChatMessages({
       const previousDate = index === 0 ? null : new Date(messages[index - 1].sentAt).toDateString();
       return <React.Fragment key={message.id}>
         {currentDate !== previousDate && <DateSeparator date={message.sentAt} />}
-        <MessageBubble message={message} mine={message.senderId === user.id} text={message.content} time={message.sentAt} status={message.status} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onDeleteMe={onDeleteMe} onForward={onForward} />
+        <MessageBubble message={message} mine={message.senderId === user.id} text={message.content} time={message.sentAt} status={message.status}
+          isHighlighted={highlightedId != null && message.id === highlightedId}
+          highlightQuery={searchActive ? highlightQuery : ""}
+          onReply={onReply} onEdit={onEdit} onDelete={onDelete} onDeleteMe={onDeleteMe} onForward={onForward} />
       </React.Fragment>;
     })}
   </section>;

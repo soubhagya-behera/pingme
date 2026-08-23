@@ -110,4 +110,29 @@ ORDER BY m.sentAt DESC
             MessageStatus status
     );
 
+    @Query("""
+SELECT m
+FROM Message m
+LEFT JOIN FETCH m.replyTo replyTo
+LEFT JOIN FETCH replyTo.sender
+JOIN FETCH m.sender
+JOIN FETCH m.receiver
+WHERE
+(
+    (m.sender = :me AND m.receiver = :friend)
+    OR
+    (m.sender = :friend AND m.receiver = :me)
+)
+AND m.deletedForEveryone = false
+AND m.content IS NOT NULL
+AND LOWER(m.content) LIKE LOWER(:pattern) ESCAPE '\\'
+ORDER BY m.sentAt DESC
+""")
+    List<Message> searchConversation(
+            @Param("me") User me,
+            @Param("friend") User friend,
+            @Param("pattern") String pattern,
+            Pageable pageable
+    );
+
 }

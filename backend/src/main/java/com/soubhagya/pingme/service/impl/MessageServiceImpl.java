@@ -134,169 +134,7 @@ public class MessageServiceImpl implements MessageService {
 
                         )
 
-                        .map(message ->
-
-                                MessageResponse.builder()
-
-                                        .id(
-
-                                                message.getId()
-
-                                        )
-
-                                        .senderId(
-
-                                                message.getSender().getId()
-
-                                        )
-
-                                        .receiverId(
-
-                                                message.getReceiver().getId()
-
-                                        )
-
-                                        .content(
-
-                                                message.getContent()
-
-                                        )
-
-                                        .attachmentUrl(
-
-                                                message.getAttachmentUrl()
-
-                                        )
-
-                                        .attachmentName(
-
-                                                message.getAttachmentName()
-
-                                        )
-
-                                        .attachmentSize(
-
-                                                message.getAttachmentSize()
-
-                                        )
-
-                                        .attachmentMimeType(
-
-                                                message.getAttachmentMimeType()
-
-                                        )
-
-                                        .attachmentDuration(
-
-                                                message.getAttachmentDuration()
-
-                                        )
-
-                                        .messageType(
-
-                                                message.getMessageType().name()
-
-                                        )
-
-                                        .status(
-
-                                                message.getStatus().name()
-
-                                        )
-
-                                        .sentAt(
-
-                                                message.getSentAt()
-
-                                        )
-
-                                        .reply(
-
-                                                message.getReplyTo() == null
-
-                                                        ?
-
-                                                        null
-
-                                                        :
-
-                                                        ReplyPreview.builder()
-
-                                                                .id(
-
-                                                                        message.getReplyTo().getId()
-
-                                                                )
-
-                                                                .senderId(
-
-                                                                        message.getReplyTo()
-
-                                                                                .getSender()
-
-                                                                                .getId()
-
-                                                                )
-
-                                                                .content(
-
-                                                                        message.getReplyTo()
-
-                                                                                .getContent()
-
-                                                                )
-
-                                                                .attachmentUrl(
-
-                                                                        message.getReplyTo()
-
-                                                                                .getAttachmentUrl()
-
-                                                                )
-
-                                                                .attachmentMimeType(
-
-                                                                        message.getReplyTo()
-
-                                                                                .getAttachmentMimeType()
-
-                                                                )
-
-                                                                .build()
-
-                                        )
-
-                                        .edited(
-
-                                                message.getEdited()
-
-                                        )
-
-                                        .editedAt(
-
-                                                message.getEditedAt()
-
-                                        )
-
-                                        .deletedForEveryone(
-
-                                                message.getDeletedForEveryone()
-
-                                        )
-
-                                        .deletedAt(
-
-                                                message.getDeletedAt()
-
-                                        )
-
-                                        .forwarded(
-        message.getForwarded()
-)
-
-                                        .build()
-
-                        )
+                        .map(this::toResponse)
 
                         .toList();
 
@@ -309,6 +147,157 @@ public class MessageServiceImpl implements MessageService {
                 messages.getTotalElements()
 
         );
+
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MessageResponse> searchChatMessages(
+            String email,
+            Long friendId,
+            String query,
+            int limit
+    ) {
+
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+
+        User me =
+                userRepository
+                        .findByEmail(email)
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "User not found"
+                                        )
+                        );
+
+        User friend =
+                userRepository
+                        .findById(friendId)
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Friend not found"
+                                        )
+                        );
+
+        // Escape LIKE wildcards so user input is matched literally.
+        String escaped = query.trim()
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+
+        String pattern = "%" + escaped + "%";
+
+        int safeLimit = Math.min(Math.max(limit, 1), 200);
+
+        Pageable pageable =
+                PageRequest.of(
+                        0,
+                        safeLimit,
+                        Sort.by("sentAt").descending()
+                );
+
+        return messageRepository
+                .searchConversation(me, friend, pattern, pageable)
+                .stream()
+                .filter(message ->
+                        !hiddenMessageRepository.existsByMessageAndUser(
+                                message,
+                                me
+                        )
+                )
+                .map(this::toResponse)
+                .toList();
+
+    }
+
+    private MessageResponse toResponse(Message message) {
+
+        return MessageResponse.builder()
+                .id(
+                        message.getId()
+                )
+                .senderId(
+                        message.getSender().getId()
+                )
+                .receiverId(
+                        message.getReceiver().getId()
+                )
+                .content(
+                        message.getContent()
+                )
+                .attachmentUrl(
+                        message.getAttachmentUrl()
+                )
+                .attachmentName(
+                        message.getAttachmentName()
+                )
+                .attachmentSize(
+                        message.getAttachmentSize()
+                )
+                .attachmentMimeType(
+                        message.getAttachmentMimeType()
+                )
+                .attachmentDuration(
+                        message.getAttachmentDuration()
+                )
+                .messageType(
+                        message.getMessageType().name()
+                )
+                .status(
+                        message.getStatus().name()
+                )
+                .sentAt(
+                        message.getSentAt()
+                )
+                .reply(
+                        message.getReplyTo() == null
+                                ?
+                                null
+                                :
+                                ReplyPreview.builder()
+                                        .id(
+                                                message.getReplyTo().getId()
+                                        )
+                                        .senderId(
+                                                message.getReplyTo()
+                                                        .getSender()
+                                                        .getId()
+                                        )
+                                        .content(
+                                                message.getReplyTo()
+                                                        .getContent()
+                                        )
+                                        .attachmentUrl(
+                                                message.getReplyTo()
+                                                        .getAttachmentUrl()
+                                        )
+                                        .attachmentMimeType(
+                                                message.getReplyTo()
+                                                        .getAttachmentMimeType()
+                                        )
+                                        .build()
+                )
+                .edited(
+                        message.getEdited()
+                )
+                .editedAt(
+                        message.getEditedAt()
+                )
+                .deletedForEveryone(
+                        message.getDeletedForEveryone()
+                )
+                .deletedAt(
+                        message.getDeletedAt()
+                )
+                .forwarded(
+message.getForwarded()
+)
+
+                .build();
 
     }
 

@@ -67,3 +67,5 @@ uploads/
 !uploads/.gitkeep
 
 .agents
+
+.vscode

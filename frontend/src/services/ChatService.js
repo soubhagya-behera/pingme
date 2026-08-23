@@ -34,6 +34,28 @@ const ChatService = {
 
     },
 
+    searchMessages(friendId, query, limit = 100) {
+
+        return api.get(
+
+            `/messages/search/${friendId}`,
+
+            {
+
+                params: {
+
+                    query,
+
+                    limit
+
+                }
+
+            }
+
+        );
+
+    },
+
     sendMessage(data) {
 
         return api.post(
