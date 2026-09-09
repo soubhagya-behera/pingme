@@ -20,8 +20,8 @@ export default function MessageBubble({ message, mine, text, time, status, onRep
   const replyText = message.reply?.content || (message.reply?.attachmentUrl ? attachmentLabel(message.reply) : "Message");
   
   return <div className={`chat-message-row ${mine ? "is-mine" : ""} ${isHighlighted ? "is-highlighted" : ""}`} data-message-id={message.id}>
-    {!mine && <MessageActionsMenu mine={mine} message={message} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onDeleteMe={onDeleteMe} onForward={onForward} />}
     <div className={`chat-bubble ${mine ? "is-mine" : ""}`}>
+      <MessageActionsMenu mine={mine} message={message} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onDeleteMe={onDeleteMe} onForward={onForward} />
       {message.reply && <div className="chat-reply-preview"><b>Reply</b><span>{replyText}</span></div>}
       {isVoice && message.attachmentUrl ? <VoiceMessagePlayer src={attachmentUrl(message.attachmentUrl)} duration={message.attachmentDuration} mine={mine} /> : <>
         {isImage && imageSrc && <button type="button" onClick={() => setViewerOpen(true)} className="chat-image-button"><img src={imageSrc} alt={message.attachmentName || "Shared image"} loading="lazy" /></button>}
@@ -30,7 +30,6 @@ export default function MessageBubble({ message, mine, text, time, status, onRep
       {message.content && <p><HighlightText text={text} query={highlightQuery} /></p>}
       <div className="chat-message-meta">{message.edited && <span>edited</span>}{time && new Date(time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{ticks}</div>
     </div>
-    {mine && <MessageActionsMenu mine={mine} message={message} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onDeleteMe={onDeleteMe} onForward={onForward} />}
     <ImageViewer src={viewerOpen ? imageSrc : null} alt={message.attachmentName || "Shared image"} onClose={() => setViewerOpen(false)} />
   </div>;
 }

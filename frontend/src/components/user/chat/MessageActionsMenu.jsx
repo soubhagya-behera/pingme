@@ -15,67 +15,82 @@ export default function MessageActionsMenu({ mine, onReply, onEdit, onDelete, on
 
   useLayoutEffect(() => {
     if (!open) return;
-    const GAP = 6; const VIEWPORT_PADDING = 8;
-    const computePlacement = () => {
+    const GAP = 8; const PADDING = 8;
+    const compute = () => {
       const btn = buttonRef.current; const menu = dropdownRef.current;
       if (!btn || !menu) return;
-      // The chat scroll container is the visible viewport for messages
-      const container = btn.closest(".chat-messages");
-      if (!container) {
-        // fallback to viewport if container not found
-        const btnRect = btn.getBoundingClientRect();
-        const menuH = menu.offsetHeight || 220;
-        const spaceBelowVP = window.innerHeight - btnRect.bottom - GAP;
-        const spaceAboveVP = btnRect.top - GAP;
-        const canBelow = spaceBelowVP >= menuH + VIEWPORT_PADDING;
-        const canAbove = spaceAboveVP >= menuH + VIEWPORT_PADDING;
-        let dir = "below";
-        if (canBelow) dir = "below";
-        else if (canAbove) dir = "above";
-        else dir = spaceBelowVP > spaceAboveVP ? "below" : "above";
-        setPlacement(dir);
-        const avail = dir === "below" ? spaceBelowVP : spaceAboveVP;
-        if (avail < menuH) setMenuStyle({ maxHeight: Math.max(120, avail - VIEWPORT_PADDING) + "px", overflowY: "auto" });
-        else setMenuStyle({});
-        return;
-      }
       const btnRect = btn.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
+      const container = btn.closest(".chat-messages");
+      const containerRect = container ? container.getBoundingClientRect() : { left: PADDING, right: window.innerWidth - PADDING, top: PADDING, bottom: window.innerHeight - PADDING, width: window.innerWidth, height: window.innerHeight };
+      const menuW = menu.offsetWidth || 208;
       const menuH = menu.offsetHeight || 220;
-      const spaceBelow = containerRect.bottom - btnRect.bottom - GAP;
-      const spaceAbove = btnRect.top - containerRect.top - GAP;
-      const canBelow = spaceBelow >= menuH + VIEWPORT_PADDING;
-      const canAbove = spaceAbove >= menuH + VIEWPORT_PADDING;
-      let dir;
-      if (canBelow) dir = "below";
-      else if (canAbove) dir = "above";
-      else dir = spaceBelow > spaceAbove ? "below" : "above";
-      setPlacement(dir);
-      const avail = dir === "below" ? spaceBelow : spaceAbove;
-      if (avail < menuH) {
-        setMenuStyle({ maxHeight: Math.max(120, avail - VIEWPORT_PADDING) + "px", overflowY: "auto" });
+      const vpW = window.innerWidth;
+      const vpH = window.innerHeight;
+
+      const spaceBelow = Math.min(containerRect.bottom - btnRect.bottom - GAP, vpH - btnRect.bottom - GAP);
+      const spaceAbove = Math.min(btnRect.top - containerRect.top - GAP, btnRect.top - GAP);
+      const canBelow = spaceBelow >= menuH + PADDING;
+      const canAbove = spaceAbove >= menuH + PADDING;
+      let placeBelow;
+      if (canBelow) placeBelow = true;
+      else if (canAbove) placeBelow = false;
+      else placeBelow = spaceBelow > spaceAbove;
+
+      let top = placeBelow ? btnRect.bottom + GAP : btnRect.top - menuH - GAP;
+
+      const minTop = Math.max(containerRect.top + PADDING, PADDING);
+      const maxTop = Math.min(containerRect.bottom - menuH - PADDING, vpH - menuH - PADDING);
+      top = Math.max(minTop, Math.min(top, maxTop));
+
+      let left;
+      if (mine) {
+        left = btnRect.left;
       } else {
-        setMenuStyle({});
+        left = btnRect.right - menuW;
       }
+      const minLeft = Math.max(containerRect.left + PADDING, PADDING);
+      const maxLeft = Math.min(containerRect.right - menuW - PADDING, vpW - menuW - PADDING);
+      left = Math.max(minLeft, Math.min(left, maxLeft));
+
+      let maxH; let overflowY;
+      if (placeBelow) {
+        const availBelow = Math.min(containerRect.bottom - top - PADDING, vpH - top - PADDING);
+        if (availBelow < menuH) { maxH = Math.max(120, availBelow); overflowY = "auto"; }
+      } else {
+        const availAbove = top - Math.max(containerRect.top, 0) - PADDING;
+        if (availAbove < 0) { maxH = Math.max(120, menuH + availAbove); overflowY = "auto"; }
+      }
+
+      setPlacement(placeBelow ? "below" : "above");
+      setMenuStyle({
+        position: "fixed",
+        top: `${Math.round(top)}px`,
+        left: `${Math.round(left)}px`,
+        right: "auto",
+        bottom: "auto",
+        zIndex: 50,
+        maxHeight: maxH ? `${Math.round(maxH)}px` : undefined,
+        overflowY,
+        transform: "none",
+        transition: "none",
+        animation: "none",
+      });
     };
-    // Initial compute after paint (menu has been rendered)
-    const raf1 = requestAnimationFrame(() => {
-      computePlacement();
-      // Second frame ensures offsetHeight is stable after style updates
-      requestAnimationFrame(computePlacement);
-    });
-    const onResize = () => computePlacement();
-    const container = buttonRef.current?.closest(".chat-messages");
-    window.addEventListener("resize", onResize);
-    window.addEventListener("scroll", onResize, true);
-    container?.addEventListener("scroll", onResize, { passive: true });
+    compute();
+    const raf = requestAnimationFrame(() => requestAnimationFrame(compute));
+    const handleResize = () => compute();
+    const handleScrollClose = () => setOpen(false);
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("scroll", handleScrollClose, true);
+    const containerEl = buttonRef.current?.closest(".chat-messages");
+    containerEl?.addEventListener("scroll", handleScrollClose, { passive: true });
     return () => {
-      cancelAnimationFrame(raf1);
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("scroll", onResize, true);
-      container?.removeEventListener("scroll", onResize);
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("scroll", handleScrollClose, true);
+      containerEl?.removeEventListener("scroll", handleScrollClose);
     };
-  }, [open, canEdit, canDeleteForEveryone, isVoice, message.deletedForEveryone]);
+  }, [open, mine, canEdit, canDeleteForEveryone, isVoice, message.deletedForEveryone]);
 
   const item = (label, icon, action, danger = false) => <button type="button" className={`chat-message-action-item ${danger ? "is-danger" : ""}`} onClick={() => { action(); setOpen(false); }}>{icon}{label}</button>;
   return <div ref={menuRef} className="chat-message-actions"><button ref={buttonRef} type="button" onClick={() => setOpen(value => !value)} className="chat-message-actions-toggle" aria-label="Message actions"><ChevronDown size={18}/></button>{open && <div ref={dropdownRef} style={menuStyle} className={`chat-message-actions-menu ${mine ? "is-mine" : ""} ${placement === "below" ? "is-below" : "is-above"}`}>
