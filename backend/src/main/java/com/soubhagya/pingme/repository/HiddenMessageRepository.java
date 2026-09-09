@@ -20,4 +20,6 @@ public interface HiddenMessageRepository
             User user
     );
 
+    void deleteByMessage(Message message);
+
 }

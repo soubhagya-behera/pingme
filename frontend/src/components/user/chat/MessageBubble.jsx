@@ -22,15 +22,13 @@ export default function MessageBubble({ message, mine, text, time, status, onRep
   return <div className={`chat-message-row ${mine ? "is-mine" : ""} ${isHighlighted ? "is-highlighted" : ""}`} data-message-id={message.id}>
     {!mine && <MessageActionsMenu mine={mine} message={message} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onDeleteMe={onDeleteMe} onForward={onForward} />}
     <div className={`chat-bubble ${mine ? "is-mine" : ""}`}>
-      {!message.deletedForEveryone && message.reply && <div className="chat-reply-preview"><b>Reply</b><span>{replyText}</span></div>}
-      {message.deletedForEveryone ? <span className="chat-deleted-message">🗑 This message was deleted</span> : <>
-        {isVoice && message.attachmentUrl ? <VoiceMessagePlayer src={attachmentUrl(message.attachmentUrl)} duration={message.attachmentDuration} mine={mine} /> : <>
-          {isImage && imageSrc && <button type="button" onClick={() => setViewerOpen(true)} className="chat-image-button"><img src={imageSrc} alt={message.attachmentName || "Shared image"} loading="lazy" /></button>}
-          {!isImage && message.attachmentUrl && <AttachmentCard attachment={message} />}
-        </>}
-        {message.content && <p><HighlightText text={text} query={highlightQuery} /></p>}
+      {message.reply && <div className="chat-reply-preview"><b>Reply</b><span>{replyText}</span></div>}
+      {isVoice && message.attachmentUrl ? <VoiceMessagePlayer src={attachmentUrl(message.attachmentUrl)} duration={message.attachmentDuration} mine={mine} /> : <>
+        {isImage && imageSrc && <button type="button" onClick={() => setViewerOpen(true)} className="chat-image-button"><img src={imageSrc} alt={message.attachmentName || "Shared image"} loading="lazy" /></button>}
+        {!isImage && message.attachmentUrl && <AttachmentCard attachment={message} />}
       </>}
-      <div className="chat-message-meta">{message.edited && !message.deletedForEveryone && <span>edited</span>}{time && new Date(time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{ticks}</div>
+      {message.content && <p><HighlightText text={text} query={highlightQuery} /></p>}
+      <div className="chat-message-meta">{message.edited && <span>edited</span>}{time && new Date(time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{ticks}</div>
     </div>
     {mine && <MessageActionsMenu mine={mine} message={message} onReply={onReply} onEdit={onEdit} onDelete={onDelete} onDeleteMe={onDeleteMe} onForward={onForward} />}
     <ImageViewer src={viewerOpen ? imageSrc : null} alt={message.attachmentName || "Shared image"} onClose={() => setViewerOpen(false)} />

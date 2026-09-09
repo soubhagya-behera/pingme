@@ -258,23 +258,55 @@ public class ChatServiceImpl implements ChatService {
             );
         }
 
-        // Already deleted
-        if (Boolean.TRUE.equals(message.getDeletedForEveryone())) {
-            return;
+        // Capture participants before deletion for WS notification
+        String senderEmail = message.getSender().getEmail();
+        String receiverEmail = message.getReceiver().getEmail();
+
+        // 1. Nullify reply references to avoid FK violation
+        java.util.List<Message> referencing = messageRepository.findByReplyTo(message);
+        for (Message ref : referencing) {
+            ref.setReplyTo(null);
+        }
+        if (!referencing.isEmpty()) {
+            messageRepository.saveAll(referencing);
         }
 
-        message.setDeletedForEveryone(true);
-        message.setDeletedAt(LocalDateTime.now());
+        // 2. Remove hidden-message records (Delete-for-Me) for this message
+        hiddenMessageRepository.deleteByMessage(message);
+
+        // 3. Remove stored file if exclusively owned by this message
+        String attachmentUrl = message.getAttachmentUrl();
+        if (attachmentUrl != null && !attachmentUrl.isBlank()) {
+            try {
+                if (attachmentUrl.startsWith("/uploads/chat-images/")) {
+                    if (imageStorageService.isManagedImage(attachmentUrl)) {
+                        long otherRefs = messageRepository.countByAttachmentUrlAndIdNot(attachmentUrl, messageId);
+                        if (otherRefs == 0) {
+                            imageStorageService.delete(attachmentUrl);
+                        }
+                    }
+                } else if (attachmentUrl.startsWith("/uploads/chat-files/")) {
+                    if (attachmentStorageService.isManagedAttachment(attachmentUrl)) {
+                        long otherRefs = messageRepository.countByAttachmentUrlAndIdNot(attachmentUrl, messageId);
+                        if (otherRefs == 0) {
+                            attachmentStorageService.delete(attachmentUrl);
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+                // Attachment cleanup must never block database deletion
+            }
+        }
+
+        // 4. Permanently remove the message record so normal APIs no longer return it
+        messageRepository.delete(message);
+        // Ensure delete is flushed within transaction so WS event sees consistent state
+        messageRepository.flush();
 
         MessageDeletedEvent event =
                 MessageDeletedEvent.builder()
-                        .messageId(message.getId())
-                        .deletedForEveryone(message.getDeletedForEveryone())
-                        .deletedAt(message.getDeletedAt())
+                        .messageId(messageId)
                         .build();
-
-        String senderEmail = message.getSender().getEmail();
-        String receiverEmail = message.getReceiver().getEmail();
 
         afterCommit(() -> {
             messagingTemplate.convertAndSendToUser(

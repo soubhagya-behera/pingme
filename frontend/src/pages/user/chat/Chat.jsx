@@ -136,6 +136,8 @@ export default function Chat() {
             async () => {
                 try {
                     await ChatService.deleteForEveryone(message.id);
+                    // Immediately remove from local state so sender sees it disappear even before WS event
+                    setMessages(previous => previous.filter(item => item.id !== message.id));
                     toast.success("Message deleted for everyone.");
                 } catch (error) {
                     console.error(error);

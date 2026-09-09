@@ -153,5 +153,19 @@ public class AttachmentStorageServiceImpl implements AttachmentStorageService {
         }
     }
 
+    @Override
+    public void delete(String attachmentUrl) {
+        if (!StringUtils.hasText(attachmentUrl) || !attachmentUrl.startsWith("/uploads/chat-files/")) return;
+        String storedName = attachmentUrl.substring("/uploads/chat-files/".length());
+        if (!storedName.matches("[0-9a-fA-F-]{36}\\.[a-z0-9]+")) return;
+        Path target = uploadPath.resolve(storedName).normalize();
+        if (!target.startsWith(uploadPath)) return;
+        try {
+            Files.deleteIfExists(target);
+        } catch (IOException ignored) {
+            // Best-effort cleanup must never break deletion.
+        }
+    }
+
     private record ValidatedAttachment(String originalFilename, String extension, String mimeType) { }
 }

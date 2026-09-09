@@ -27,16 +27,19 @@ JOIN FETCH m.sender
 JOIN FETCH m.receiver
 WHERE
 (
-    m.sender = :user1
-    AND
-    m.receiver = :user2
+    (
+        m.sender = :user1
+        AND
+        m.receiver = :user2
+    )
+    OR
+    (
+        m.sender = :user2
+        AND
+        m.receiver = :user1
+    )
 )
-OR
-(
-    m.sender = :user2
-    AND
-    m.receiver = :user1
-)
+AND m.deletedForEveryone = false
 """)
     Page<Message> getConversation(
             @Param("user1") User user1,
@@ -50,9 +53,10 @@ FROM Message m
 JOIN FETCH m.sender
 JOIN FETCH m.receiver
 WHERE
-m.sender = :user
+(m.sender = :user
 OR
-m.receiver = :user
+m.receiver = :user)
+AND m.deletedForEveryone = false
 ORDER BY m.sentAt DESC
 """)
     List<Message> findRecentMessages(
@@ -83,6 +87,13 @@ WHERE m.id = :messageId
 
     void deleteBySenderOrReceiver(User sender, User receiver);
 
+    java.util.List<Message> findByReplyTo(Message replyTo);
+
+    long countByAttachmentUrl(String attachmentUrl);
+
+    @Query("SELECT COUNT(m) FROM Message m WHERE m.attachmentUrl = :attachmentUrl AND m.id <> :excludeId")
+    long countByAttachmentUrlAndIdNot(@Param("attachmentUrl") String attachmentUrl, @Param("excludeId") Long excludeId);
+
     long countByReceiverAndStatus(
             User receiver,
             MessageStatus status
@@ -97,6 +108,7 @@ WHERE
     OR
     (m.sender = :friend AND m.receiver = :me)
 )
+AND m.deletedForEveryone = false
 ORDER BY m.sentAt DESC
 """)
     List<Message> findLatestConversationMessages(

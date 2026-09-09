@@ -154,11 +154,13 @@ export default function ChatMessages({
     });
   };
 
+  // Defensive filter: legacy soft-deleted rows (deletedForEveryone=true) must not render as placeholders
+  const visibleMessages = messages.filter(m => !m.deletedForEveryone);
   return <section ref={containerRef} onScroll={handleScroll} className="chat-messages" aria-label="Messages">
     {loadingMore && <div className="chat-loading-more">Loading older messages...</div>}
-    {messages.length === 0 ? <div className="chat-messages-empty"><span>Start your conversation 👋</span></div> : messages.map((message, index) => {
+    {visibleMessages.length === 0 ? <div className="chat-messages-empty"><span>Start your conversation 👋</span></div> : visibleMessages.map((message, index) => {
       const currentDate = new Date(message.sentAt).toDateString();
-      const previousDate = index === 0 ? null : new Date(messages[index - 1].sentAt).toDateString();
+      const previousDate = index === 0 ? null : new Date(visibleMessages[index - 1].sentAt).toDateString();
       return <React.Fragment key={message.id}>
         {currentDate !== previousDate && <DateSeparator date={message.sentAt} />}
         <MessageBubble message={message} mine={message.senderId === user.id} text={message.content} time={message.sentAt} status={message.status}

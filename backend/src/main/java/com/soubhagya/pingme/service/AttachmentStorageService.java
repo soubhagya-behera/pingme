@@ -9,4 +9,6 @@ public interface AttachmentStorageService {
     boolean isManagedAttachment(String attachmentUrl);
 
     boolean isManagedAttachment(String attachmentUrl, Long attachmentSize, String attachmentMimeType);
+
+    void delete(String attachmentUrl);
 }

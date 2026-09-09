@@ -48,15 +48,7 @@ export default function useChatSocket({
         if (!socket?.onMessageDeleted) return;
         const unsubscribe = socket.onMessageDeleted(event => {
             setMessages(previous =>
-                previous.map(message =>
-                    message.id === event.messageId
-                        ? {
-                            ...message,
-                            deletedForEveryone: true,
-                            deletedAt: event.deletedAt
-                        }
-                        : message
-                )
+                previous.filter(message => message.id !== event.messageId)
             );
         });
         return unsubscribe;

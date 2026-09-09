@@ -123,6 +123,10 @@ public class MessageServiceImpl implements MessageService {
                         .stream()
 
                         .filter(message ->
+                                !Boolean.TRUE.equals(message.getDeletedForEveryone())
+                        )
+
+                        .filter(message ->
 
                                 !hiddenMessageRepository.existsByMessageAndUser(
 
