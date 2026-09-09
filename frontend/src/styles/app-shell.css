@@ -378,13 +378,13 @@
 
 /* ==========================================
    RESPONSIVE — MOBILE (<= 768px)
-   The permanent desktop AppRail is fully
-   removed; content uses the entire viewport.
-   Authenticated app pages hide the global
-   mobile header — behavior matches desktop
-   where no top navbar is shown on internal
-   pages. The page-specific Chat header
-   (.chat-header) remains visible.
+   The permanent desktop AppRail is hidden on
+   mobile; authenticated pages use a compact
+   global mobile header (56px) for navigation:
+   [☰] [PingMe] [profile] — hamburger opens
+   MobileNavDrawer. Page-specific headers
+   (e.g. .chat-header with back arrow) remain
+   below it. No excessive vertical space.
 ========================================== */
 
 @media (max-width: 768px) {
@@ -393,13 +393,19 @@
         display: none;
     }
 
-    /* Hidden on mobile authenticated pages — Chat, Friends, Settings, Dashboard, etc.
-       Landing page is unaffected (does not use .mobile-header / AppLayout).
-       This reclaims 56px vertical space; PageContainer flex-1 expands and
-       .chat-messages gains height while .chat-input-area stays pinned at bottom.
-       MobileNavDrawer remains mounted for menu access if a page provides its own trigger. */
+    /* Compact global mobile header — visible on all authenticated/internal pages */
     .mobile-header {
-        display: none !important;
+        position: relative;
+        z-index: 20;
+        display: flex;
+        height: 56px;
+        flex: 0 0 56px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 0 10px 0 6px;
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
     }
 }
 
