@@ -17,11 +17,11 @@ export default function AppLayout({
 
     return(
 
-        <div className="flex h-[100dvh] w-full overflow-hidden bg-[var(--background)] text-[var(--text)]">
+        <div className="app-layout flex h-[100dvh] w-full overflow-hidden bg-[var(--background)] text-[var(--text)]">
 
             <AppRail/>
 
-            <div className="flex min-w-0 flex-1 flex-col">
+            <div className="app-main-col flex min-w-0 flex-1 flex-col">
 
                 <MobileHeader onMenuClick={() => setMobileNavOpen(true)}/>
 

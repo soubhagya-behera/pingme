@@ -108,6 +108,16 @@ export default function Chat() {
 
     useEffect(() => { loadChatSidebar(); }, []);
 
+    // Mobile: hide global navbar when an individual conversation is open
+    // Keeps list/header visible on Friends, Settings, etc. and on Chat list view.
+    useEffect(() => {
+        const col = document.querySelector(".app-main-col");
+        if (!col) return;
+        if (showChat) col.classList.add("is-chat-open");
+        else col.classList.remove("is-chat-open");
+        return () => col.classList.remove("is-chat-open");
+    }, [showChat]);
+
     function openConfirm(config, callback) {
         setConfirmConfig(config);
         setConfirmCallback(() => callback);

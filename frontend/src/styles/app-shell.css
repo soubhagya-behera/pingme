@@ -407,5 +407,14 @@
         background: var(--card);
         border-bottom: 1px solid var(--border);
     }
+
+    /* When an individual chat/conversation is OPEN on mobile, hide the global header.
+       Only inside @media (max-width:768px), so desktop is unaffected.
+       Keeps .chat-header (← avatar name call/video/search/⋮) as the top bar.
+       :has() covers modern browsers; .is-chat-open class is JS fallback for older browsers. */
+    .app-main-col:has(.chat-pane-visible) .mobile-header,
+    .app-main-col.is-chat-open .mobile-header {
+        display: none !important;
+    }
 }
 
