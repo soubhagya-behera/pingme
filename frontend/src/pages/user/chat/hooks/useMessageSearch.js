@@ -47,10 +47,22 @@ export default function useMessageSearch({ selectedFriendRef, messagesRef, pagin
         });
     }
 
-    async function selectSearchResult(message, index) {
+    async function jumpToMessageInternal(message, index, shouldClose) {
         if (!message) return;
-        setResultsVisible(false);
         if (index != null) setActiveResultIndex(index);
+
+        if (shouldClose) {
+            // Immediately close search UI (WhatsApp-style) but preserve jump
+            setMessageSearchOpen(false);
+            setSearchQuery("");
+            setSearchResults([]);
+            setSearching(false);
+            setSearchError(false);
+            setResultsVisible(true);
+            setJumpLoading(false);
+        } else {
+            setResultsVisible(false);
+        }
 
         const isLoaded = () =>
             messagesRef.current.some(item => item.id === message.id);
@@ -84,11 +96,16 @@ export default function useMessageSearch({ selectedFriendRef, messagesRef, pagin
         }
     }
 
+    async function selectSearchResult(message, index) {
+        return jumpToMessageInternal(message, index, true);
+    }
+
     function goToResult(index) {
         if (searchResults.length === 0) return;
         const total = searchResults.length;
         const wrapped = ((index % total) + total) % total;
-        selectSearchResult(searchResults[wrapped], wrapped);
+        // Arrow navigation keeps search open to allow cycling
+        return jumpToMessageInternal(searchResults[wrapped], wrapped, false);
     }
 
     function goToNextResult() {
