@@ -1,0 +1,387 @@
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.lp-footer {
+  border-top: 1px solid var(--lp-border);
+  background: rgba(4, 1, 12, 0.7);
+}
+
+.lp-footer-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(44px, 6vw, 70px) clamp(20px, 5vw, 48px) 30px;
+}
+
+.lp-footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: clamp(28px, 5vw, 64px);
+}
+
+.lp-footer-brand p {
+  margin: 14px 0 0;
+  color: var(--lp-muted);
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 280px;
+}
+
+.lp-footer-col h4 {
+  margin: 4px 0 16px;
+  font-family: var(--lp-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #a5f3fc;
+}
+
+.lp-footer-col ul {
+  display: grid;
+  gap: 11px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-footer-col button,
+.lp-footer-col a {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--lp-text-dim);
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.lp-footer-col button:hover,
+.lp-footer-col a:hover {
+  color: #fff;
+}
+
+.lp-footer-base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: clamp(36px, 5vw, 56px);
+  padding-top: 22px;
+  border-top: 1px solid rgba(167, 139, 250, 0.1);
+  color: var(--lp-muted);
+  font-size: 12.5px;
+  font-family: var(--lp-font-mono);
+  letter-spacing: 0.06em;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+@keyframes lp-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -13px, 0); }
+}
+
+@keyframes lp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lp-menu-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes lp-spin-y {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+
+@keyframes lp-spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes lp-ripple {
+  from { transform: scale(0.72); opacity: 0.9; }
+  to { transform: scale(1.35); opacity: 0; }
+}
+
+@keyframes lp-breathe {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+@keyframes lp-pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.65); }
+  70% { box-shadow: 0 0 0 9px rgba(52, 211, 153, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+@keyframes lp-typing {
+  from { opacity: 0.3; transform: translateY(1px); }
+  to { opacity: 1; transform: translateY(-1px); }
+}
+
+@keyframes lp-eq {
+  from { transform: scaleY(0.35); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes lp-drop-line {
+  0% { transform: scaleY(0); transform-origin: top; opacity: 0; }
+  45% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0; }
+}
+
+@keyframes lp-track-glitch {
+  0% { transform: translate3d(0, 0, 0); filter: none; }
+  25% { transform: translate3d(-7px, 1px, 0); filter: hue-rotate(18deg); }
+  50% { transform: translate3d(5px, -2px, 0); }
+  75% { transform: translate3d(-3px, 0, 0); filter: saturate(1.6); }
+  100% { transform: translate3d(0, 0, 0); filter: none; }
+}
+
+/* Reveal-on-scroll primitives (JS adds .is-visible) */
+.lp-reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.lp-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================================
+   RESPONSIVE
+   Breakpoint system:
+     Mobile  < 768px   → single column, simplified scene
+     Tablet  768–1099  → 2-column bento, stacked showcases
+     Desktop ≥ 1100px  → full premium layout (base styles)
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   TABLET (768px – 1099px)
+   ------------------------------------------------------------ */
+
+@media (max-width: 1099px) {
+  .lp-bento {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Every cell becomes a plain full- or half-width block —
+     no desktop bento geometry survives into tablet. */
+  .lp-cell-wide,
+  .lp-cell-tall,
+  .lp-half {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .lp-cell-third {
+    grid-column: span 1;
+    grid-row: auto;
+  }
+
+  .lp-showcase-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .lp-demo-window {
+    order: -1;
+    max-width: 520px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .lp-security-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .lp-shield-visual {
+    max-width: 300px;
+  }
+
+  .lp-steps {
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  }
+}
+
+/* ------------------------------------------------------------
+   MOBILE (< 768px)
+   ------------------------------------------------------------ */
+
+@media (max-width: 767px) {
+  /* Consistent page container: everything fits the viewport. */
+  .lp-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .lp-truststrip {
+    margin-top: 14px;
+  }
+
+  /* Features: strict single column. Every cell spans the one
+     track (1 / -1 works whether the grid has 1 or N tracks),
+     so no implicit columns can ever be created again.
+     grid-row: auto cancels the desktop rowspan. */
+  .lp-bento {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .lp-bento > .lp-card,
+  .lp-cell-wide,
+  .lp-cell-tall,
+  .lp-cell-third,
+  .lp-half,
+  .lp-cell {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .lp-cell {
+    padding: 22px 18px;
+  }
+
+  /* How-it-works: single file */
+  .lp-steps {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  /* ---- Mobile hero: compact composition — reduce gap between headline and sun ---- */
+
+  .lp-hero-content {
+    padding-top: 78px;
+    padding-bottom: 140px;
+  }
+
+  .lp-hero-title {
+    top: 45px; /* mobile only: nudge the 2-line headline down ~45px */
+    /* ~15-20% larger than the old 30px phone size, still well below the
+       desktop scale; sized so both lines stay intact and clear of the sun. */
+    font-size: clamp(30px, 8.9vw, 47px);
+    white-space: normal;
+    text-wrap: balance;
+    margin-top: 14px;
+  }
+
+  .lp-hero-meta {
+    gap: 10px 18px;
+    padding: 10px 14px;
+    font-size: 13.2px;
+    bottom: 26%;
+    gap: 10px 16px;
+  }
+
+  .lp-hero-tagline {
+    font-size: 15.5px;
+    line-height: 1.6;
+  }
+
+  /* Decorative silhouettes go; sun/grid/canvas stay behind the scrim */
+  .lp-palm {
+    display: none;
+  }
+
+  .lp-signage:not(.lp-sign-major) {
+    display: none;
+  }
+
+  .lp-sign-major {
+    top: auto;
+    bottom: 20%;
+  }
+
+  .lp-beacon {
+    bottom: 38%;
+    opacity: 0.55;
+  }
+
+  .lp-beacon-gem {
+    width: 72px;
+  }
+
+  .lp-scroll-cue {
+    display: none;
+  }
+
+  .lp-status-hud {
+    right: auto;
+    left: 50%;
+    translate: -50% 0;
+    white-space: nowrap;
+    /* Sits directly below the feature row (.lp-hero-meta bottoms out at 26%):
+       card top edge = 26% - 12px gap; offset = 26% - 12px - 84px card height. */
+    bottom: calc(26% - 96px);
+  }
+
+  /* CTAs stack vertically, nearly full width */
+  .lp-hero-ctas {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .lp-hero-ctas .lp-btn {
+    width: min(340px, 100%);
+  }
+
+  .lp-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
+
+/* Short landscape phones: calm the scene further so copy owns the screen */
+@media (max-height: 520px) and (orientation: landscape) and (pointer: coarse) {
+  .lp-palm,
+  .lp-beacon,
+  .lp-signage {
+    display: none;
+  }
+
+  .lp-hero-content {
+    padding-top: 96px;
+    padding-bottom: 120px;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .landing *,
+  .landing *::before,
+  .landing *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .lp-reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .lp-noise,
+  .lp-scanlines {
+    display: none;
+  }
+}

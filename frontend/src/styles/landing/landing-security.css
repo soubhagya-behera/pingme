@@ -1,0 +1,205 @@
+/* ============================================================
+   SECURITY + TECH
+   ============================================================ */
+
+.lp-security-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+}
+
+.lp-shield-visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  max-width: 380px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.lp-shield-orbit {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px dashed rgba(103, 232, 249, 0.3);
+  animation: lp-spin-slow 26s linear infinite;
+}
+
+.lp-shield-orbit::before {
+  content: "";
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #67e8f9;
+  box-shadow: 0 0 14px #67e8f9;
+}
+
+.lp-shield-core {
+  display: grid;
+  place-items: center;
+  width: 58%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: #e9d5ff;
+  background: radial-gradient(circle at 34% 28%, rgba(139, 92, 246, 0.55), rgba(30, 17, 71, 0.9) 68%);
+  border: 1px solid var(--lp-border-strong);
+  box-shadow: 0 0 70px rgba(139, 92, 246, 0.4), inset 0 0 40px rgba(99, 102, 241, 0.25);
+}
+
+.lp-shield-list {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-shield-item {
+  display: flex;
+  gap: 15px;
+  padding: 17px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--lp-border);
+  background: var(--lp-surface);
+  align-items: flex-start;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.lp-shield-item:hover {
+  border-color: var(--lp-border-strong);
+  transform: translateX(5px);
+}
+
+.lp-shield-item svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #a78bfa;
+}
+
+.lp-shield-item b {
+  display: block;
+  font-size: 14.5px;
+  margin-bottom: 3px;
+}
+
+.lp-shield-item p {
+  margin: 0;
+  color: var(--lp-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* Tech strip */
+.lp-tech-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.lp-tech-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--lp-border);
+  background: rgba(10, 6, 24, 0.6);
+  color: var(--lp-text-dim);
+  font-family: var(--lp-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: border-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.lp-tech-chip:hover {
+  border-color: rgba(103, 232, 249, 0.5);
+  color: #cffafe;
+  transform: translateY(-3px);
+}
+
+.lp-tech-note {
+  margin: 26px auto 0;
+  max-width: 560px;
+  text-align: center;
+  color: var(--lp-muted);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+/* ============================================================
+   FINAL CTA
+   ============================================================ */
+
+.lp-final {
+  position: relative;
+  overflow: clip;
+  padding-bottom: clamp(64px, 8.5vw, 112px);
+}
+
+.lp-final-panel {
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(56px, 8vw, 96px) clamp(24px, 6vw, 80px);
+  text-align: center;
+  border: 1px solid var(--lp-border-strong);
+  border-radius: 34px;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(139, 92, 246, 0.3), transparent 62%),
+    radial-gradient(ellipse at 50% -20%, rgba(34, 211, 238, 0.14), transparent 55%),
+    rgba(10, 5, 26, 0.8);
+  overflow: hidden;
+}
+
+.lp-final-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(167, 139, 250, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167, 139, 250, 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 50% 100%, black 30%, transparent 75%);
+  pointer-events: none;
+}
+
+.lp-final-sun {
+  position: absolute;
+  left: 50%;
+  bottom: -110px;
+  translate: -50% 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(244, 114, 182, 0.4), rgba(139, 92, 246, 0.12));
+  filter: blur(2px);
+  mask-image: repeating-linear-gradient(to bottom, black 0 12px, transparent 12px 21px);
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.lp-final h2 {
+  position: relative;
+  margin: 0 0 16px;
+  font-size: clamp(32px, 5vw, 54px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.lp-final p {
+  position: relative;
+  margin: 0 auto 34px;
+  max-width: 520px;
+  color: var(--lp-text-dim);
+  font-size: 16px;
+  line-height: 1.65;
+}
+

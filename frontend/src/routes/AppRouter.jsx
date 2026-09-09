@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import RegisterSuccess from "../pages/auth/RegisterSuccess";
@@ -22,10 +23,16 @@ import ProtectedRoute from "./ProtectedRoute";
 import ActivateAccount from "../pages/auth/ActivateAccount";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 
+const LandingPage = lazy(() => import("../pages/public/LandingPage"));
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
+      <Suspense fallback={null}>
       <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
+
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -36,7 +43,7 @@ export default function AppRouter() {
 
         {/* Protected Routes */}
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <AppLayout>
@@ -137,6 +144,7 @@ export default function AppRouter() {
 
 </Route>
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

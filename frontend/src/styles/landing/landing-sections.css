@@ -1,0 +1,384 @@
+/* VHS overlays */
+.lp-scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.028) 0px,
+    rgba(255, 255, 255, 0.028) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: overlay;
+}
+
+.lp-noise {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+}
+
+.lp-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 42%, transparent 52%, rgba(3, 0, 10, 0.55) 100%);
+}
+
+.lp-hero.is-glitching .lp-glitch-shift {
+  animation: lp-track-glitch 0.28s steps(2, end) both;
+}
+
+/* Scroll fade for hero internals */
+.lp-hero.is-leaving .lp-hero-content,
+.lp-hero.is-leaving .lp-parallax,
+.lp-hero.is-leaving .lp-status-hud,
+.lp-hero.is-leaving .lp-scroll-cue {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+/* ============================================================
+   HERO STATS CARD — right-side companion of the PINGME NETWORK
+   status card. Desktop: docks bottom-right inside the hero.
+   Mobile/tablet: single card stacked below the hero, centered.
+   ============================================================ */
+
+.lp-truststrip {
+  position: relative;
+  z-index: 2;
+  margin-top: 14px;
+  padding: 0 clamp(20px, 5vw, 48px);
+}
+
+/* Same outer box as .lp-status-hud: 250x84, radius 14, same
+   border/background/blur — equal visual weight. */
+.lp-truststrip-inner {
+  width: 250px;
+  height: 84px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-content: center;
+  padding: 12px 14px;
+  border: 1px solid rgba(103, 232, 249, 0.22);
+  border-radius: 14px;
+  background: rgba(4, 8, 16, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-align: center;
+}
+
+.lp-trust-item {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.lp-trust-item + .lp-trust-item {
+  border-left: 1px solid rgba(167, 139, 250, 0.16);
+}
+
+.lp-trust-item b {
+  font-family: var(--lp-font-mono);
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.lp-trust-item b em {
+  font-style: normal;
+  color: #67e8f9;
+  text-shadow: 0 0 14px rgba(103, 232, 249, 0.45);
+}
+
+.lp-trust-item span {
+  color: var(--lp-text-dim);
+  font-family: var(--lp-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   FEATURES — BENTO GRID
+   ============================================================ */
+
+.lp-bento {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 18px;
+}
+
+.lp-bento > * {
+  min-width: 0;
+}
+
+.lp-cell {
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.lp-cell-wide {
+  grid-column: span 7;
+}
+
+.lp-cell-tall {
+  grid-column: span 5;
+  grid-row: span 2;
+}
+
+.lp-cell-third {
+  grid-column: span 4;
+}
+
+.lp-half {
+  grid-column: span 6;
+}
+
+.lp-cell-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  color: #ddd6fe;
+  background: linear-gradient(140deg, rgba(99, 102, 241, 0.32), rgba(139, 92, 246, 0.14));
+  border: 1px solid var(--lp-border-strong);
+}
+
+.lp-cell h3 {
+  margin: 0;
+  font-size: 18.5px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.lp-cell p {
+  margin: 0;
+  color: var(--lp-text-dim);
+  font-size: 14px;
+  line-height: 1.62;
+}
+
+/* Mini chat preview inside feature cell */
+.lp-mini-chat {
+  margin-top: auto;
+  display: grid;
+  gap: 9px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(4, 2, 12, 0.55);
+  border: 1px solid rgba(167, 139, 250, 0.14);
+}
+
+.lp-mini-bubble {
+  max-width: 78%;
+  padding: 9px 13px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  width: fit-content;
+}
+
+.lp-mini-them {
+  justify-self: start;
+  background: rgba(139, 92, 246, 0.16);
+  border: 1px solid rgba(139, 92, 246, 0.24);
+  color: #ede9fe;
+  border-bottom-left-radius: 4px;
+}
+
+.lp-mini-me {
+  justify-self: end;
+  background: linear-gradient(120deg, rgba(99, 102, 241, 0.85), rgba(139, 92, 246, 0.85));
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.lp-mini-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 7px;
+  color: rgba(255, 255, 255, 0.72);
+  vertical-align: -1px;
+}
+
+/* Presence row inside feature cell */
+.lp-presence-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(4, 2, 12, 0.45);
+  border: 1px solid rgba(167, 139, 250, 0.12);
+}
+
+.lp-presence-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  flex: 0 0 auto;
+}
+
+.lp-presence-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid #0a0618;
+}
+
+.lp-presence-dot.online {
+  background: var(--lp-success);
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+}
+
+.lp-presence-dot.off {
+  background: #475569;
+}
+
+.lp-presence-name {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.lp-presence-state {
+  margin-left: auto;
+  font-family: var(--lp-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lp-muted);
+}
+
+/* Call visual inside feature cell */
+.lp-call-visual {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 22px 16px;
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 30%, rgba(99, 102, 241, 0.16), rgba(4, 2, 12, 0.6));
+  border: 1px solid rgba(167, 139, 250, 0.14);
+}
+
+.lp-call-avatar {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 17px;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.18), 0 0 34px rgba(139, 92, 246, 0.4);
+}
+
+.lp-call-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 34px;
+}
+
+.lp-call-wave i {
+  width: 3px;
+  border-radius: 3px;
+  background: linear-gradient(to top, var(--lp-indigo), #67e8f9);
+  animation: lp-eq 1.05s ease-in-out infinite alternate;
+}
+
+.lp-call-wave i:nth-child(odd) { animation-duration: 0.75s; }
+
+/* Attachments visual */
+.lp-attach-row {
+  margin-top: auto;
+  display: grid;
+  gap: 10px;
+}
+
+.lp-attach-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(4, 2, 12, 0.5);
+  border: 1px solid rgba(167, 139, 250, 0.14);
+  font-size: 12.5px;
+}
+
+.lp-attach-chip svg {
+  color: #67e8f9;
+  flex: 0 0 auto;
+}
+
+.lp-attach-chip small {
+  display: block;
+  color: var(--lp-muted);
+  font-size: 10.5px;
+  font-family: var(--lp-font-mono);
+  letter-spacing: 0.08em;
+}
+
+/* Friend graph mini SVG */
+.lp-net-visual {
+  margin-top: auto;
+  padding: 8px 0 0;
+}
+
+.lp-net-visual svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Laptop/Desktop: the single stats card docks bottom-right, at the same
+   vertical level as the PINGME NETWORK · ONLINE card (bottom-left). */
+@media (min-width: 1100px) {
+  .lp-truststrip {
+    position: absolute;
+    right: clamp(18px, 4vw, 44px);
+    bottom: clamp(18px, 4vh, 40px);
+    z-index: 4;
+    margin-top: 0;
+    padding: 0;
+  }
+
+  /* The vertical SCROLL cue shares this exact corner with the stats
+     card, so it yields on desktop where the card now lives. */
+  .lp-scroll-cue {
+    display: none;
+  }
+
+  /* Fade away together with the other hero internals on scroll. */
+  .lp-hero.is-leaving ~ .lp-truststrip {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+}
+

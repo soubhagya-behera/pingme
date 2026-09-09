@@ -1,0 +1,367 @@
+/* ============================================================
+   HERO
+   ============================================================ */
+
+.lp-hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: clip;
+  isolation: isolate;
+}
+
+.lp-hero-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Parallax layer wrapper (mouse-reactive) */
+.lp-parallax {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  transform: translate3d(var(--par-x, 0), var(--par-y, 0), 0);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.lp-parallax-deep {
+  --par-mult: 0.5;
+}
+
+/* Subtle dark scrim so copy stays readable over the bright sunset.
+   Deliberately soft — keeps the scene cinematic. */
+.lp-hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 64% 48% at 50% 42%, rgba(4, 0, 14, 0.52), rgba(4, 0, 14, 0.24) 58%, transparent 80%),
+    linear-gradient(to bottom, rgba(4, 0, 14, 0.4) 0%, transparent 22%, transparent 66%, rgba(4, 0, 14, 0.45) 100%);
+}
+
+/* Palm silhouettes */
+.lp-palm {
+  position: absolute;
+  bottom: 24%;
+  width: clamp(180px, 24vw, 360px);
+  opacity: 0.9;
+  filter: drop-shadow(0 0 24px rgba(0, 0, 0, 0.65));
+}
+
+.lp-palm svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.lp-palm-left {
+  left: -40px;
+  transform: scaleX(-1) rotate(-4deg);
+}
+
+.lp-palm-right {
+  right: -30px;
+  transform: rotate(3deg);
+}
+
+/* Rotating geometric centerpiece above the horizon */
+.lp-beacon {
+  position: absolute;
+  left: 50%;
+  bottom: 33%;
+  translate: -50% 0;
+  display: grid;
+  place-items: center;
+}
+
+.lp-beacon-gem {
+  width: clamp(84px, 9vw, 128px);
+  aspect-ratio: 1;
+  perspective: 700px;
+  filter: drop-shadow(0 0 26px rgba(139, 92, 246, 0.75)) drop-shadow(0 0 70px rgba(99, 102, 241, 0.4));
+  animation: lp-float 7s ease-in-out infinite;
+}
+
+.lp-beacon-gem svg {
+  width: 100%;
+  height: 100%;
+  animation: lp-spin-y 16s linear infinite;
+  transform-style: preserve-3d;
+}
+
+.lp-beacon-rings {
+  position: absolute;
+  bottom: calc(-1 * clamp(30px, 4vw, 54px));
+  width: clamp(150px, 18vw, 260px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.35), inset 0 0 30px rgba(139, 92, 246, 0.25);
+}
+
+.lp-beacon-rings::before,
+.lp-beacon-rings::after {
+  content: "";
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  border: 1px dashed rgba(103, 232, 249, 0.35);
+  animation: lp-ripple 5s ease-out infinite;
+}
+
+.lp-beacon-rings::after {
+  animation-delay: 2.5s;
+}
+
+/* Floating signage chips */
+.lp-signage {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 181, 253, 0.32);
+  background: linear-gradient(150deg, rgba(30, 20, 66, 0.66), rgba(15, 10, 38, 0.55));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #ddd6fe;
+  font-family: var(--lp-font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-shadow:
+    1.5px 0 0 rgba(244, 114, 182, 0.5),
+    -1.5px 0 0 rgba(34, 211, 238, 0.5);
+  box-shadow: 0 10px 30px rgba(5, 1, 15, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  animation: lp-float var(--float-dur, 9s) ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+}
+
+.lp-signage svg {
+  color: var(--signage-accent, #a78bfa);
+}
+
+.lp-sign-major {
+  top: 17%;
+  left: 50%;
+  translate: -50% 0;
+  padding: 12px 22px;
+  font-size: 13px;
+  letter-spacing: 0.44em;
+  border-color: rgba(196, 181, 253, 0.55);
+  color: #fff;
+  text-shadow:
+    2px 0 0 rgba(244, 114, 182, 0.55),
+    -2px 0 0 rgba(34, 211, 238, 0.55),
+    0 0 22px rgba(139, 92, 246, 0.85);
+  background: linear-gradient(150deg, rgba(49, 27, 104, 0.72), rgba(20, 12, 48, 0.6));
+}
+
+/* Hero foreground content */
+.lp-hero-content {
+  position: relative;
+  z-index: 3;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 88px clamp(20px, 5vw, 48px) 220px;
+  text-align: center;
+}
+
+.lp-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(103, 232, 249, 0.35);
+  background: rgba(8, 20, 30, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #a5f3fc;
+  font-family: var(--lp-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.lp-hero-badge .pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--lp-success);
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+  animation: lp-pulse-ring 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.lp-hero-title {
+  margin: 18px 0 0;
+  /* Moderate two-line headline — clearly readable, smaller than original
+     oversized version, positioned above the sun. */
+  font-size: clamp(32px, 5vw, 64px);
+  line-height: 1.06;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  white-space: normal;
+  position: relative;
+  top: 0;
+}
+
+.lp-hero-title .chrome {
+  display: block;
+  background: linear-gradient(180deg, #ffffff 8%, #e0e7ff 34%, #a78bfa 56%, #6d28d9 74%, #f0abfc 96%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 6px 30px rgba(139, 92, 246, 0.45));
+}
+
+.lp-hero-tagline {
+  margin: 22px auto 0;
+  max-width: 640px;
+  color: var(--lp-text-dim);
+  font-size: clamp(16px, 2.2vw, 20px);
+  line-height: 1.6;
+  text-wrap: balance;
+  text-shadow: 0 2px 24px rgba(5, 1, 15, 0.9);
+}
+
+.lp-hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 38px;
+}
+
+.lp-hero-meta {
+  position: absolute;
+  left: 50%;
+  bottom: 24.5%;
+  translate: -50% 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 36px;
+  margin-top: 0;
+  color: #e9e4ff;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 18px rgba(5, 1, 15, 0.55);
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  background: rgba(10, 6, 24, 0.38);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 28px rgba(5, 1, 15, 0.28);
+  width: max-content;
+  max-width: calc(100% - 40px);
+  z-index: 3;
+}
+
+.lp-hero-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+}
+
+.lp-hero-meta svg {
+  color: #c4b5fd;
+  filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.45));
+  flex: 0 0 auto;
+}
+
+/* Digital status indicator */
+.lp-status-hud {
+  position: absolute;
+  z-index: 4;
+  left: clamp(18px, 4vw, 44px);
+  bottom: clamp(18px, 4vh, 40px);
+  /* Fixed dimensions so the stats card (.lp-truststrip-inner) can
+     match it exactly — same width, height and visual weight. */
+  width: 250px;
+  height: 84px;
+  align-content: center;
+  display: grid;
+  gap: 5px;
+  padding: 12px 16px;
+  border: 1px solid rgba(103, 232, 249, 0.22);
+  border-radius: 14px;
+  background: rgba(4, 8, 16, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--lp-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  color: #67e8f9;
+  text-align: left;
+  user-select: none;
+}
+
+.lp-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lp-status-row .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lp-success);
+  box-shadow: 0 0 8px var(--lp-success);
+  animation: lp-breathe 1.8s ease-in-out infinite;
+}
+
+.lp-status-clock {
+  color: #e0f2fe;
+  font-size: 15px;
+  letter-spacing: 0.3em;
+  font-variant-numeric: tabular-nums;
+}
+
+.lp-scroll-cue {
+  position: absolute;
+  z-index: 4;
+  right: clamp(18px, 4vw, 44px);
+  bottom: clamp(18px, 4vh, 40px);
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  color: var(--lp-muted);
+  font-family: var(--lp-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.34em;
+  writing-mode: vertical-rl;
+  user-select: none;
+}
+
+.lp-scroll-cue::after {
+  content: "";
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(to bottom, rgba(167, 139, 250, 0.8), transparent);
+  animation: lp-drop-line 2s ease-in-out infinite;
+}
+

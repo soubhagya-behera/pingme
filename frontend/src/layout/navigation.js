@@ -10,7 +10,7 @@ export const userMenus = [
     {
         icon: LayoutDashboard,
         label: "Dashboard",
-        path: "/"
+        path: "/dashboard"
     },
     {
         icon: MessageCircle,

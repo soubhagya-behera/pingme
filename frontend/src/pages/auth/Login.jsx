@@ -42,7 +42,7 @@ export default function Login() {
       );
 
       toast.success("Login Successful");
-      navigate(result.role === "ADMIN" ? "/admin" : "/");
+      navigate(result.role === "ADMIN" ? "/admin" : "/dashboard");
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Login Failed"

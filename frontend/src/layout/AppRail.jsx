@@ -18,7 +18,7 @@ export default function AppRail() {
         <aside className="app-rail">
 
             <NavLink
-                to={user?.role === "ADMIN" ? "/admin/dashboard" : "/"}
+                to={user?.role === "ADMIN" ? "/admin/dashboard" : "/dashboard"}
                 className="app-rail-brand"
                 data-tip="PingMe"
                 aria-label="PingMe home"
