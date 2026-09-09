@@ -47,7 +47,7 @@ export default function PasswordCard() {
     }
 
     return (
-        <form onSubmit={submit} className="settings-form settings-password-form space-y-6">
+        <form onSubmit={submit} className="settings-form settings-password-form">
             <Input
                 label="Current Password"
                 name="currentPassword"

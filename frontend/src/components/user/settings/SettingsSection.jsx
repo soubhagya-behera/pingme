@@ -10,9 +10,9 @@ export default function SettingsSection({
 
     return (
 
-        <div className="settings-section bg-[var(--card)] text-[var(--text)] rounded-3xl border border-[var(--border)] p-8 mb-8">
+        <div className="settings-section bg-[var(--card)] text-[var(--text)] rounded-3xl border border-[var(--border)]">
 
-            <div className="settings-section-heading mb-6">
+            <div className="settings-section-heading">
 
                 <h2 className="settings-section-title text-2xl font-semibold text-[var(--text)]">
 

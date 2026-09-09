@@ -1,6 +1,6 @@
 export default function SettingsHeader() {
     return (
-        <div className="settings-header mb-8">
+        <div className="settings-header">
             <h1 className="settings-title text-4xl font-bold text-[var(--text)]">
                 Settings
             </h1>
