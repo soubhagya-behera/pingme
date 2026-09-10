@@ -61,6 +61,7 @@ export default function Chat() {
         loadOlderMessages,
         closeConversation,
         paginationRef,
+        historyRequestRef,
     } = useChatHistory({
         selectedFriendRef,
         setSelectedFriend,
@@ -169,6 +170,43 @@ export default function Chat() {
         );
     }
 
+    function clearChat() {
+        if (!selectedFriend) return;
+        const targetFriendId = selectedFriend.id;
+        openConfirm(
+            {
+                title: "Clear chat?",
+                message: "Are you sure you want to clear this conversation? This will remove all messages from your chat history.",
+                confirmText: "Clear Chat",
+                cancelText: "Cancel",
+                confirmVariant: "danger"
+            },
+            async () => {
+                try {
+                    await ChatService.clearChat(targetFriendId);
+                    // Immediately reset all pagination / loading states so no stale "Loading older messages..." remains
+                    if (historyRequestRef) historyRequestRef.current += 1;
+                    setLoadingMore(false);
+                    setMessages([]);
+                    setHasMoreMessages(false);
+                    setHistoryLoaded(true);
+                    setPrependVersion(v => v + 1);
+                    paginationRef.current = { friendId: targetFriendId, nextPage: 0, hasMore: false, loading: false };
+                    // Optimistically clear preview/timestamp in sidebar; backend will confirm on refresh
+                    setFriends(prev => prev.map(item => item.id === targetFriendId ? { ...item, lastMessage: null, lastMessageTime: null, unreadCount: 0 } : item));
+                    search.resetMessageSearch();
+                    // Bump conversationKey to reset ChatMessages internal scroll/load refs without leaving conversation
+                    setConversationKey(`${targetFriendId}:cleared:${Date.now()}`);
+                    toast.success("Chat cleared.");
+                    loadChatSidebar();
+                } catch (error) {
+                    console.error(error);
+                    toast.error("Couldn't clear chat. Please try again.");
+                }
+            }
+        );
+    }
+
     if (loading) return <div className="flex justify-center items-center h-full">Loading chats...</div>;
 
     return (
@@ -195,7 +233,7 @@ export default function Chat() {
                                 jumpLoading={search.jumpLoading}
                             />
                         ) : (
-                            <ChatHeader friend={selectedFriend} onBack={closeConversation} onSearch={search.openMessageSearch} typing={selectedFriend ? typingUsers.has(selectedFriend.id) : false} />
+                            <ChatHeader friend={selectedFriend} onBack={closeConversation} onSearch={search.openMessageSearch} onClearChat={clearChat} typing={selectedFriend ? typingUsers.has(selectedFriend.id) : false} />
                         )}
                         {search.messageSearchOpen && (
                             <ChatSearchResults

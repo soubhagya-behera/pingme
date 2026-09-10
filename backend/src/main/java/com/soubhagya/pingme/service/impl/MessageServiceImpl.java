@@ -20,8 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.soubhagya.pingme.entity.ClearedConversation;
 import com.soubhagya.pingme.entity.Friend;
 import com.soubhagya.pingme.dto.response.ChatSidebarResponse;
+import com.soubhagya.pingme.repository.ClearedConversationRepository;
 import com.soubhagya.pingme.repository.HiddenMessageRepository;
 import com.soubhagya.pingme.dto.chat.ReplyPreview;
 import org.springframework.data.domain.Page;
@@ -39,6 +41,7 @@ public class MessageServiceImpl implements MessageService {
     private final UserRepository userRepository;
     private final FriendRepository friendRepository;
     private final HiddenMessageRepository hiddenMessageRepository;
+    private final ClearedConversationRepository clearedConversationRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -102,17 +105,14 @@ public class MessageServiceImpl implements MessageService {
 
                 );
 
-        Page<Message> messages =
-
-                messageRepository.getConversation(
-
-                        sender,
-
-                        receiver,
-
-                        pageable
-
-                );
+        java.util.Optional<ClearedConversation> clearedOpt = clearedConversationRepository.findByUserAndPeer(sender, receiver);
+        java.time.LocalDateTime clearedAt = clearedOpt.map(ClearedConversation::getClearedAt).orElse(null);
+        Page<Message> messages;
+        if (clearedAt != null) {
+            messages = messageRepository.getConversationAfter(sender, receiver, clearedAt, pageable);
+        } else {
+            messages = messageRepository.getConversation(sender, receiver, pageable);
+        }
 
         List<MessageResponse> response =
 
@@ -204,8 +204,15 @@ public class MessageServiceImpl implements MessageService {
                         Sort.by("sentAt").descending()
                 );
 
-        return messageRepository
-                .searchConversation(me, friend, pattern, pageable)
+        java.util.Optional<ClearedConversation> clearedOpt = clearedConversationRepository.findByUserAndPeer(me, friend);
+        java.time.LocalDateTime clearedAt = clearedOpt.map(ClearedConversation::getClearedAt).orElse(null);
+        List<Message> found;
+        if (clearedAt != null) {
+            found = messageRepository.searchConversationAfter(me, friend, pattern, clearedAt, pageable);
+        } else {
+            found = messageRepository.searchConversation(me, friend, pattern, pageable);
+        }
+        return found
                 .stream()
                 .filter(message ->
                         !hiddenMessageRepository.existsByMessageAndUser(
@@ -317,11 +324,24 @@ public List<RecentChatResponse> getRecentChats(String email) {
     List<Message> messages =
             messageRepository.findRecentMessages(user);
 
+    // Build cleared map per peer for this user
+    Map<Long, java.time.LocalDateTime> clearedMap = new HashMap<>();
+    for (ClearedConversation cc : clearedConversationRepository.findByUser(user)) {
+        clearedMap.put(cc.getPeer().getId(), cc.getClearedAt());
+    }
+
     List<RecentChatResponse> chats = new ArrayList<>();
 
     List<Long> addedUsers = new ArrayList<>();
 
     for (Message message : messages) {
+        // Skip messages that were cleared for this user
+        Long peerId = message.getSender().getId().equals(user.getId()) ? message.getReceiver().getId() : message.getSender().getId();
+        java.time.LocalDateTime clearedAt = clearedMap.get(peerId);
+        if (clearedAt != null && !message.getSentAt().isAfter(clearedAt)) {
+            continue;
+        }
+
 
         User friend;
 
@@ -383,6 +403,10 @@ public List<ChatSidebarResponse> getChatSidebar(String email) {
 
     List<Friend> friendships = friendRepository.findAllForUserWithUsers(me);
     List<Message> conversationMessages = messageRepository.findRecentMessages(me);
+    Map<Long, java.time.LocalDateTime> clearedMapSidebar = new HashMap<>();
+    for (ClearedConversation cc : clearedConversationRepository.findByUser(me)) {
+        clearedMapSidebar.put(cc.getPeer().getId(), cc.getClearedAt());
+    }
     Map<Long, Message> latestByFriend = new HashMap<>();
     Map<Long, Integer> unreadByFriend = new HashMap<>();
 
@@ -390,6 +414,10 @@ public List<ChatSidebarResponse> getChatSidebar(String email) {
         User otherUser = message.getSender().getId().equals(me.getId())
                 ? message.getReceiver() : message.getSender();
         if (otherUser.getId().equals(me.getId())) {
+            continue;
+        }
+        java.time.LocalDateTime clearedAt = clearedMapSidebar.get(otherUser.getId());
+        if (clearedAt != null && !message.getSentAt().isAfter(clearedAt)) {
             continue;
         }
         latestByFriend.putIfAbsent(otherUser.getId(), message);

@@ -58,12 +58,17 @@ void forwardMessage(
         String email
 );
 
-void setActiveConversation(
+    void clearChat(
         Long friendId,
         String email
 );
 
-void createCallHistoryMessage(
+    void setActiveConversation(
+        Long friendId,
+        String email
+);
+
+    void createCallHistoryMessage(
         String callerEmail,
         String receiverEmail,
         MessageType messageType,

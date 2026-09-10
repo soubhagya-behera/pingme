@@ -125,6 +125,12 @@ forwardMessage(messageId, receiverId) {
     );
 },
 
+clearChat(friendId) {
+    return api.delete(
+        `/chat/clear/${friendId}`
+    );
+},
+
 uploadFile(file, onProgress) {
     const formData = new FormData();
 

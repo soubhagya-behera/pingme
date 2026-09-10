@@ -8,6 +8,8 @@ import com.soubhagya.pingme.entity.Message;
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.enums.MessageStatus;
 import com.soubhagya.pingme.enums.MessageType;
+import com.soubhagya.pingme.entity.ClearedConversation;
+import com.soubhagya.pingme.repository.ClearedConversationRepository;
 import com.soubhagya.pingme.repository.FriendRepository;
 import com.soubhagya.pingme.repository.HiddenMessageRepository;
 import com.soubhagya.pingme.repository.MessageRepository;
@@ -43,6 +45,7 @@ public class ChatServiceImpl implements ChatService {
     private final SimpMessagingTemplate messagingTemplate;
     private final FriendRepository friendRepository;
     private final HiddenMessageRepository hiddenMessageRepository;
+    private final ClearedConversationRepository clearedConversationRepository;
     private final AttachmentStorageService attachmentStorageService;
     private final ImageStorageService imageStorageService;
     private final NotificationService notificationService;
@@ -785,6 +788,34 @@ public void forwardMessage(
         );
 
     });
+}
+
+@Override
+@Transactional
+public void clearChat(Long friendId, String email) {
+    User me = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+    User peer = userRepository.findById(friendId)
+            .orElseThrow(() -> new RuntimeException("Friend not found"));
+    if (me.getId().equals(peer.getId())) {
+        throw new IllegalArgumentException("You cannot clear chat with yourself.");
+    }
+    if (!friendRepository.existsByUserOneAndUserTwoOrUserOneAndUserTwo(me, peer, peer, me)) {
+        throw new RuntimeException("You can only clear chats with accepted friends.");
+    }
+    java.util.Optional<ClearedConversation> existing = clearedConversationRepository.findByUserAndPeer(me, peer);
+    ClearedConversation cleared;
+    if (existing.isPresent()) {
+        cleared = existing.get();
+        cleared.setClearedAt(LocalDateTime.now());
+    } else {
+        cleared = ClearedConversation.builder()
+                .user(me)
+                .peer(peer)
+                .clearedAt(LocalDateTime.now())
+                .build();
+    }
+    clearedConversationRepository.save(cleared);
 }
 
 @Override

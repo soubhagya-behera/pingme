@@ -265,4 +265,26 @@ public ResponseEntity<ApiResponse<String>> forwardMessage(
 
 }
 
+@DeleteMapping("/clear/{friendId}")
+public ResponseEntity<ApiResponse<String>> clearChat(
+
+        @PathVariable Long friendId,
+
+        Authentication authentication
+
+) {
+
+    chatService.clearChat(
+            friendId,
+            authentication.getName()
+    );
+
+    return ResponseEntity.ok(
+            ApiResponse.success(
+                    "Chat cleared successfully."
+            )
+    );
+
+}
+
 }

@@ -50,6 +50,37 @@ AND m.deletedForEveryone = false
     @Query("""
 SELECT m
 FROM Message m
+LEFT JOIN FETCH m.replyTo replyTo
+LEFT JOIN FETCH replyTo.sender
+JOIN FETCH m.sender
+JOIN FETCH m.receiver
+WHERE
+(
+    (
+        m.sender = :user1
+        AND
+        m.receiver = :user2
+    )
+    OR
+    (
+        m.sender = :user2
+        AND
+        m.receiver = :user1
+    )
+)
+AND m.deletedForEveryone = false
+AND m.sentAt > :clearedAt
+""")
+    Page<Message> getConversationAfter(
+            @Param("user1") User user1,
+            @Param("user2") User user2,
+            @Param("clearedAt") java.time.LocalDateTime clearedAt,
+            Pageable pageable
+    );
+
+    @Query("""
+SELECT m
+FROM Message m
 JOIN FETCH m.sender
 JOIN FETCH m.receiver
 WHERE
@@ -144,6 +175,33 @@ ORDER BY m.sentAt DESC
             @Param("me") User me,
             @Param("friend") User friend,
             @Param("pattern") String pattern,
+            Pageable pageable
+    );
+
+    @Query("""
+SELECT m
+FROM Message m
+LEFT JOIN FETCH m.replyTo replyTo
+LEFT JOIN FETCH replyTo.sender
+JOIN FETCH m.sender
+JOIN FETCH m.receiver
+WHERE
+(
+    (m.sender = :me AND m.receiver = :friend)
+    OR
+    (m.sender = :friend AND m.receiver = :me)
+)
+AND m.deletedForEveryone = false
+AND m.sentAt > :clearedAt
+AND m.content IS NOT NULL
+AND LOWER(m.content) LIKE LOWER(:pattern) ESCAPE '\\'
+ORDER BY m.sentAt DESC
+""")
+    List<Message> searchConversationAfter(
+            @Param("me") User me,
+            @Param("friend") User friend,
+            @Param("pattern") String pattern,
+            @Param("clearedAt") java.time.LocalDateTime clearedAt,
             Pageable pageable
     );
 
