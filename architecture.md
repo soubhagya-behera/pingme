@@ -7,7 +7,7 @@ WebSocket / STOMP
 Spring Boot Backend
        |
        |
-MySQL Database
+PostgreSQL Database
 
 Modules:
 

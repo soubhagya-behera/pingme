@@ -27,6 +27,7 @@ import com.soubhagya.pingme.dto.chat.TypingEvent;
 import org.springframework.web.bind.annotation.PutMapping;
 
 import com.soubhagya.pingme.dto.request.EditMessageRequest;
+import com.soubhagya.pingme.dto.request.BulkDeleteRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import com.soubhagya.pingme.dto.request.ForwardMessageRequest;
 
@@ -46,17 +47,23 @@ public ResponseEntity<?> sendHttpMessage(
 
 ) {
 
-    chatService.sendMessage(
+    ChatMessage saved = chatService.sendMessageAndReturn(message, authentication.getName());
 
-            message,
-
-            authentication.getName()
-
-    );
-
-    return ResponseEntity.ok().build();
+    return ResponseEntity.ok(ApiResponse.success("Message sent", saved));
 
 }
+
+    @PostMapping("/sync")
+    public ResponseEntity<?> syncMessage(@RequestBody ChatMessage message, Authentication authentication) {
+        ChatMessage saved = chatService.syncMessage(message, authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("Message synced", saved));
+    }
+
+    @PostMapping("/sync/batch")
+    public ResponseEntity<?> syncBatch(@RequestBody java.util.List<ChatMessage> messages, Authentication authentication) {
+        java.util.List<ChatMessage> saved = chatService.syncMessages(messages, authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("Messages synced", saved));
+    }
 
     @MessageMapping("/chat.send")
     public void sendMessage(
@@ -205,6 +212,38 @@ public ResponseEntity<ApiResponse<Void>> deleteForMe(
             )
     );
 
+}
+
+@DeleteMapping("/messages/bulk")
+public ResponseEntity<ApiResponse<String>> bulkDelete(
+        @RequestBody BulkDeleteRequest request,
+        Authentication authentication
+) {
+    chatService.bulkDelete(
+            request.getMessageIds(),
+            authentication.getName()
+    );
+    return ResponseEntity.ok(
+            ApiResponse.success(
+                    "Messages deleted successfully."
+            )
+    );
+}
+
+@PostMapping("/messages/bulk-delete")
+public ResponseEntity<ApiResponse<String>> bulkDeletePost(
+        @RequestBody BulkDeleteRequest request,
+        Authentication authentication
+) {
+    chatService.bulkDelete(
+            request.getMessageIds(),
+            authentication.getName()
+    );
+    return ResponseEntity.ok(
+            ApiResponse.success(
+                    "Messages deleted successfully."
+            )
+    );
 }
 
 @PostMapping("/messages/{messageId}/forward")

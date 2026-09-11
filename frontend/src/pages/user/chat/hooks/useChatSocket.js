@@ -1,5 +1,18 @@
 import { useEffect } from "react";
 import { acknowledgeRead } from "../../../../websocket/publisher";
+import { removePending, getAllHistoryCacheForOwner, setHistoryCacheForOwner } from "../../../../offline/db";
+
+function getOwnerId() {
+  try {
+    const v = localStorage.getItem("userId");
+    if (v && v !== "null" && v !== "undefined") return Number(v);
+  } catch {}
+  try {
+    const raw = localStorage.getItem("user");
+    if (raw) { const u = JSON.parse(raw); if (u?.id != null) return Number(u.id); }
+  } catch {}
+  return null;
+}
 
 export default function useChatSocket({
     socket,
@@ -50,6 +63,19 @@ export default function useChatSocket({
             setMessages(previous =>
                 previous.filter(message => message.id !== event.messageId)
             );
+            // Evict from history cache as well so offline refresh doesn't resurrect — scoped to current owner
+            const ownerId = getOwnerId();
+            if (ownerId != null) {
+              getAllHistoryCacheForOwner(ownerId).then(caches => {
+                  (caches||[]).forEach(c => {
+                      if (c.messages?.some(m=> m.id===event.messageId)) {
+                          const filtered = c.messages.filter(m=> m.id!==event.messageId);
+                          setHistoryCacheForOwner(ownerId, c.friendId, { ...c, messages: filtered }).catch(()=>{});
+                      }
+                  });
+              }).catch(()=>{});
+            }
+            removePending(String(event.messageId)).catch(()=>{});
         });
         return unsubscribe;
     }, [socket, setMessages]);
@@ -68,7 +94,10 @@ export default function useChatSocket({
             setMessages(previous => {
                 const optimisticIndex = previous.findIndex(item => item.clientId && item.clientId === incoming.clientId);
                 if (optimisticIndex !== -1) {
-                    const next = [...previous]; next[optimisticIndex] = incoming; return next;
+                    const next = [...previous]; next[optimisticIndex] = incoming;
+                    // Clean IndexedDB outbox if this was a pending offline message
+                    if (incoming.clientId) { removePending(incoming.clientId).catch(()=>{}); }
+                    return next;
                 }
                 if (!isOpenConversation || previous.some(item => item.id === incoming.id)) return previous;
                 return [...previous, incoming];

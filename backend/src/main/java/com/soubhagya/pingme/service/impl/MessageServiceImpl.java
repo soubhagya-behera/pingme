@@ -231,6 +231,7 @@ public class MessageServiceImpl implements MessageService {
                 .id(
                         message.getId()
                 )
+                .clientMessageId(message.getClientMessageId())
                 .senderId(
                         message.getSender().getId()
                 )

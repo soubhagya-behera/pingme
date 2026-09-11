@@ -214,3 +214,35 @@
 @media (max-width:767px) { .chat-search-bar { gap:7px; padding-right:8px; padding-left:4px; }.chat-header-back.is-visible { width:38px; height:38px; }.chat-search-count { max-width:96px; }.chat-search-nav-button { width:38px; height:38px; }.chat-search-results-overlay { right:8px; left:8px; top:70px; max-height:min(44vh, 320px); padding:8px; border-radius:14px; } }
 @media (max-width:380px) { .chat-search-results-overlay { top:64px; max-height:min(46vh, 300px); }.chat-search-count { max-width:72px; } }
 @media (prefers-reduced-motion:reduce) { .chat-search-spinner { animation:none; } }
+
+/* ==========================================
+   MESSAGE SELECTION MODE (WhatsApp-like)
+   ========================================== */
+.chat-header.is-select-mode{background:var(--card)}
+.chat-header.is-select-mode .chat-header-person h2{font-size:15px;font-weight:600}
+.chat-select-indicator{display:flex;align-items:center;justify-content:center;width:28px;flex:0 0 28px;align-self:center}
+.chat-select-circle{width:20px;height:20px;border:2px solid var(--border);border-radius:50%;background:var(--card);display:grid;place-items:center;transition:all .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.chat-select-circle.is-checked{background:var(--primary);border-color:var(--primary);box-shadow:0 2px 6px color-mix(in srgb, var(--primary) 30%, transparent)}
+.chat-message-row.is-select-mode{cursor:pointer}
+.chat-message-row.is-select-mode:hover .chat-bubble{filter:brightness(0.98)}
+.chat-message-row.is-selected .chat-bubble{box-shadow:0 0 0 2px color-mix(in srgb, var(--primary) 55%, transparent), 0 5px 16px color-mix(in srgb, var(--text) 8%, transparent)}
+.chat-message-row.is-selected .chat-bubble.is-mine{box-shadow:0 0 0 2px color-mix(in srgb, var(--primary) 60%, transparent), 0 8px 20px color-mix(in srgb, var(--primary) 18%, transparent)}
+.chat-message-row.is-select-mode .chat-bubble{transition:box-shadow .18s ease, filter .18s ease}
+.chat-message-row.is-call-history.is-select-mode{cursor:pointer;display:flex;align-items:center;gap:10px;padding:6px 0}
+.chat-message-row.is-call-history.is-selected{opacity:.92}
+@media (max-width:767px){
+  .chat-select-indicator{width:24px;flex-basis:24px}
+  .chat-select-circle{width:18px;height:18px}
+  .chat-header.is-select-mode{padding:8px 10px}
+}
+/* Offline-first banner - subtle overlay below sticky header, not consuming layout */
+.offline-banner{position:absolute;left:50%;top:84px;transform:translateX(-50%);z-index:6;display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em;box-shadow:0 4px 14px rgba(0,0,0,.12);border:1px solid var(--border);max-width:calc(100% - 24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.offline-banner.is-offline{color:#7a5a00;background:#fff7d6;border-color:#ffe9a8}
+.offline-banner.is-syncing{color:#0f4c8c;background:#e0efff;border-color:#bcd7ff}
+.offline-banner.is-synced{color:#0d5a2e;background:#d9f5e0;border-color:#b6e8c0}
+.chat-conversation-pane{position:relative}
+.chat-pending-dot{font-size:10px;opacity:.9}
+.chat-pending-dot.is-syncing{animation:offline-spin 1s linear infinite;display:inline-block}
+@keyframes offline-spin{to{transform:rotate(360deg)}}
+@media (max-width:767px){.offline-banner{top:70px;font-size:10px;padding:4px 8px;max-width:calc(100% - 16px)}}
+@media (max-width:393px){.offline-banner{top:68px;font-size:10px;padding:4px 8px}}

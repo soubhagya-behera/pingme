@@ -68,6 +68,14 @@ const ChatService = {
 
     },
 
+    syncMessage(data) {
+        return api.post("/chat/sync", data);
+    },
+
+    syncBatch(messages) {
+        return api.post("/chat/sync/batch", messages);
+    },
+
 markConversationRead(friendId) {
 
     return api.post(
@@ -128,6 +136,13 @@ forwardMessage(messageId, receiverId) {
 clearChat(friendId) {
     return api.delete(
         `/chat/clear/${friendId}`
+    );
+},
+
+bulkDelete(messageIds) {
+    return api.post(
+        `/chat/messages/bulk-delete`,
+        { messageIds }
     );
 },
 

@@ -15,6 +15,8 @@ public class MessageResponse {
 
     private Long id;
 
+    private String clientMessageId;
+
     private Long senderId;
 
     private Long receiverId;

@@ -205,4 +205,8 @@ ORDER BY m.sentAt DESC
             Pageable pageable
     );
 
+    java.util.Optional<Message> findBySenderAndClientMessageId(User sender, String clientMessageId);
+
+    boolean existsBySenderAndClientMessageId(User sender, String clientMessageId);
+
 }

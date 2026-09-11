@@ -53,7 +53,18 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional
-    public void sendMessage(ChatMessage request, String senderEmail) {
+    public ChatMessage sendMessageAndReturn(ChatMessage request, String senderEmail) {
+        // Idempotency: if clientId already processed, return existing without duplicating
+        if (request.getClientId() != null && !request.getClientId().isBlank()) {
+            User senderForLookup = userRepository.findByEmail(senderEmail).orElse(null);
+            if (senderForLookup != null) {
+                java.util.Optional<Message> existing = messageRepository.findBySenderAndClientMessageId(senderForLookup, request.getClientId());
+                if (existing.isPresent()) {
+                    return toEvent(existing.get(), request.getClientId());
+                }
+            }
+        }
+        // proceed to normal send but capture saved entity
         User sender = userRepository.findByEmail(senderEmail).orElseThrow(() -> new RuntimeException("Sender not found"));
         User receiver = userRepository.findById(request.getReceiverId()).orElseThrow(() -> new RuntimeException("Receiver not found"));
         if (sender.getId().equals(receiver.getId())) {
@@ -62,14 +73,12 @@ public class ChatServiceImpl implements ChatService {
         if (!friendRepository.existsByUserOneAndUserTwoOrUserOneAndUserTwo(sender, receiver, receiver, sender)) {
             throw new RuntimeException("You can only chat with accepted friends.");
         }
-
         MessageType type;
         try {
             type = request.getMessageType() == null ? MessageType.TEXT : MessageType.valueOf(request.getMessageType());
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException("Unsupported message type.");
         }
-
         String content = request.getContent() == null ? "" : request.getContent().trim();
         if (content.length() > 4000) throw new IllegalArgumentException("Message is too long.");
         boolean hasAttachment = request.getAttachmentUrl() != null && !request.getAttachmentUrl().isBlank();
@@ -78,19 +87,8 @@ public class ChatServiceImpl implements ChatService {
                     ? MessageType.IMAGE : MessageType.FILE;
         }
         if (type == MessageType.TEXT && content.isBlank()) throw new IllegalArgumentException("Message cannot be empty.");
-
-        if (
-                type != MessageType.TEXT
-                &&
-                (
-                        request.getAttachmentUrl() == null
-                                ||
-                        request.getAttachmentUrl().isBlank()
-                )
-        ) {
-            throw new RuntimeException(
-                    "Attachment is required."
-            );
+        if (type != MessageType.TEXT && (request.getAttachmentUrl() == null || request.getAttachmentUrl().isBlank())) {
+            throw new RuntimeException("Attachment is required.");
         }
         if (type != MessageType.TEXT && !isManagedAttachment(request)) {
             throw new IllegalArgumentException("Invalid attachment URL.");
@@ -98,72 +96,73 @@ public class ChatServiceImpl implements ChatService {
         if (request.getAttachmentUrl() != null && request.getAttachmentUrl().startsWith("/uploads/chat-files/")) {
             validateGenericAttachmentMetadata(request);
         }
-
         if (type == MessageType.VOICE) {
-            if (request.getAttachmentMimeType() == null
-                    || !request.getAttachmentMimeType().startsWith("audio/")) {
+            if (request.getAttachmentMimeType() == null || !request.getAttachmentMimeType().startsWith("audio/")) {
                 throw new IllegalArgumentException("Unsupported audio format.");
             }
-            if (request.getAttachmentDuration() != null
-                    && (request.getAttachmentDuration() < 1 || request.getAttachmentDuration() > 300)) {
+            if (request.getAttachmentDuration() != null && (request.getAttachmentDuration() < 1 || request.getAttachmentDuration() > 300)) {
                 throw new IllegalArgumentException("Voice message duration is invalid.");
             }
         }
-
-        Message.MessageBuilder builder =
-                Message.builder()
-                        .sender(sender)
-                        .receiver(receiver)
-                        .content(content)
-                        .attachmentUrl(
-                                request.getAttachmentUrl()
-                        )
-                        .attachmentName(
-                                request.getAttachmentName()
-                        )
-                        .attachmentSize(
-                                request.getAttachmentSize()
-                        )
-                        .attachmentMimeType(
-                                request.getAttachmentMimeType()
-                        )
-                        .attachmentDuration(
-                                request.getAttachmentDuration()
-                        )
-                        .messageType(type)
-                        .status(MessageStatus.SENT)
-                        .sentAt(LocalDateTime.now());
-
+        Message.MessageBuilder builder = Message.builder()
+                .sender(sender).receiver(receiver).content(content)
+                .attachmentUrl(request.getAttachmentUrl())
+                .attachmentName(request.getAttachmentName())
+                .attachmentSize(request.getAttachmentSize())
+                .attachmentMimeType(request.getAttachmentMimeType())
+                .attachmentDuration(request.getAttachmentDuration())
+                .messageType(type).status(MessageStatus.SENT).sentAt(LocalDateTime.now())
+                .clientMessageId(request.getClientId());
         if (request.getReplyToId() != null) {
-            Message replyMessage = messageRepository.findById(request.getReplyToId())
-                    .orElseThrow(() -> new RuntimeException("Reply message not found"));
-
-            boolean validConversation =
-                    (replyMessage.getSender().getId().equals(sender.getId())
-                            && replyMessage.getReceiver().getId().equals(receiver.getId()))
-                    ||
-                    (replyMessage.getSender().getId().equals(receiver.getId())
-                            && replyMessage.getReceiver().getId().equals(sender.getId()));
-
-            if (!validConversation) {
-                throw new RuntimeException("Invalid reply message.");
-            }
-
+            Message replyMessage = messageRepository.findById(request.getReplyToId()).orElseThrow(() -> new RuntimeException("Reply message not found"));
+            boolean validConversation = (replyMessage.getSender().getId().equals(sender.getId()) && replyMessage.getReceiver().getId().equals(receiver.getId()))
+                    || (replyMessage.getSender().getId().equals(receiver.getId()) && replyMessage.getReceiver().getId().equals(sender.getId()));
+            if (!validConversation) throw new RuntimeException("Invalid reply message.");
             builder.replyTo(replyMessage);
         }
-
-        Message saved = messageRepository.save(builder.build());
-
+        Message saved;
+        try {
+            saved = messageRepository.save(builder.build());
+            messageRepository.flush();
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // Race condition: another request with same clientMessageId was inserted concurrently
+            java.util.Optional<Message> dup = messageRepository.findBySenderAndClientMessageId(sender, request.getClientId());
+            if (dup.isPresent()) return toEvent(dup.get(), request.getClientId());
+            throw ex;
+        }
         notifyReceiverAboutNewMessage(receiver, sender, saved);
-
         ChatMessage event = toEvent(saved, request.getClientId());
         String senderEmailForDelivery = sender.getEmail();
         String receiverEmailForDelivery = receiver.getEmail();
-
         afterCommit(() -> {
             messagingTemplate.convertAndSendToUser(senderEmailForDelivery, "/queue/messages", event);
             messagingTemplate.convertAndSendToUser(receiverEmailForDelivery, "/queue/messages", event);
         });
+        return event;
+    }
+
+    @Override
+    @Transactional
+    public ChatMessage syncMessage(ChatMessage request, String senderEmail) {
+        return sendMessageAndReturn(request, senderEmail);
+    }
+
+    @Override
+    @Transactional
+    public java.util.List<ChatMessage> syncMessages(java.util.List<ChatMessage> requests, String senderEmail) {
+        if (requests == null || requests.isEmpty()) return List.of();
+        // Preserve sender order: sort by sentAt if provided, otherwise keep input order
+        java.util.List<ChatMessage> results = new java.util.ArrayList<>();
+        for (ChatMessage req : requests) {
+            results.add(sendMessageAndReturn(req, senderEmail));
+        }
+        return results;
+    }
+
+    @Override
+    @Transactional
+    public void sendMessage(ChatMessage request, String senderEmail) {
+        sendMessageAndReturn(request, senderEmail);
     }
 
     private static final long EDIT_WINDOW_MINUTES = 15;
@@ -626,6 +625,76 @@ public class ChatServiceImpl implements ChatService {
                         .build();
 
         hiddenMessageRepository.save(hiddenMessage);
+    }
+
+    @Override
+    @Transactional
+    public void bulkDelete(java.util.List<Long> messageIds, String email) {
+        if (messageIds == null || messageIds.isEmpty()) {
+            throw new IllegalArgumentException("No messages selected.");
+        }
+        // Deduplicate
+        java.util.List<Long> distinctIds = messageIds.stream().distinct().toList();
+        User me = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        for (Long messageId : distinctIds) {
+            Message message = messageRepository.findById(messageId).orElse(null);
+            if (message == null) continue;
+            // Permission: must be participant
+            boolean isParticipant = message.getSender().getId().equals(me.getId())
+                    || message.getReceiver().getId().equals(me.getId());
+            if (!isParticipant) continue;
+
+            // Hard delete for any participant message (follows Delete for Everyone architecture)
+            // Nullify replies that reference this message
+            java.util.List<Message> referencing = messageRepository.findByReplyTo(message);
+            for (Message ref : referencing) {
+                ref.setReplyTo(null);
+            }
+            if (!referencing.isEmpty()) {
+                messageRepository.saveAll(referencing);
+            }
+            hiddenMessageRepository.deleteByMessage(message);
+
+            String attachmentUrl = message.getAttachmentUrl();
+            if (attachmentUrl != null && !attachmentUrl.isBlank()) {
+                try {
+                    if (attachmentUrl.startsWith("/uploads/chat-images/")) {
+                        if (imageStorageService.isManagedImage(attachmentUrl)) {
+                            long otherRefs = messageRepository.countByAttachmentUrlAndIdNot(attachmentUrl, messageId);
+                            if (otherRefs == 0) {
+                                imageStorageService.delete(attachmentUrl);
+                            }
+                        }
+                    } else if (attachmentUrl.startsWith("/uploads/chat-files/")) {
+                        if (attachmentStorageService.isManagedAttachment(attachmentUrl)) {
+                            long otherRefs = messageRepository.countByAttachmentUrlAndIdNot(attachmentUrl, messageId);
+                            if (otherRefs == 0) {
+                                attachmentStorageService.delete(attachmentUrl);
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
+            String senderEmail = message.getSender().getEmail();
+            String receiverEmail = message.getReceiver().getEmail();
+
+            messageRepository.delete(message);
+            messageRepository.flush();
+
+            MessageDeletedEvent event = MessageDeletedEvent.builder()
+                    .messageId(messageId)
+                    .build();
+
+            // Capture emails for afterCommit closure
+            String sEmail = senderEmail;
+            String rEmail = receiverEmail;
+            afterCommit(() -> {
+                messagingTemplate.convertAndSendToUser(sEmail, "/queue/message-deleted", event);
+                messagingTemplate.convertAndSendToUser(rEmail, "/queue/message-deleted", event);
+            });
+        }
     }
 
     @Override

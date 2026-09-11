@@ -5,6 +5,7 @@ import {
 
 }
 from "../websocket/socket";
+import * as offlineDB from "../offline/db";
 
 const AuthContext = createContext();
 
@@ -71,6 +72,11 @@ export function AuthProvider({ children }) {
 
     }, [user]);
 
+    // On mount, purge any pre-fix orphaned offline data that was stored without owner scoping
+    useEffect(() => {
+        offlineDB.purgeOrphanedData?.().catch(()=>{});
+    }, []);
+
     const login = (
 
     userData,
@@ -85,19 +91,24 @@ export function AuthProvider({ children }) {
         throw new Error("Login response did not contain a valid token.");
     }
 
+    const newUserId = String(userData.id);
+    const prevUserId = localStorage.getItem("userId");
+    // If switching accounts, disconnect any previous socket immediately
+    if (prevUserId && prevUserId !== newUserId) {
+        try { disconnectSocket(); } catch {}
+    }
+
+    // Atomically persist new identity before React state updates
     localStorage.setItem("token", jwtToken);
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("userId", newUserId);
 
     setUser(userData);
 
     setToken(jwtToken);
 
-    localStorage.setItem(
-
-        "userId",
-
-        userData.id
-
-    );
+    // Purge orphaned pre-fix IndexedDB data that could leak across accounts (async, best-effort)
+    offlineDB.purgeOrphanedData?.().catch(()=>{});
 
 };
 
@@ -111,11 +122,14 @@ export function AuthProvider({ children }) {
 
         disconnectSocket();
 
+    // Synchronously clear ALL auth-related storage so no stale identity survives
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
+
     setUser(null);
 
     setToken(null);
-
-    localStorage.removeItem("userId");
 
 };
 

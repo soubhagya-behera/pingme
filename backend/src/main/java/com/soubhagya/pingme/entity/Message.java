@@ -8,7 +8,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "messages")
+@Table(name = "messages", uniqueConstraints = @UniqueConstraint(columnNames = {"sender_id", "client_message_id"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -71,7 +71,10 @@ private Boolean deletedForEveryone = false;
 
 private LocalDateTime deletedAt;
 
-@Column(nullable = false)
+    @Column(nullable = false)
 @Builder.Default
 private Boolean forwarded = false;
+
+@Column(name = "client_message_id")
+private String clientMessageId;
 }

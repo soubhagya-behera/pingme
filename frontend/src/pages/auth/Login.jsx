@@ -27,7 +27,8 @@ export default function Login() {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const response = await AuthService.login(data);
+      const sanitized = { ...data, email: typeof data.email === "string" ? data.email.trim() : data.email };
+      const response = await AuthService.login(sanitized);
       const result = response.data.data;
 
       login(

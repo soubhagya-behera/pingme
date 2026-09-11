@@ -15,6 +15,8 @@ import toast from "react-hot-toast";
 import ChatService from "../../../services/ChatService";
 import { sendTyping, sendStopTyping } from "../../../websocket/publisher";
 import { useVoiceRecorder } from "./useVoiceRecorder";
+import { enqueueMessage, syncPendingMessages } from "../../../offline/syncQueue";
+import { removePending } from "../../../offline/db";
 
 function formatTimer(totalSeconds) {
     const seconds = Math.floor(totalSeconds);
@@ -145,41 +147,78 @@ export default function ChatInput({
             return;
         }
 
+        const clientId = uuid();
+        const createdAt = new Date().toISOString();
         const payload = {
-            clientId: uuid(),
+            clientId,
             receiverId: friend.id,
             content: message.trim(),
             messageType: "TEXT",
             replyToId: replyingTo?.id
         };
 
+        const trimmedContent = message.trim();
         setMessage("");
 
         stopTyping();
 
         const optimisticMessage = {
-                id: payload.clientId,
+                id: clientId,
+                clientId,
                 ...payload,
                 senderId: Number(localStorage.getItem("userId")),
-                status: "SENDING",
-            sentAt: new Date().toISOString()
+                status: "PENDING",
+                createdAt,
+                sentAt: createdAt
             };
         if (replyingTo) optimisticMessage.reply = replyingTo;
         onMessageSent?.(optimisticMessage);
+        const replyToClear = replyingTo;
+        clearReply?.();
 
+        // Persist to IndexedDB outbox (survives refresh)
         try {
-            await ChatService.sendMessage(payload);
+            await enqueueMessage({
+                clientMessageId: clientId,
+                conversationId: friend.id,
+                senderId: Number(localStorage.getItem("userId")),
+                receiverId: friend.id,
+                content: trimmedContent,
+                messageType: "TEXT",
+                replyToId: replyToClear?.id ?? null,
+                createdAt,
+            });
+        } catch (e) { console.error("outbox enqueue failed", e); }
 
-            clearReply?.();
-
-        } catch (err) {
-            console.error(err);
-
-            onMessageSent?.({ ...optimisticMessage, status: "FAILED", failed: true });
-
-            setMessage(payload.content);
-
-            toast.error("Message failed to send.");
+        // If online, try immediate sync; offline will sync later automatically
+        if (navigator.onLine) {
+            try {
+                const resp = await ChatService.syncMessage(payload);
+                const serverMsg = resp?.data?.data ?? resp?.data;
+                if (serverMsg) {
+                    onMessageSent?.({ ...optimisticMessage, ...serverMsg, status: serverMsg.status || "SENT" });
+                }
+                // Remove from pending store - direct sync succeeded
+                try { await removePending(clientId); } catch {}
+            } catch (err) {
+                // Network failure => keep PENDING, syncQueue will retry when back online
+                // Don't show error toast, don't revert input
+                if (err?.response) {
+                    console.error(err);
+                    onMessageSent?.({ ...optimisticMessage, status: "FAILED", failed: false });
+                    toast.error(err?.response?.data?.message || "Message failed to send.");
+                    // remove from queue since server rejected
+                    try { await removePending(clientId); } catch {}
+                } else {
+                    // offline / network error: keep pending silently
+                    onMessageSent?.({ ...optimisticMessage, status: "PENDING" });
+                    // trigger background sync if connection returns shortly
+                    syncPendingMessages().catch(()=>{});
+                }
+            }
+        } else {
+            // Offline: keep PENDING, will sync on reconnect
+            syncPendingMessages().catch(()=>{});
         }
     }
 

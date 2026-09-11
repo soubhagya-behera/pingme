@@ -24,7 +24,10 @@ export default function ChatMessages({
   highlightQuery = "",
   searchActive = false,
   scrollToMessageId = null,
-  scrollToMessageVersion = 0
+  scrollToMessageVersion = 0,
+  selectionMode = false,
+  selectedIds = null,
+  onToggleSelect = null,
 }) {
   const { user } = useAuth();
   const containerRef = useRef(null);
@@ -156,17 +159,22 @@ export default function ChatMessages({
 
   // Defensive filter: legacy soft-deleted rows (deletedForEveryone=true) must not render as placeholders
   const visibleMessages = messages.filter(m => !m.deletedForEveryone);
-  return <section ref={containerRef} onScroll={handleScroll} className="chat-messages" aria-label="Messages">
+  return <section ref={containerRef} onScroll={handleScroll} className={`chat-messages ${selectionMode ? "is-select-mode" : ""}`} aria-label="Messages">
     {loadingMore && hasMoreMessages && visibleMessages.length > 0 && <div className="chat-loading-more">Loading older messages...</div>}
     {visibleMessages.length === 0 ? <div className="chat-messages-empty"><div className="chat-messages-empty-inner"><p className="chat-messages-empty-title">No messages yet</p><span>Start a new conversation 👋</span></div></div> : visibleMessages.map((message, index) => {
       const currentDate = new Date(message.sentAt).toDateString();
       const previousDate = index === 0 ? null : new Date(visibleMessages[index - 1].sentAt).toDateString();
+      const isSelected = selectionMode && selectedIds != null && selectedIds.has(message.id);
       return <React.Fragment key={message.id}>
         {currentDate !== previousDate && <DateSeparator date={message.sentAt} />}
         <MessageBubble message={message} mine={message.senderId === user.id} text={message.content} time={message.sentAt} status={message.status}
           isHighlighted={highlightedId != null && message.id === highlightedId}
           highlightQuery={searchActive ? highlightQuery : ""}
-          onReply={onReply} onEdit={onEdit} onDelete={onDelete} onDeleteMe={onDeleteMe} onForward={onForward} />
+          onReply={onReply} onEdit={onEdit} onDelete={onDelete} onDeleteMe={onDeleteMe} onForward={onForward}
+          selectionMode={selectionMode}
+          isSelected={isSelected}
+          onToggleSelect={onToggleSelect}
+          />
       </React.Fragment>;
     })}
   </section>;

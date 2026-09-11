@@ -47,12 +47,17 @@ void deleteForEveryone(
         String email
 );
 
-void deleteForMe(
+    void deleteForMe(
         Long messageId,
         String email
 );
 
-void forwardMessage(
+    void bulkDelete(
+        java.util.List<Long> messageIds,
+        String email
+);
+
+    void forwardMessage(
         Long messageId,
         Long receiverId,
         String email
@@ -75,5 +80,11 @@ void forwardMessage(
         String content,
         LocalDateTime endedAt
 );
+
+    ChatMessage sendMessageAndReturn(ChatMessage message, String email);
+
+    ChatMessage syncMessage(ChatMessage message, String email);
+
+    java.util.List<ChatMessage> syncMessages(java.util.List<ChatMessage> messages, String email);
 
 }
