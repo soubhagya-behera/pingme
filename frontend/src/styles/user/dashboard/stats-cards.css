@@ -166,29 +166,65 @@ grid-template-columns:repeat(2,1fr);
 
 grid-template-columns:1fr;
 
-gap:16px;
+gap:12px;
+
+margin-top:12px;
 
 }
 
 .dashboard-stat-card{
 
-padding:22px;
+padding:16px 18px;
+
+border-radius:20px;
 
 }
 
-.dashboard-value{
+.dashboard-stat-top{
 
-font-size:36px;
+margin-bottom:12px;
 
 }
 
 .dashboard-stat-icon{
 
-width:48px;
+width:40px;
 
-height:48px;
+height:40px;
 
-border-radius:14px;
+border-radius:12px;
+
+}
+
+.dashboard-value{
+
+font-size:30px;
+
+margin-bottom:6px;
+
+}
+
+.dashboard-card-title{
+
+font-size:16px;
+
+margin-bottom:2px;
+
+}
+
+.dashboard-card-subtitle{
+
+font-size:13px;
+
+}
+
+.dashboard-card-footer{
+
+margin-top:12px;
+
+padding-top:10px;
+
+font-size:12px;
 
 }
 

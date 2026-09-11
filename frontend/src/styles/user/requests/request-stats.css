@@ -1,0 +1,69 @@
+/* ==================================================================
+   Friend Requests statistic cards (Pending / Today / Sent)
+
+   MOBILE-ONLY compact spacing. Desktop & tablet are NOT affected:
+   the base look comes from Tailwind utilities (p-6, text-3xl, mt-2,
+   gap-5, md:grid-cols-3) declared in RequestStats.jsx, and every rule
+   below lives strictly inside a mobile media query. Unlayered rules
+   here override the cascade-layered Tailwind utilities on mobile only.
+   ================================================================== */
+
+@media (max-width: 767px) {
+
+    .request-stats-grid {
+
+        gap: 12px;
+
+        margin-bottom: 20px;
+
+    }
+
+    .request-stat-card {
+
+        padding: 16px 18px;
+
+        border-radius: 20px;
+
+    }
+
+    .request-stat-value {
+
+        font-size: 26px;
+
+        margin-top: 4px;
+
+    }
+
+    .request-stat-subtitle {
+
+        margin-top: 2px;
+
+    }
+
+}
+
+@media (max-width: 360px) {
+
+    .request-stat-card {
+
+        padding: 14px 16px;
+
+    }
+
+    .request-stat-value {
+
+        font-size: 24px;
+
+    }
+
+}
+
+@media (max-width: 320px) {
+
+    .request-stat-card {
+
+        padding: 14px;
+
+    }
+
+}

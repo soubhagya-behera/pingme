@@ -1,4 +1,5 @@
 import Card from "../../ui/Card";
+import "../../../styles/user/requests/request-stats.css";
 import {
     Clock3,
     UserPlus,
@@ -30,22 +31,22 @@ export default function RequestStats({
     ];
 
     return (
-        <div className="grid gap-5 md:grid-cols-3 mb-8">
+        <div className="request-stats-grid grid gap-5 md:grid-cols-3 mb-8">
             {
                 cards.map(card => (
                     <Card
                         key={card.title}
                         hover
-                        className="p-6 flex items-center justify-between"
+                        className="request-stat-card p-6 flex items-center justify-between"
                     >
                         <div>
                             <p className="text-[var(--text-secondary)]">
                                 {card.title}
                             </p>
-                            <h2 className="text-3xl font-bold mt-2">
+                            <h2 className="request-stat-value text-3xl font-bold mt-2">
                                 {card.value}
                             </h2>
-                            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                            <p className="request-stat-subtitle mt-1 text-sm text-[var(--text-secondary)]">
                                 {card.subtitle}
                             </p>
                         </div>
