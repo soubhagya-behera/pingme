@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { attachmentUrl } from "../../user/chat/AttachmentUtils";
+import { useSecureMedia } from "../../../hooks/useSecureMedia";
 
 export default function UserAvatar({ name, src, size = "default" }) {
 
@@ -9,7 +9,7 @@ export default function UserAvatar({ name, src, size = "default" }) {
         setImageFailed(false);
     }, [src]);
 
-    const imageSrc = attachmentUrl(src);
+    const imageSrc = useSecureMedia(src);
 
     const initials = name
         ?.split(" ")

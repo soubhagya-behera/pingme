@@ -23,7 +23,12 @@ export function connectSocket(token) {
 
     if (!isUsableToken(token)) return;
 
-    const socketUrl = `http://localhost:8080/ws?token=${encodeURIComponent(token)}`;
+    const socketUrl = `${import.meta.env.VITE_WS_URL || "http://localhost:8080/ws"}?token=${encodeURIComponent(token)}`;
+
+    // Query-token (?token=) is kept only for SockJS/XHR compatibility: the SockJS HTTP
+    // handshake cannot send STOMP CONNECT headers. The same JWT is also sent as an
+    // Authorization header on STOMP CONNECT (see connectHeaders below) and validated
+    // per frame by the backend channel interceptor.
 
 
     let client;
@@ -39,6 +44,10 @@ export function connectSocket(token) {
     ),
 
     reconnectDelay: 5000,
+
+    connectHeaders: {
+        Authorization: `Bearer ${token}`
+    },
 
     debug: () => {},
 

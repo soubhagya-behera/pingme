@@ -47,7 +47,12 @@ protected void doFilterInternal(HttpServletRequest request,
             UserDetails userDetails =
                     userDetailsService.loadUserByUsername(email);
 
-            if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
+            long expectedTokenVersion = 0L;
+            if (userDetails instanceof com.soubhagya.pingme.entity.User user) {
+                expectedTokenVersion = user.getTokenVersion() == null ? 0L : user.getTokenVersion();
+            }
+
+            if (jwtService.isTokenValid(jwt, userDetails.getUsername(), expectedTokenVersion)) {
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(

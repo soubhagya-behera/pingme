@@ -209,4 +209,13 @@ ORDER BY m.sentAt DESC
 
     boolean existsBySenderAndClientMessageId(User sender, String clientMessageId);
 
+    @Query("""
+SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END
+FROM Message m
+WHERE m.attachmentUrl = :attachmentUrl
+AND (m.sender.email = :email OR m.receiver.email = :email)
+""")
+    boolean existsByAttachmentParticipant(@Param("attachmentUrl") String attachmentUrl,
+                                          @Param("email") String email);
+
 }

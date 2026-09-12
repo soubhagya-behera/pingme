@@ -33,6 +33,8 @@ import com.soubhagya.pingme.service.EmailService;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDateTime;
+import java.security.SecureRandom;
+import java.util.HexFormat;
 import java.util.Random;
 
 import com.soubhagya.pingme.dto.response.AdminSettingsResponse;
@@ -210,7 +212,7 @@ public void sendPasswordOtp(String email) {
 
     PasswordResetToken token = PasswordResetToken.builder()
 
-            .token(otp)
+            .tokenHash(hashOtp(otp))
 
             .user(user)
 
@@ -294,7 +296,7 @@ public void changePassword(
 
     PasswordResetToken token = tokenRepository
 
-            .findByToken(otp)
+            .findByTokenHash(hashOtp(otp))
 
             .orElseThrow(() ->
 
@@ -467,7 +469,7 @@ public void deleteUser(Long id) {
 
     private String generateOtp() {
 
-    Random random = new Random();
+    Random random = new SecureRandom();
 
     return String.valueOf(
 
@@ -477,8 +479,17 @@ public void deleteUser(Long id) {
 
 }
 
-    private UserResponse toUserResponse(User user) {
+private static String hashOtp(String otp) {
+    try {
+        java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+        byte[] hashed = digest.digest(otp.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        return HexFormat.of().formatHex(hashed);
+    } catch (java.security.NoSuchAlgorithmException ex) {
+        throw new IllegalStateException("SHA-256 is not available", ex);
+    }
+}
 
+    private UserResponse toUserResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
                 .fullName(user.getFullName())

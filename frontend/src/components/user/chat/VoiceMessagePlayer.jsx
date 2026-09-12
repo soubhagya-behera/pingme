@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
 import { formatDuration } from "./AttachmentUtils";
+import { useSecureMedia } from "../../../hooks/useSecureMedia";
 
 let activePlayer = null;
 
 export default function VoiceMessagePlayer({ src, duration, mine = false }) {
+    // src is the raw /uploads/... path; resolve it to an authenticated blob URL.
+    const mediaSrc = useSecureMedia(src);
     const audioRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -54,7 +57,7 @@ export default function VoiceMessagePlayer({ src, duration, mine = false }) {
         <div className={`voice-player ${mine ? "is-mine" : ""}`}>
             <audio
                 ref={audioRef}
-                src={src}
+                src={mediaSrc}
                 preload="metadata"
                 onLoadedMetadata={event => {
                     const actual = event.currentTarget.duration;

@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import {
-
     disconnectSocket
 
 }
 from "../websocket/socket";
 import * as offlineDB from "../offline/db";
+import AuthService from "../services/AuthService";
+import { clearMediaCache } from "../hooks/useSecureMedia";
 
 const AuthContext = createContext();
 
@@ -22,9 +23,31 @@ export function AuthProvider({ children }) {
 
     const [user, setUser] = useState(() => {
 
-        const savedUser = localStorage.getItem("user");
+        // C8: never let malformed localStorage crash the app. Only the "user" entry
+        // is discarded here; IndexedDB offline data stays untouched and isolated.
+        try {
+            const savedUser = localStorage.getItem("user");
 
-        return savedUser ? JSON.parse(savedUser) : null;
+            if (!savedUser) return null;
+
+            const parsed = JSON.parse(savedUser);
+
+            if (
+                parsed == null ||
+                typeof parsed !== "object" ||
+                Array.isArray(parsed) ||
+                (parsed.id != null && Number.isNaN(Number(parsed.id))) ||
+                (parsed.email != null && typeof parsed.email !== "string")
+            ) {
+                localStorage.removeItem("user");
+                return null;
+            }
+
+            return parsed;
+        } catch {
+            localStorage.removeItem("user");
+            return null;
+        }
 
     });
 
@@ -96,6 +119,7 @@ export function AuthProvider({ children }) {
     // If switching accounts, disconnect any previous socket immediately
     if (prevUserId && prevUserId !== newUserId) {
         try { disconnectSocket(); } catch {}
+        clearMediaCache();
     }
 
     // Atomically persist new identity before React state updates
@@ -119,6 +143,14 @@ export function AuthProvider({ children }) {
     };
 
     const logout = ()=>{
+
+        // Best-effort server-side revocation (bumps token version) before clearing
+        // local state. Fire-and-forget: local logout must not block on the network.
+        try { AuthService.logout(); } catch {}
+
+        // Drop cached media blob URLs bound to this account so no avatar/file can
+        // linger for a subsequent account in the same browser.
+        clearMediaCache();
 
         disconnectSocket();
 

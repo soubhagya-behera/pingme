@@ -1,4 +1,6 @@
-const API_ORIGIN = import.meta.env.VITE_API_ORIGIN ?? "http://localhost:8080";
+import api, { getApiOrigin } from "../../../api/axios";
+
+const API_ORIGIN = getApiOrigin();
 
 export const ACCEPTED_ATTACHMENTS = [
   "image/jpeg", "image/png", "image/gif", "application/pdf", "application/msword",

@@ -38,6 +38,10 @@ private String password;
 
     private String profilePicture;
 
+    @Column(nullable = false, columnDefinition = "bigint not null default 0")
+    @Builder.Default
+    private Long tokenVersion = 0L;
+
     private String profession;
 
     private String bio;

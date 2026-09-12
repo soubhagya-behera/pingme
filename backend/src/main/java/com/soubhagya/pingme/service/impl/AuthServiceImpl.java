@@ -109,7 +109,8 @@ public LoginResponse login(LoginRequest request) {
     User user = userRepository.findByEmail(request.getEmail())
             .orElseThrow(() -> new RuntimeException("User not found"));
 
-    String token = jwtService.generateToken(user.getEmail());
+    long tokenVersion = user.getTokenVersion() == null ? 0L : user.getTokenVersion();
+    String token = jwtService.generateToken(user.getEmail(), tokenVersion);
 
     return LoginResponse.builder()
             .token(token)
@@ -156,7 +157,9 @@ public void setPassword(SetPasswordRequest request) {
 
     user.setMustChangePassword(false);
 
-    userRepository.save(user);
+    incrementTokenVersion(user);
+
+    userRepository.saveAndFlush(user);
 
     tokenService.deleteToken(user.getId());
 
@@ -165,19 +168,17 @@ public void setPassword(SetPasswordRequest request) {
 @Override
 public void forgotPassword(String email) {
 
-    User user = userRepository.findByEmail(email)
+    // Never reveal whether the email exists: always behave as if an OTP was sent.
+    // This prevents account enumeration while keeping the existing flow intact.
+    userRepository.findByEmail(email).ifPresent(user -> {
+        PasswordResetToken token =
+                tokenService.createToken(user);
 
-            .orElseThrow(() ->
-
-                    new IllegalArgumentException("No account found with this email."));
-
-    PasswordResetToken token =
-            tokenService.createToken(user);
-
-    emailService.sendForgotPasswordEmail(
-            user,
-            token.getToken()
-    );
+        emailService.sendForgotPasswordEmail(
+                user,
+                token.getToken()
+        );
+    });
 
 }
 
@@ -193,16 +194,10 @@ public void resetPassword(
 
             .orElseThrow(() ->
 
-                    new IllegalArgumentException("No account found with this email."));
+                    new IllegalArgumentException("Invalid OTP or email."));
 
-    PasswordResetToken token =
-            tokenService.validateToken(otp);
-
-    if (!token.getUser().getId().equals(user.getId())) {
-
-        throw new IllegalArgumentException("Invalid OTP.");
-
-    }
+    PasswordResetToken token = tokenService.verifyForUser(user, otp)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid OTP or email."));
 
     user.setPassword(
 
@@ -210,10 +205,17 @@ public void resetPassword(
 
     );
 
-    userRepository.save(user);
+    incrementTokenVersion(user);
+
+    userRepository.saveAndFlush(user);
 
     tokenService.deleteToken(user.getId());
 
+}
+
+private void incrementTokenVersion(User user) {
+    long current = user.getTokenVersion() == null ? 0L : user.getTokenVersion();
+    user.setTokenVersion(current + 1);
 }
 
 }

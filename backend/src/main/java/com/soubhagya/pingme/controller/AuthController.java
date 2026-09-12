@@ -21,6 +21,7 @@ import com.soubhagya.pingme.dto.request.ResetPasswordRequest;
 public class AuthController {
 
     private final AuthService authService;
+    private final com.soubhagya.pingme.service.LogoutService logoutService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(
@@ -112,11 +113,12 @@ public ResponseEntity<ApiResponse<String>> forgotPassword(
 
     authService.forgotPassword(request.getEmail());
 
+    // Generic response in both cases so callers cannot probe for registered emails.
     return ResponseEntity.ok(
 
             ResponseUtil.success(
 
-                    "Password reset OTP sent successfully.",
+                    "If the account exists, an OTP has been sent.",
 
                     "OTP Sent"
 
@@ -151,6 +153,29 @@ public ResponseEntity<ApiResponse<String>> resetPassword(
                     "Password reset successful.",
 
                     "Password Updated"
+
+            )
+
+    );
+
+}
+
+@PostMapping("/logout")
+public ResponseEntity<ApiResponse<String>> logout(
+        org.springframework.security.core.Authentication authentication,
+        jakarta.servlet.http.HttpServletRequest request
+) {
+    // Server-side revocation: bump the token version so the current JWT stops working.
+    // The frontend still clears local storage (existing behavior).
+    logoutService.logout(authentication, request);
+
+    return ResponseEntity.ok(
+
+            ResponseUtil.success(
+
+                    "Logged out successfully.",
+
+                    "Logged Out"
 
             )
 

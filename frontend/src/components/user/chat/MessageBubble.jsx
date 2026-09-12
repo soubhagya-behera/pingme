@@ -5,10 +5,12 @@ import AttachmentCard from "./AttachmentCard";
 import VoiceMessagePlayer from "./VoiceMessagePlayer";
 import CallHistoryMessage from "./CallHistoryMessage";
 import HighlightText from "./HighlightText";
-import { attachmentLabel, attachmentUrl, isImageAttachment, isVoiceMessage } from "./AttachmentUtils";
+import { attachmentLabel, isImageAttachment, isVoiceMessage } from "./AttachmentUtils";
+import { useSecureMedia } from "../../../hooks/useSecureMedia";
 
 export default function MessageBubble({ message, mine, text, time, status, onReply, onEdit, onDelete, onDeleteMe, onForward, isHighlighted = false, highlightQuery = "", selectionMode = false, isSelected = false, onToggleSelect = null }) {
   const [viewerOpen, setViewerOpen] = useState(false);
+  const imageSrc = useSecureMedia(message?.attachmentUrl);
   const isCallHistory = message.messageType === "AUDIO_CALL" || message.messageType === "VIDEO_CALL";
   if (isCallHistory) {
     if (selectionMode) {
@@ -29,7 +31,6 @@ export default function MessageBubble({ message, mine, text, time, status, onRep
   }
   const isImage = isImageAttachment(message);
   const isVoice = isVoiceMessage(message);
-  const imageSrc = attachmentUrl(message.attachmentUrl);
   const ticks = !mine ? null : status === "PENDING" ? <span title="Waiting for connection" className="chat-pending-dot">○</span> : status === "SYNCING" ? <span className="chat-pending-dot is-syncing">◐</span> : status === "SENDING" ? "⌛" : status === "FAILED" ? "!" : status === "SENT" ? "✓" : status === "DELIVERED" ? "✓✓" : status === "READ" ? <span className="chat-read-receipt">✓✓</span> : null;
   const replyText = message.reply?.content || (message.reply?.attachmentUrl ? attachmentLabel(message.reply) : "Message");
   
@@ -57,9 +58,9 @@ export default function MessageBubble({ message, mine, text, time, status, onRep
       {message.reply && <div className="chat-reply-preview"><b>Reply</b><span>{replyText}</span></div>}
       {isVoice && message.attachmentUrl ? (
         selectionMode ? (
-          <div style={{ pointerEvents: 'none' }}><VoiceMessagePlayer src={attachmentUrl(message.attachmentUrl)} duration={message.attachmentDuration} mine={mine} /></div>
+          <div style={{ pointerEvents: 'none' }}><VoiceMessagePlayer src={message.attachmentUrl} duration={message.attachmentDuration} mine={mine} /></div>
         ) : (
-          <VoiceMessagePlayer src={attachmentUrl(message.attachmentUrl)} duration={message.attachmentDuration} mine={mine} />
+          <VoiceMessagePlayer src={message.attachmentUrl} duration={message.attachmentDuration} mine={mine} />
         )
       ) : <>
         {isImage && imageSrc && <button type="button" onClick={(e) => { if (selectionMode) { e.stopPropagation(); onToggleSelect?.(message.id); return; } setViewerOpen(true); }} className="chat-image-button"><img src={imageSrc} alt={message.attachmentName || "Shared image"} loading="lazy" /></button>}

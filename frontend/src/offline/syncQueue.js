@@ -128,8 +128,10 @@ export async function syncPendingMessages() {
           await db.updatePending(pending.clientMessageId, { status: "FAILED" });
         }
         failed++;
-        // if network offline, break and retry later
-        if (isNetwork && typeof navigator !== "undefined" && !navigator.onLine) break;
+        // If offline, stop and retry later. Use navigator.onLine directly (smallest
+        // safe fix: the previous code referenced an undefined isNetwork variable,
+        // which threw ReferenceError and aborted queue processing incorrectly).
+        if (typeof navigator !== "undefined" && !navigator.onLine) break;
         console.error("sync pending failed", err);
       }
     }

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import clsx from "clsx";
 
-import { attachmentUrl } from "../user/chat/AttachmentUtils";
+import { useSecureMedia } from "../../hooks/useSecureMedia";
 
 function getInitials(name) {
   return name
@@ -26,11 +26,12 @@ export default function Avatar({
 }) {
   const [imageFailed, setImageFailed] = useState(false);
 
+  const imageSrc = useSecureMedia(src);
+
   useEffect(() => {
     setImageFailed(false);
   }, [src]);
 
-  const imageSrc = attachmentUrl(src);
   const showImage = Boolean(imageSrc) && !imageFailed;
 
   return (

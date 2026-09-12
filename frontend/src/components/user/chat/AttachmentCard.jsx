@@ -1,9 +1,11 @@
 import { Download, ExternalLink } from "lucide-react";
 import FileIcon from "./FileIcon";
-import { attachmentLabel, attachmentUrl, formatFileSize } from "./AttachmentUtils";
+import { attachmentLabel, formatFileSize } from "./AttachmentUtils";
+import { useSecureMedia } from "../../../hooks/useSecureMedia";
 
 export default function AttachmentCard({ attachment }) {
-  const url = attachmentUrl(attachment.attachmentUrl);
+  // Authenticated blob URL so open/download work without leaking the private link.
+  const url = useSecureMedia(attachment.attachmentUrl);
   const name = attachment.attachmentName || attachmentLabel(attachment);
   return <div className="chat-attachment-card">
     <span className="chat-attachment-icon"><FileIcon attachment={attachment} /></span>

@@ -1,5 +1,6 @@
 package com.soubhagya.pingme.websocket;
 
+import com.soubhagya.pingme.repository.UserRepository;
 import com.soubhagya.pingme.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.util.Map;
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request,
@@ -25,7 +27,15 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
         if (request instanceof ServletServerHttpRequest servletRequest) {
 
-            String token = servletRequest.getServletRequest().getParameter("token");
+            // Preferred: Authorization header (native WebSocket clients).
+            // Fallback: ?token= query param for SockJS/XHR transports that cannot set
+            // headers during the HTTP handshake. Both are validated the same way.
+            String token = servletRequest.getServletRequest().getHeader("Authorization");
+            if (token != null && token.startsWith("Bearer ")) {
+                token = token.substring(7).trim();
+            } else {
+                token = servletRequest.getServletRequest().getParameter("token");
+            }
 
             if (token == null || token.isBlank() || "null".equals(token) || "undefined".equals(token)) {
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -36,6 +46,18 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                 String email = jwtService.extractUsername(token);
 
                 if (email == null || email.isBlank()) {
+                    response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                    return false;
+                }
+
+                final String tokenToValidate = token;
+                boolean authorized = userRepository.findByEmail(email)
+                        .map(user -> {
+                            long current = user.getTokenVersion() == null ? 0L : user.getTokenVersion();
+                            return jwtService.isTokenValid(tokenToValidate, user.getUsername(), current);
+                        })
+                        .orElse(false);
+                if (!authorized) {
                     response.setStatusCode(HttpStatus.UNAUTHORIZED);
                     return false;
                 }

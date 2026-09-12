@@ -378,8 +378,15 @@ public void changePassword(
 
     );
 
+    incrementTokenVersion(user);
+
     userRepository.save(user);
 
+}
+
+private void incrementTokenVersion(User user) {
+    long current = user.getTokenVersion() == null ? 0L : user.getTokenVersion();
+    user.setTokenVersion(current + 1);
 }
 
 }

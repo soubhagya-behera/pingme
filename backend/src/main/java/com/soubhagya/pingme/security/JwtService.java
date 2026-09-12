@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.MacAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -33,12 +32,20 @@ public class JwtService {
     }
 
     /**
-     * Generate JWT Token
+     * Generate JWT Token bound to the user's current token version.
      */
     public String generateToken(String email) {
+        return generateToken(email, 0L);
+    }
+
+    /**
+     * Generate JWT Token carrying the token version for server-side revocation.
+     */
+    public String generateToken(String email, long tokenVersion) {
 
         return Jwts.builder()
                 .subject(email)
+                .claim("ver", tokenVersion)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
@@ -81,6 +88,13 @@ public class JwtService {
     }
 
     /**
+     * Extract token version. Tokens issued before versioning default to 0.
+     */
+    public long extractTokenVersion(String token) {
+        Number version = extractClaim(token, claims -> claims.get("ver", Number.class));
+        return version == null ? 0L : version.longValue();
+    }
+    /**
      * Expired?
      */
     public boolean isTokenExpired(String token) {
@@ -91,15 +105,26 @@ public class JwtService {
     }
 
     /**
-     * Validate Token
+     * Validate Token including the token version for server-side revocation.
      */
     public boolean isTokenValid(String token,
                                 String email) {
+        return isTokenValid(token, email, 0L);
+    }
+
+    /**
+     * Validate Token against the user's current token version.
+     */
+    public boolean isTokenValid(String token,
+                                String email,
+                                long expectedTokenVersion) {
 
         return extractUsername(token)
                 .equals(email)
                 &&
-                !isTokenExpired(token);
+                !isTokenExpired(token)
+                &&
+                extractTokenVersion(token) == expectedTokenVersion;
 
     }
 

@@ -24,6 +24,10 @@ const AuthService = {
 
 resetPassword(data) {
     return api.post("/auth/reset-password", data);
+},
+
+logout() {
+    return api.post("/auth/logout");
 }
 
 };

@@ -15,28 +15,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
     private final UploadProperties uploadProperties;
 
     @Override
-public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
-    Path uploadPath = Paths.get(
-            uploadProperties.getImageDirectory()
-    ).toAbsolutePath().normalize();
+        // Only profile photos are served through the resource handler (authenticated
+        // users only, preserving the previous visibility). Chat files/images are served
+        // exclusively through the authenticated /api/files controller, which enforces
+        // sender/receiver access � no static handler exists for them here.
+        Path profileUploadPath = Paths.get(
+                uploadProperties.getProfileImageDirectory()
+        ).toAbsolutePath().normalize();
+        registry
+                .addResourceHandler("/uploads/profile-photos/**")
+                .addResourceLocations(profileUploadPath.toUri().toString() + "/");
 
-    registry
-            .addResourceHandler("/uploads/chat-images/**")
-            .addResourceLocations(uploadPath.toUri().toString() + "/");
-
-Path fileUploadPath = Paths.get(uploadProperties.getFileDirectory()).toAbsolutePath().normalize();
-    registry
-            .addResourceHandler("/uploads/chat-files/**")
-            .addResourceLocations(fileUploadPath.toUri().toString() + "/");
-
-    Path profileUploadPath = Paths.get(
-            uploadProperties.getProfileImageDirectory()
-    ).toAbsolutePath().normalize();
-    registry
-            .addResourceHandler("/uploads/profile-photos/**")
-            .addResourceLocations(profileUploadPath.toUri().toString() + "/");
-
-}
-
+    }
 }
