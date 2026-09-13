@@ -403,7 +403,8 @@ public class ChatServiceImpl implements ChatService {
                 receiver.getEmail(),
                 "/queue/typing",
                 TypingEvent.builder()
-                        .receiverId(sender.getId())
+                        .senderId(sender.getId())
+                        .receiverId(receiver.getId())
                         .typing(event.isTyping())
                         .build()
         );

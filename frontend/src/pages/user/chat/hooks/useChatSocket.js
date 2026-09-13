@@ -25,12 +25,16 @@ export default function useChatSocket({
     useEffect(() => {
         if (!socket?.onTyping) return;
         const unsubscribe = socket.onTyping(event => {
+            // H2 FIX: typer identity is senderId. Keep receiverId fallback for backward compat with older backend.
+            const typerId = event.senderId ?? event.receiverId;
+            if (typerId == null) return;
+            const id = Number(typerId);
             setTypingUsers(prev => {
                 const copy = new Set(prev);
                 if (event.typing) {
-                    copy.add(event.receiverId);
+                    copy.add(id);
                 } else {
-                    copy.delete(event.receiverId);
+                    copy.delete(id);
                 }
                 return copy;
             });

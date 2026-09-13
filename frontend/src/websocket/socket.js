@@ -99,8 +99,15 @@ export function disconnectSocket() {
 
     stompClient = null;
 
+    // H3 FIX: clear one-shot callbacks so stale subscriptions from previous account never fire for next user
+    waitingCallbacks = [];
+
     client?.deactivate();
 
+}
+
+export function isSocketConnected() {
+    return connected && !!stompClient?.active;
 }
 
 export function getSocketClient() {

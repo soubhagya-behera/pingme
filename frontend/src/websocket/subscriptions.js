@@ -1,8 +1,23 @@
-import { getSocketClient } from "./socket";
+import { getSocketClient, isSocketConnected } from "./socket";
+
+function safeSubscribe(destination, handler) {
+    const client = getSocketClient();
+    // H3 FIX: guard against subscribing before STOMP is fully activated or after disconnect
+    if (!client || !isSocketConnected() || typeof client.subscribe !== "function") {
+        console.warn(`[WS] subscribe attempted before socket ready: ${destination} — returning no-op`);
+        return { unsubscribe: () => {} };
+    }
+    try {
+        return client.subscribe(destination, handler);
+    } catch (e) {
+        console.error(`[WS] subscribe failed for ${destination}`, e);
+        return { unsubscribe: () => {} };
+    }
+}
 
 export function subscribeMessages(callback) {
 
-    return getSocketClient().subscribe(
+    return safeSubscribe(
         "/user/queue/messages",
 
         message => {
@@ -21,7 +36,7 @@ export function subscribeMessages(callback) {
 
 export function subscribePresence(callback) {
 
-    return getSocketClient().subscribe(
+    return safeSubscribe(
 
         "/topic/status",
 
@@ -41,7 +56,7 @@ export function subscribePresence(callback) {
 
 export function subscribeMessageStatus(callback) {
 
-    return getSocketClient().subscribe(
+    return safeSubscribe(
         "/user/queue/receipts",
 
         status => {
@@ -63,7 +78,7 @@ export function subscribeDashboard(callback) {
     const userId =
         localStorage.getItem("userId");
 
-    return getSocketClient().subscribe(
+    return safeSubscribe(
 
         `/topic/dashboard/${userId}`,
 
@@ -85,7 +100,7 @@ export function subscribeFriendRequests(callback) {
 
     const userId = localStorage.getItem("userId");
 
-    return getSocketClient().subscribe(
+    return safeSubscribe(
 
         `/topic/friend-request/${userId}`,
 
@@ -107,7 +122,7 @@ export function subscribeFriends(callback){
 
     const userId = localStorage.getItem("userId");
 
-    return getSocketClient().subscribe(
+    return safeSubscribe(
 
         `/topic/friends/${userId}`,
 
@@ -127,7 +142,7 @@ export function subscribeFriends(callback){
 
 export function subscribeTyping(callback) {
 
-    return getSocketClient().subscribe(
+    return safeSubscribe(
 
         "/user/queue/typing",
 
@@ -147,7 +162,7 @@ export function subscribeTyping(callback) {
 
 export function subscribeMessageEdited(callback) {
 
-    return getSocketClient().subscribe(
+    return safeSubscribe(
 
         "/user/queue/message-edited",
 
@@ -167,7 +182,7 @@ export function subscribeMessageEdited(callback) {
 
 export function subscribeMessageDeleted(callback) {
 
-    return getSocketClient().subscribe(
+    return safeSubscribe(
 
         "/user/queue/message-deleted",
 
@@ -189,7 +204,7 @@ export function subscribeNotifications(callback) {
 
     const userId = localStorage.getItem("userId");
 
-    return getSocketClient().subscribe(
+    return safeSubscribe(
 
         `/topic/notifications/${userId}`,
 
@@ -209,7 +224,7 @@ export function subscribeNotifications(callback) {
 
 export function subscribeCalls(callback) {
 
-    return getSocketClient().subscribe(
+    return safeSubscribe(
 
         "/user/queue/call",
 

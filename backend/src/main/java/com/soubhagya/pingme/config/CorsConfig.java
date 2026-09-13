@@ -11,6 +11,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * H5: CORS origin configuration aligned with WebSocketConfig.
+ * Uses explicit allowed origins (no wildcard) with credentials.
+ * Dev default: http://localhost:5173
+ * Prod: override via env var APP_CORS_ALLOWED_ORIGINS or property app.cors.allowed-origins
+ *        without source modification, e.g. APP_CORS_ALLOWED_ORIGINS=https://app.example.com
+ * Separate from WS origins intentionally — both default identically but can be overridden independently.
+ */
 @Configuration
 public class CorsConfig {
 

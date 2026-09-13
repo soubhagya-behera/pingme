@@ -9,6 +9,15 @@ import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.*;
 
+/**
+ * H5: WebSocket origin configuration aligned with CorsConfig.
+ * Uses explicit allowed origins (no wildcard, no setAllowedOriginPatterns("*")).
+ * Dev default: http://localhost:5173
+ * Prod: override via env var APP_WS_ALLOWED_ORIGINS or property app.ws.allowed-origins
+ *        without source modification, e.g. APP_WS_ALLOWED_ORIGINS=https://app.example.com
+ * Separate property intentionally retained — allows distinct API vs WS origins if needed;
+ * both default identically and are documented as consistent.
+ */
 @Configuration
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor

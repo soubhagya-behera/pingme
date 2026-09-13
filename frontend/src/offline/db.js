@@ -158,19 +158,21 @@ export async function getAllPendingForOwner(ownerId) {
 }
 
 export async function getPendingByConversation(friendId) {
-  // Legacy single-arg call: if ownerId isolation is available, filter by current owner
+  // H1 SECURITY: strictly owner-scoped. Never return unfiltered data.
+  // Legacy single-arg is retained only for callers that already enforce owner via getCurrentOwnerId.
   const ownerId = getCurrentOwnerId();
-  if (ownerId != null) {
-    return getPendingByConversationForOwner(ownerId, friendId);
+  if (ownerId == null) {
+    console.warn("getPendingByConversation without authenticated owner — returning empty to prevent cross-account leak");
+    return [];
   }
-  return withStore(OUTBOX, "readonly", store => {
-    const idx = store.index("conversationId");
-    return idx.getAll(friendId);
-  });
+  return getPendingByConversationForOwner(ownerId, friendId);
 }
 
 export async function getPendingByConversationForOwner(ownerId, friendId) {
-  if (ownerId == null) return getPendingByConversation(friendId);
+  if (ownerId == null) {
+    console.warn("getPendingByConversationForOwner called without ownerId — returning empty");
+    return [];
+  }
   ownerId = Number(ownerId);
   friendId = Number(friendId);
   const allForOwner = await getAllPendingForOwner(ownerId);
@@ -245,7 +247,7 @@ export async function purgeOrphanedOutbox() {
 export async function setHistoryCache(friendId, data) {
   const ownerId = getCurrentOwnerId();
   if (ownerId == null) {
-    console.warn("setHistoryCache without ownerId — no authenticated user, skipping cache");
+    console.warn("setHistoryCache without ownerId — no authenticated user, skipping cache to prevent leak");
     return;
   }
   return setHistoryCacheForOwner(ownerId, friendId, data);
@@ -259,12 +261,13 @@ export async function setHistoryCacheForOwner(ownerId, friendId, data) {
 }
 
 export async function getHistoryCache(friendId) {
-  // Legacy 1-arg: infer ownerId
+  // H1 SECURITY: strictly owner-scoped. Never return unfiltered cache.
   const ownerId = getCurrentOwnerId();
   if (ownerId != null) {
     return getHistoryCacheForOwner(ownerId, friendId);
   }
-  return withStore(HISTORY_CACHE, "readonly", store => store.get(friendId));
+  console.warn("getHistoryCache without authenticated owner — returning undefined to prevent cross-account leak");
+  return undefined;
 }
 
 export async function getHistoryCacheForOwner(ownerId, friendId) {
@@ -303,7 +306,8 @@ export async function getAllHistoryCacheForOwner(ownerId) {
 export async function removeHistoryCache(friendId) {
   const ownerId = getCurrentOwnerId();
   if (ownerId != null) return removeHistoryCacheForOwner(ownerId, friendId);
-  return withStore(HISTORY_CACHE, "readwrite", store => store.delete(friendId));
+  console.warn("removeHistoryCache without authenticated owner — no-op to prevent cross-account leak");
+  return;
 }
 
 export async function removeHistoryCacheForOwner(ownerId, friendId) {
