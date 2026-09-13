@@ -21,6 +21,13 @@ public interface UserService {
 
 );
 
+    List<UserSearchResponse> searchUsers(
+        String keyword,
+        String loggedInEmail,
+        int page,
+        int size
+);
+
     ProfileResponse getProfile(String email);
 
     ProfileResponse updateProfile(

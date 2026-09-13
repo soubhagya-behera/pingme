@@ -28,8 +28,16 @@ public class UserController {
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<UserSearchResponse>>> searchUsers(
             @RequestParam @jakarta.validation.constraints.Size(max = 100, message = "Search keyword must be at most 100 characters") String keyword,
+            @RequestParam(defaultValue = "0") @jakarta.validation.constraints.Min(value = 0, message = "Page must be >= 0") int page,
+            @RequestParam(defaultValue = "20") @jakarta.validation.constraints.Min(value = 1, message = "Size must be >= 1") @jakarta.validation.constraints.Max(value = 50, message = "Size must be <= 50") int size,
             Authentication authentication
     ) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 20);
+        // Empty/blank already handled in service (returns empty list), but also guard here to avoid unnecessary DB hit
+        if (keyword == null || keyword.trim().length() < 2) {
+            return ResponseEntity.ok(ResponseUtil.success("Users Found", List.of()));
+        }
 
         return ResponseEntity.ok(
 
@@ -41,7 +49,9 @@ public class UserController {
 
                                 keyword,
 
-                                authentication.getName()
+                                authentication.getName(),
+                                safePage,
+                                safeSize
 
                         )
 

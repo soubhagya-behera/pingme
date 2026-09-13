@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FriendService from "../../../services/FriendService";
 
-// STEP 1: Added subscribePresence to imports
-import { whenSocketConnected } from "../../../websocket/socket";
+import { onSocketConnected } from "../../../websocket/socket";
 import {
     subscribeFriendRequests,
     subscribeFriends,
@@ -32,86 +31,53 @@ export default function Friends() {
   const [removing, setRemoving] = useState(false);
 
   useEffect(() => {
-
     let friendRequestSubscription;
     let friendsSubscription;
     let presenceSubscription;
+    let removeSocketListener;
 
-    async function initialize() {
+    loadFriends();
 
-        await loadFriends();
-
-        whenSocketConnected(() => {
-
-            friendRequestSubscription =
-                subscribeFriendRequests(async (event) => {
-
-                    if (event.type === "ACCEPTED") {
-
-                        await loadFriends();
-
-                    }
-
-                });
-
-            friendsSubscription =
-                subscribeFriends(async () => {
-
-                    await loadFriends();
-
-                });
-
-            presenceSubscription =
-                subscribePresence(status => {
-
-                    setFriends(previousFriends => {
-
-                        const updatedFriends =
-                            previousFriends.map(friend =>
-
-                                friend.id === status.userId
-                                    ? {
-                                          ...friend,
-                                          online: status.online
-                                      }
-                                    : friend
-
-                            );
-
-                        setStats({
-
-                            totalFriends: updatedFriends.length,
-
-                            onlineFriends:
-                                updatedFriends.filter(f => f.online).length,
-
-                            offlineFriends:
-                                updatedFriends.filter(f => !f.online).length
-
-                        });
-
-                        return updatedFriends;
-
-                    });
-
-                });
-
-        });
-
-    }
-
-    initialize();
-
-    return () => {
-
+    const resubscribe = () => {
         friendRequestSubscription?.unsubscribe();
-
         friendsSubscription?.unsubscribe();
-
         presenceSubscription?.unsubscribe();
 
+        friendRequestSubscription = subscribeFriendRequests(async (event) => {
+            if (event.type === "ACCEPTED") {
+                await loadFriends();
+            }
+        });
+
+        friendsSubscription = subscribeFriends(async () => {
+            await loadFriends();
+        });
+
+        presenceSubscription = subscribePresence(status => {
+            setFriends(previousFriends => {
+                const updatedFriends = previousFriends.map(friend =>
+                    friend.id === status.userId
+                        ? { ...friend, online: status.online }
+                        : friend
+                );
+                setStats({
+                    totalFriends: updatedFriends.length,
+                    onlineFriends: updatedFriends.filter(f => f.online).length,
+                    offlineFriends: updatedFriends.filter(f => !f.online).length
+                });
+                return updatedFriends;
+            });
+        });
     };
 
+    removeSocketListener = onSocketConnected(resubscribe);
+
+    return () => {
+        removeSocketListener?.();
+        friendRequestSubscription?.unsubscribe();
+        friendsSubscription?.unsubscribe();
+        presenceSubscription?.unsubscribe();
+    };
 }, []);
 
 

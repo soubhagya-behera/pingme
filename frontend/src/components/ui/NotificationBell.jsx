@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Bell, CheckCheck, Inbox, UserCheck, UserPlus } from "lucide-react";
 import NotificationService from "../../services/NotificationService";
 import { subscribeNotifications } from "../../websocket/subscriptions";
-import { whenSocketConnected } from "../../websocket/socket";
+import { onSocketConnected } from "../../websocket/socket";
 
 function formatRelativeTime(value) {
     if (!value) return "";
@@ -60,14 +60,19 @@ export default function NotificationBell() {
         loadNotifications();
 
         let subscription;
+        let removeSocketListener;
 
-        whenSocketConnected(() => {
+        const resubscribe = () => {
+            subscription?.unsubscribe();
             subscription = subscribeNotifications(() => {
                 loadNotifications();
             });
-        });
+        };
+
+        removeSocketListener = onSocketConnected(resubscribe);
 
         return () => {
+            removeSocketListener?.();
             subscription?.unsubscribe();
         };
     }, []);

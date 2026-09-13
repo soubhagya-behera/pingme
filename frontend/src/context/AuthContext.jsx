@@ -7,6 +7,7 @@ from "../websocket/socket";
 import * as offlineDB from "../offline/db";
 import AuthService from "../services/AuthService";
 import { clearMediaCache } from "../hooks/useSecureMedia";
+import { resetHandling401 } from "../api/axios";
 
 const AuthContext = createContext();
 
@@ -122,6 +123,9 @@ export function AuthProvider({ children }) {
         clearMediaCache();
     }
 
+    // Reset 401 single-flight so future session expiry is handled for new account
+    try { resetHandling401(); } catch {}
+
     // Atomically persist new identity before React state updates
     localStorage.setItem("token", jwtToken);
     localStorage.setItem("user", JSON.stringify(userData));
@@ -153,6 +157,7 @@ export function AuthProvider({ children }) {
         clearMediaCache();
 
         disconnectSocket();
+        try { resetHandling401(); } catch {}
 
     // Synchronously clear ALL auth-related storage so no stale identity survives
     localStorage.removeItem("token");

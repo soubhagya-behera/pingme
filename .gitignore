@@ -66,6 +66,14 @@ target/
 uploads/
 !uploads/.gitkeep
 
+############################
+# Spring Boot Local Config (never commit local secrets)
+############################
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-dev.properties
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-dev.yml
+
 .agents
 
 .vscode

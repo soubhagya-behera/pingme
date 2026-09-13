@@ -8,7 +8,14 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "messages", uniqueConstraints = @UniqueConstraint(columnNames = {"sender_id", "client_message_id"}))
+@Table(name = "messages", uniqueConstraints = @UniqueConstraint(columnNames = {"sender_id", "client_message_id"}),
+        indexes = {
+                @Index(name = "idx_messages_receiver_status", columnList = "receiver_id, status"),
+                @Index(name = "idx_messages_conversation_sent_at", columnList = "sender_id, receiver_id, sent_at"),
+                @Index(name = "idx_messages_sent_at", columnList = "sent_at"),
+                @Index(name = "idx_messages_client_message_id", columnList = "client_message_id"),
+                @Index(name = "idx_messages_attachment_url", columnList = "image_url")
+        })
 @Getter
 @Setter
 @NoArgsConstructor

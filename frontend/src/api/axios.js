@@ -4,6 +4,10 @@ import { disconnectSocket } from "../websocket/socket";
 // H4: single-flight guard to avoid multiple simultaneous 401 handlers fighting
 let handling401 = false;
 
+export function resetHandling401() {
+    handling401 = false;
+}
+
 const api = axios.create({
 
     baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/api"

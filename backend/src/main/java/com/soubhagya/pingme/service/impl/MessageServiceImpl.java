@@ -325,8 +325,9 @@ public List<RecentChatResponse> getRecentChats(String email) {
             .orElseThrow(() ->
                     new RuntimeException("User not found"));
 
+    // F-P01: bounded query — fetch at most 300 recent messages (covers ~50 conversations) via DB limit
     List<Message> messages =
-            messageRepository.findRecentMessages(user);
+            messageRepository.findRecentMessages(user, PageRequest.of(0, 300, Sort.by("sentAt").descending()));
 
     // Build cleared map per peer for this user
     Map<Long, java.time.LocalDateTime> clearedMap = new HashMap<>();
@@ -406,7 +407,7 @@ public List<ChatSidebarResponse> getChatSidebar(String email) {
                     new RuntimeException("User not found"));
 
     List<Friend> friendships = friendRepository.findAllForUserWithUsers(me);
-    List<Message> conversationMessages = messageRepository.findRecentMessages(me);
+    List<Message> conversationMessages = messageRepository.findRecentMessages(me, PageRequest.of(0, 300, Sort.by("sentAt").descending()));
     Map<Long, java.time.LocalDateTime> clearedMapSidebar = new HashMap<>();
     for (ClearedConversation cc : clearedConversationRepository.findByUser(me)) {
         clearedMapSidebar.put(cc.getPeer().getId(), cc.getClearedAt());

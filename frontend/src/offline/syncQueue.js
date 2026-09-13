@@ -119,13 +119,18 @@ export async function syncPendingMessages() {
         notify({ type: "sent", clientMessageId: pending.clientMessageId, serverMsg });
         synced++;
       } catch (err) {
-        // Network/auth error: keep PENDING for retry; validation errors: mark FAILED
-        const isRetryable = !err.response || err.response.status >= 500 || err.response.status === 401 || err.response.status === 403 || err.code === "ERR_NETWORK";
-        if (isRetryable) {
-          await db.updatePending(pending.clientMessageId, { status: "PENDING" });
-        } else {
-          // For validation errors (400 etc.), don't infinite retry - mark as failed but keep for inspection
+        // F-OF02: 401/403 are permanent auth failures — mark FAILED, do NOT retry forever
+        const status = err.response?.status;
+        if (status === 401 || status === 403) {
           await db.updatePending(pending.clientMessageId, { status: "FAILED" });
+        } else {
+          const isRetryable = !err.response || err.response.status >= 500 || err.code === "ERR_NETWORK";
+          if (isRetryable) {
+            await db.updatePending(pending.clientMessageId, { status: "PENDING" });
+          } else {
+            // For validation errors (400 etc.), don't infinite retry - mark as failed but keep for inspection
+            await db.updatePending(pending.clientMessageId, { status: "FAILED" });
+          }
         }
         failed++;
         // If offline, stop and retry later. Use navigator.onLine directly (smallest

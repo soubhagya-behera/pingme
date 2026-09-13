@@ -93,7 +93,9 @@ List<User> searchUsers(
 
         @Param("pendingStatus") com.soubhagya.pingme.enums.FriendRequestStatus pendingStatus,
 
-        @Param("keyword") String keyword
+        @Param("keyword") String keyword,
+
+        org.springframework.data.domain.Pageable pageable
 
 );
 

@@ -2,7 +2,7 @@ import { useRef } from "react";
 import toast from "react-hot-toast";
 import ChatService from "../../../../services/ChatService";
 import { sendActiveConversation } from "../../../../websocket/publisher";
-import { whenSocketConnected } from "../../../../websocket/socket";
+import { onSocketConnected } from "../../../../websocket/socket";
 import * as offlineDB from "../../../../offline/db";
 
 function uniqueMessages(messages) {
@@ -35,9 +35,19 @@ export default function useChatHistory({
 }) {
     const historyRequestRef = useRef(0);
     const paginationRef = useRef({ friendId: null, nextPage: 0, hasMore: false, loading: false });
+    const activeChatListenerRef = useRef(null);
 
     function setActiveChat(friendId) {
-        whenSocketConnected(() => sendActiveConversation(friendId));
+        // Clean previous reconnect listener to avoid orphan callbacks
+        try { activeChatListenerRef.current?.(); } catch {}
+        activeChatListenerRef.current = null;
+        if (friendId == null) {
+            // Clearing active conversation still needs to be announced (null)
+            activeChatListenerRef.current = onSocketConnected(() => sendActiveConversation(null));
+            return;
+        }
+        // Reconnect-aware: re-announce active conversation after every reconnect
+        activeChatListenerRef.current = onSocketConnected(() => sendActiveConversation(friendId));
     }
 
     async function loadChatSidebar() {

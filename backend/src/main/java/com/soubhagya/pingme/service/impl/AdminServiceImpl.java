@@ -6,8 +6,10 @@ import com.soubhagya.pingme.dto.response.UserResponse;
 import com.soubhagya.pingme.entity.User;
 import com.soubhagya.pingme.enums.UserRole;
 import com.soubhagya.pingme.enums.UserStatus;
+import com.soubhagya.pingme.repository.ClearedConversationRepository;
 import com.soubhagya.pingme.repository.FriendRepository;
 import com.soubhagya.pingme.repository.FriendRequestRepository;
+import com.soubhagya.pingme.repository.HiddenMessageRepository;
 import com.soubhagya.pingme.repository.MessageRepository;
 import com.soubhagya.pingme.repository.NotificationRepository;
 import com.soubhagya.pingme.repository.PasswordResetTokenRepository;
@@ -54,6 +56,10 @@ public class AdminServiceImpl implements AdminService {
     private final NotificationRepository notificationRepository;
 
     private final PasswordResetTokenRepository tokenRepository;
+
+    private final HiddenMessageRepository hiddenMessageRepository;
+
+    private final ClearedConversationRepository clearedConversationRepository;
 
     private final TokenService tokenService;
 
@@ -322,19 +328,30 @@ public void deleteUser(Long id) {
     // Delete activation/reset token first
     tokenRepository.deleteByUserId(user.getId());
 
-    // Delete chats
+    // F-DB06: ensure dependent records are removed in correct order to preserve referential integrity
+    // 1. HiddenMessage (user's hidden refs and messages owned by user)
+    hiddenMessageRepository.deleteByUser(user);
+    hiddenMessageRepository.deleteByMessageSenderOrReceiver(user);
+
+    // 2. ClearedConversation (either side)
+    clearedConversationRepository.deleteByUserOrPeer(user);
+
+    // 3. Nullify replyTo references to avoid FK violation before bulk message delete
+    messageRepository.nullifyReplyToForUserMessages(user.getId());
+
+    // 4. Delete chats
     messageRepository.deleteBySenderOrReceiver(user, user);
 
-    // Delete friend requests
+    // 5. Delete friend requests
     friendRequestRepository.deleteBySenderOrReceiver(user, user);
 
-    // Delete friendships
+    // 6. Delete friendships
     friendRepository.deleteByUserOneOrUserTwo(user, user);
 
-    // Delete notifications
+    // 7. Delete notifications
     notificationRepository.deleteByRecipient(user);
 
-    // Finally delete user
+    // 8. Finally delete user
     userRepository.delete(user);
 
 }

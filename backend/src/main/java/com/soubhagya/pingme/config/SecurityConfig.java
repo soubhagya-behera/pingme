@@ -57,7 +57,8 @@ public class SecurityConfig {
         // Public APIs
         .requestMatchers(
                 "/api/auth/**",
-                "/ws/**"
+                "/ws/**",
+                "/actuator/health"
         ).permitAll()
 
         // Admin Only

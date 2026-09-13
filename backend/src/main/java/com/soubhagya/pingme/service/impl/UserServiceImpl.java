@@ -46,7 +46,7 @@ private final ImageStorageService imageStorageService;
 
     }
 
- @Override
+  @Override
 public List<UserSearchResponse> searchUsers(
 
         String keyword,
@@ -54,6 +54,12 @@ public List<UserSearchResponse> searchUsers(
         String loggedInEmail
 
 ) {
+    // F-PG01: bounded search — empty/blank keyword never returns whole table
+    if (keyword == null || keyword.trim().isEmpty() || keyword.trim().length() < 2) {
+        return List.of();
+    }
+    String sanitized = keyword.trim();
+    if (sanitized.length() > 100) sanitized = sanitized.substring(0, 100);
 
     User currentUser = userRepository
 
@@ -69,6 +75,9 @@ public List<UserSearchResponse> searchUsers(
 
             );
 
+    // Server-side cap: max 20 results per request
+    org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+
     List<User> users =
 
             userRepository.searchUsers(
@@ -81,112 +90,64 @@ public List<UserSearchResponse> searchUsers(
 
                     FriendRequestStatus.PENDING,
 
-                    keyword
+                    sanitized,
+
+                    pageable
 
             );
 
+    return mapToSearchResponse(currentUser, users);
+}
+
+private List<UserSearchResponse> mapToSearchResponse(User currentUser, List<User> users) {
     return users.stream()
-
             .map(user -> {
-
                 RelationshipStatus relationshipStatus;
-
-Long requestId = null;
-
-                boolean areFriends =
-
-                        friendRepository
-
-                                .existsByUserOneAndUserTwoOrUserOneAndUserTwo(
-
-                                        currentUser,
-
-                                        user,
-
-                                        user,
-
-                                        currentUser
-
-                                );
-
+                Long requestId = null;
+                boolean areFriends = friendRepository.existsByUserOneAndUserTwoOrUserOneAndUserTwo(currentUser, user, user, currentUser);
                 if (areFriends) {
-
-                    relationshipStatus =
-
-                            RelationshipStatus.FRIENDS;
-
-                }
-
-                else {
-
-                    FriendRequest sentRequest =
-        friendRequestRepository
-                .findTopBySenderAndReceiverOrderByCreatedAtDesc(
-                        currentUser,
-                        user
-                )
-                .orElse(null);
-
-                    FriendRequest receivedRequest =
-        friendRequestRepository
-                .findTopBySenderAndReceiverOrderByCreatedAtDesc(
-                        user,
-                        currentUser
-                )
-                .orElse(null);
-
+                    relationshipStatus = RelationshipStatus.FRIENDS;
+                } else {
+                    FriendRequest sentRequest = friendRequestRepository.findTopBySenderAndReceiverOrderByCreatedAtDesc(currentUser, user).orElse(null);
+                    FriendRequest receivedRequest = friendRequestRepository.findTopBySenderAndReceiverOrderByCreatedAtDesc(user, currentUser).orElse(null);
                     if (sentRequest != null) {
-
-    relationshipStatus = RelationshipStatus.PENDING_SENT;
-
-    requestId = sentRequest.getId();
-
-}
-
-else if (receivedRequest != null) {
-
-    relationshipStatus = RelationshipStatus.PENDING_RECEIVED;
-
-    requestId = receivedRequest.getId();
-
-}
-
-else {
-
-    relationshipStatus = RelationshipStatus.NOT_FRIEND;
-
-}
-
+                        relationshipStatus = RelationshipStatus.PENDING_SENT;
+                        requestId = sentRequest.getId();
+                    } else if (receivedRequest != null) {
+                        relationshipStatus = RelationshipStatus.PENDING_RECEIVED;
+                        requestId = receivedRequest.getId();
+                    } else {
+                        relationshipStatus = RelationshipStatus.NOT_FRIEND;
+                    }
                 }
-
                 return UserSearchResponse.builder()
-
-        .id(user.getId())
-
-        .fullName(user.getFullName())
-
-        .email(user.getEmail())
-
-        .profession(user.getProfession())
-
-        .profilePicture(user.getProfilePicture())
-
-        .online(user.getOnline())
-
-        .relationshipStatus(
-
-                relationshipStatus
-
-        )
-
-        .requestId(requestId)
-
-        .build();
-
+                        .id(user.getId())
+                        .fullName(user.getFullName())
+                        .email(user.getEmail())
+                        .profession(user.getProfession())
+                        .profilePicture(user.getProfilePicture())
+                        .online(user.getOnline())
+                        .relationshipStatus(relationshipStatus)
+                        .requestId(requestId)
+                        .build();
             })
-
             .toList();
+}
 
+@Override
+public List<UserSearchResponse> searchUsers(String keyword, String loggedInEmail, int page, int size) {
+    if (keyword == null || keyword.trim().isEmpty() || keyword.trim().length() < 2) {
+        return List.of();
+    }
+    String sanitized = keyword.trim();
+    if (sanitized.length() > 100) sanitized = sanitized.substring(0, 100);
+    User currentUser = userRepository.findByEmail(loggedInEmail).orElseThrow(() -> new RuntimeException("User not found"));
+    int safePage = Math.max(page, 0);
+    int safeSize = Math.min(Math.max(size, 1), 20);
+    org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(safePage, safeSize);
+    List<User> users = userRepository.searchUsers(currentUser.getId(), UserStatus.APPROVED, UserRole.USER, FriendRequestStatus.PENDING, sanitized, pageable);
+
+    return mapToSearchResponse(currentUser, users);
 }
 
 @Override

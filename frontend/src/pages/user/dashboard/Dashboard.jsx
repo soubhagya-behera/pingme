@@ -21,7 +21,7 @@ import {
     subscribeDashboard,
     subscribeFriendRequests
 } from "../../../websocket/subscriptions";
-import { whenSocketConnected } from "../../../websocket/socket";
+import { onSocketConnected } from "../../../websocket/socket";
 
 export default function Dashboard() {
 
@@ -30,41 +30,32 @@ export default function Dashboard() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-
     loadDashboard();
 
     let dashboardSubscription;
-
     let friendRequestSubscription;
+    let removeSocketListener;
 
-    whenSocketConnected(() => {
-
-    dashboardSubscription = subscribeDashboard(async () => {
-
-        console.log("Dashboard Update");
-
-        await loadDashboard();
-
-    });
-
-    friendRequestSubscription = subscribeFriendRequests(async () => {
-
-        console.log("Friend Request Update");
-
-        await loadDashboard();
-
-    });
-
-});
-
-    return () => {
-
+    const resubscribe = () => {
         dashboardSubscription?.unsubscribe();
-
         friendRequestSubscription?.unsubscribe();
-
+        dashboardSubscription = subscribeDashboard(async () => {
+            console.log("Dashboard Update");
+            await loadDashboard();
+        });
+        friendRequestSubscription = subscribeFriendRequests(async () => {
+            console.log("Friend Request Update");
+            await loadDashboard();
+        });
     };
 
+    removeSocketListener = onSocketConnected(resubscribe);
+
+    return () => {
+        removeSocketListener?.();
+        dashboardSubscription?.unsubscribe();
+        friendRequestSubscription?.unsubscribe();
+    };
 }, []);
 
     async function loadDashboard() {

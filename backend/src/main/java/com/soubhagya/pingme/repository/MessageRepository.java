@@ -91,7 +91,8 @@ AND m.deletedForEveryone = false
 ORDER BY m.sentAt DESC
 """)
     List<Message> findRecentMessages(
-            @Param("user") User user
+            @Param("user") User user,
+            Pageable pageable
     );
 
     List<Message> findBySenderAndReceiverAndStatus(
@@ -115,6 +116,11 @@ WHERE m.id = :messageId
     java.util.Optional<Message> findByIdForEdit(
             @Param("messageId") Long messageId
     );
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @Query(value = "UPDATE messages SET reply_to_id = NULL WHERE reply_to_id IN (SELECT id FROM messages WHERE sender_id = :userId OR receiver_id = :userId)", nativeQuery = true)
+    void nullifyReplyToForUserMessages(@Param("userId") Long userId);
 
     void deleteBySenderOrReceiver(User sender, User receiver);
 
