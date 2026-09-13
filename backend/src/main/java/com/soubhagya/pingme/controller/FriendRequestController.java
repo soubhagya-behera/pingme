@@ -8,6 +8,7 @@ import com.soubhagya.pingme.payload.ApiResponse;
 import com.soubhagya.pingme.service.FriendRequestService;
 import com.soubhagya.pingme.util.ResponseUtil;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import org.springframework.security.core.Authentication;
 @RestController
 @RequestMapping("/api/friend-request")
 @RequiredArgsConstructor
+@org.springframework.validation.annotation.Validated
 public class FriendRequestController {
 
     private final FriendRequestService friendRequestService;
@@ -26,7 +28,7 @@ public class FriendRequestController {
     @PostMapping("/send")
 public ResponseEntity<ApiResponse<FriendRequestResponse>> sendRequest(
 
-        @RequestBody FriendRequestDto request,
+        @Valid @RequestBody FriendRequestDto request,
 
         Authentication authentication){
 
@@ -78,7 +80,7 @@ public ResponseEntity<ApiResponse<List<FriendRequestResponse>>> getIncomingReque
 public ResponseEntity<ApiResponse<FriendRequestResponse>>
 acceptRequest(
 
-        @PathVariable Long requestId,
+        @PathVariable @Positive Long requestId,
 
         Authentication authentication){
 
@@ -105,7 +107,7 @@ acceptRequest(
 @PutMapping("/reject/{requestId}")
 public ResponseEntity<ApiResponse<FriendRequestResponse>>
 rejectRequest(
-        @PathVariable Long requestId,
+        @PathVariable @Positive Long requestId,
         Authentication authentication){
 
     return ResponseEntity.ok(
@@ -131,7 +133,7 @@ rejectRequest(
 @DeleteMapping("/cancel/{requestId}")
 public ResponseEntity<ApiResponse<FriendRequestResponse>> cancelRequest(
 
-        @PathVariable Long requestId,
+        @PathVariable @Positive Long requestId,
 
         Authentication authentication
 

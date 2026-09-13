@@ -1,6 +1,7 @@
 package com.soubhagya.pingme.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,13 +9,16 @@ import lombok.Setter;
 @Setter
 public class PasswordChangeRequest {
 
-    @NotBlank
+    @NotBlank(message = "Current password is required")
+    @Size(max = 64, message = "Password must be at most 64 characters")
     private String currentPassword;
 
-    @NotBlank
+    @NotBlank(message = "New password is required")
+    @Size(min = 8, max = 64, message = "Password must be between 8 and 64 characters")
     private String newPassword;
 
-    @NotBlank
+    @NotBlank(message = "Confirm password is required")
+    @Size(min = 8, max = 64, message = "Password must be between 8 and 64 characters")
     private String confirmPassword;
 
 }

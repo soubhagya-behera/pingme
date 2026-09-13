@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import com.soubhagya.pingme.dto.request.SetPasswordRequest;
 import com.soubhagya.pingme.dto.request.ForgotPasswordRequest;
 import com.soubhagya.pingme.dto.request.ResetPasswordRequest;
+import com.soubhagya.pingme.service.RateLimitService;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -22,6 +24,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final com.soubhagya.pingme.service.LogoutService logoutService;
+    private final RateLimitService rateLimitService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(
@@ -46,8 +49,11 @@ public class AuthController {
 
     @PostMapping("/login")
 public ResponseEntity<ApiResponse<LoginResponse>> login(
-        @Valid @RequestBody LoginRequest request) {
+        @Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
 
+    // H8: per-IP + per-email rate limit to prevent brute force, configurable via app.rate-limit.login
+    String loginKey = (httpRequest.getRemoteAddr() != null ? httpRequest.getRemoteAddr() : "unknown") + ":" + request.getEmail().toLowerCase();
+    rateLimitService.checkLogin(loginKey);
     LoginResponse response = authService.login(request);
 
     return ResponseEntity.ok(
@@ -108,9 +114,12 @@ public ResponseEntity<ApiResponse<String>> forgotPassword(
 
         @Valid
         @RequestBody
-        ForgotPasswordRequest request
+        ForgotPasswordRequest request,
+        HttpServletRequest httpRequest
 ) {
 
+    String fpKey = (httpRequest.getRemoteAddr() != null ? httpRequest.getRemoteAddr() : "unknown") + ":" + request.getEmail().toLowerCase();
+    rateLimitService.checkForgotPassword(fpKey);
     authService.forgotPassword(request.getEmail());
 
     // Generic response in both cases so callers cannot probe for registered emails.
@@ -133,9 +142,12 @@ public ResponseEntity<ApiResponse<String>> resetPassword(
 
         @Valid
         @RequestBody
-        ResetPasswordRequest request
+        ResetPasswordRequest request,
+        HttpServletRequest httpRequest
 ) {
 
+    String rpKey = (httpRequest.getRemoteAddr() != null ? httpRequest.getRemoteAddr() : "unknown") + ":" + request.getEmail().toLowerCase();
+    rateLimitService.checkResetPassword(rpKey);
     authService.resetPassword(
 
             request.getEmail(),

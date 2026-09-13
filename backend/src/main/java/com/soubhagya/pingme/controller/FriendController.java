@@ -15,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/friends")
 @RequiredArgsConstructor
+@org.springframework.validation.annotation.Validated
 public class FriendController {
 
     private final FriendService friendService;
@@ -67,7 +68,7 @@ getFriendStats(Authentication authentication){
     @DeleteMapping("/{friendId}")
 public ResponseEntity<ApiResponse<Void>> unfriend(
 
-        @PathVariable Long friendId,
+        @PathVariable @jakarta.validation.constraints.Positive Long friendId,
 
         Authentication authentication
 

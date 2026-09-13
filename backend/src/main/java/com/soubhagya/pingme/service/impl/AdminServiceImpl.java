@@ -206,27 +206,8 @@ public void sendPasswordOtp(String email) {
 
     }
 
-    tokenRepository.deleteByUserId(user.getId());
-
-    String otp = generateOtp();
-
-    PasswordResetToken token = PasswordResetToken.builder()
-
-            .tokenHash(hashOtp(otp))
-
-            .user(user)
-
-            .expiryDate(
-
-                    LocalDateTime.now()
-
-                            .plusMinutes(10)
-
-            )
-
-            .build();
-
-    tokenRepository.save(token);
+    // H10: reuse TokenService lifecycle (SHA-256 hash, 10min expiry, attempts/lockout, transient OTP)
+    PasswordResetToken token = tokenService.createToken(user);
 
     emailService.sendSimpleEmail(
 
@@ -252,7 +233,7 @@ public void sendPasswordOtp(String email) {
 
                     user.getFullName(),
 
-                    otp
+                    token.getToken()
 
             )
 
@@ -294,41 +275,13 @@ public void changePassword(
 
     }
 
-    PasswordResetToken token = tokenRepository
-
-            .findByTokenHash(hashOtp(otp))
-
+    // H10: reuse TokenService verification (checks expiry, lockout, increments attempts, generic error)
+    PasswordResetToken token = tokenService.verifyForUser(user, otp)
             .orElseThrow(() ->
-
                     new IllegalArgumentException(
-
-                            "Invalid OTP."
-
+                            "Invalid OTP or email."
                     )
-
             );
-
-    if (!token.getUser().getId().equals(user.getId())) {
-
-        throw new IllegalArgumentException(
-
-                "OTP does not belong to this account."
-
-        );
-
-    }
-
-    if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
-
-        tokenRepository.delete(token);
-
-        throw new IllegalArgumentException(
-
-                "OTP has expired."
-
-        );
-
-    }
 
     user.setPassword(
 
@@ -340,9 +293,12 @@ public void changePassword(
 
     );
 
-    userRepository.save(user);
+    // H10: invalidate old JWTs via tokenVersion bump (same as AuthService reset)
+    long current = user.getTokenVersion() == null ? 0L : user.getTokenVersion();
+    user.setTokenVersion(current + 1);
+    userRepository.saveAndFlush(user);
 
-    tokenRepository.delete(token);
+    tokenService.deleteToken(user.getId());
 
 }
 

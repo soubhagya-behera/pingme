@@ -20,12 +20,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
+@org.springframework.validation.annotation.Validated
 public class SecureFileController {
 
     private final SecureFileService secureFileService;
 
     @GetMapping("/chat-files/{storedName}")
-    public ResponseEntity<Resource> chatFile(@PathVariable String storedName,
+    public ResponseEntity<Resource> chatFile(@PathVariable @jakarta.validation.constraints.Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "Invalid file name") String storedName,
                                              Authentication authentication) {
         String attachmentUrl = "/uploads/chat-files/" + storedName;
         secureFileService.authorizeChatAccess(attachmentUrl, authentication.getName());
@@ -33,7 +34,7 @@ public class SecureFileController {
     }
 
     @GetMapping("/chat-images/{storedName}")
-    public ResponseEntity<Resource> chatImage(@PathVariable String storedName,
+    public ResponseEntity<Resource> chatImage(@PathVariable @jakarta.validation.constraints.Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "Invalid file name") String storedName,
                                               Authentication authentication) {
         String attachmentUrl = "/uploads/chat-images/" + storedName;
         secureFileService.authorizeChatAccess(attachmentUrl, authentication.getName());
@@ -41,7 +42,7 @@ public class SecureFileController {
     }
 
     @GetMapping("/profile-photos/{storedName}")
-    public ResponseEntity<Resource> profilePhoto(@PathVariable String storedName,
+    public ResponseEntity<Resource> profilePhoto(@PathVariable @jakarta.validation.constraints.Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "Invalid file name") String storedName,
                                                  Authentication authentication) {
         secureFileService.authorizeProfileAccess(authentication.getName());
         return serve(secureFileService.loadProfilePhoto(storedName));

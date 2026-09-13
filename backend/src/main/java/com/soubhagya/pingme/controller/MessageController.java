@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 @RestController
 @RequestMapping("/api/messages")
 @RequiredArgsConstructor
+@org.springframework.validation.annotation.Validated
 public class MessageController {
 
     private final MessageService messageService;
@@ -24,11 +25,11 @@ public class MessageController {
     @GetMapping("/history/{friendId}")
     public ResponseEntity<ApiResponse<Page<MessageResponse>>> getChatHistory(
 
-            @PathVariable Long friendId,
+            @PathVariable @jakarta.validation.constraints.Positive Long friendId,
 
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "0") @jakarta.validation.constraints.Min(value = 0, message = "Page must be >= 0") int page,
 
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "20") @jakarta.validation.constraints.Min(value = 1, message = "Size must be >= 1") @jakarta.validation.constraints.Max(value = 50, message = "Size must be <= 50") int size,
 
             Authentication authentication
     ) {
@@ -80,11 +81,11 @@ public class MessageController {
     @GetMapping("/search/{friendId}")
     public ResponseEntity<ApiResponse<List<MessageResponse>>> searchMessages(
 
-            @PathVariable Long friendId,
+            @PathVariable @jakarta.validation.constraints.Positive Long friendId,
 
-            @RequestParam String query,
+            @RequestParam @jakarta.validation.constraints.Size(max = 200, message = "Search query must be at most 200 characters") String query,
 
-            @RequestParam(defaultValue = "100") int limit,
+            @RequestParam(defaultValue = "100") @jakarta.validation.constraints.Min(value = 1, message = "Limit must be >= 1") @jakarta.validation.constraints.Max(value = 100, message = "Limit must be <= 100") int limit,
 
             Authentication authentication
     ) {

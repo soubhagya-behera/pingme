@@ -44,7 +44,7 @@ public void sendActivationEmail(User user, String token) {
             Create Password
             </a>
 
-            <p>This link expires in 24 hours.</p>
+            <p>This link expires in 10 minutes.</p>
             """.formatted(activationLink);
 
     try {
@@ -101,7 +101,7 @@ margin:30px 0;">
 %s
 </h1>
 
-            <p>This OTP expires in 24 hours.</p>
+            <p>This OTP expires in 10 minutes.</p>
 
             <p>If you didn't request this, simply ignore this email.</p>
             """

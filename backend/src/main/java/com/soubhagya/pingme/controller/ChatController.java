@@ -30,10 +30,13 @@ import com.soubhagya.pingme.dto.request.EditMessageRequest;
 import com.soubhagya.pingme.dto.request.BulkDeleteRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import com.soubhagya.pingme.dto.request.ForwardMessageRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
+@org.springframework.validation.annotation.Validated
 public class ChatController {
 
     private final ChatService chatService;
@@ -41,7 +44,7 @@ public class ChatController {
     @PostMapping("/send")
 public ResponseEntity<?> sendHttpMessage(
 
-        @RequestBody ChatMessage message,
+        @Valid @RequestBody ChatMessage message,
 
         Authentication authentication
 
@@ -54,13 +57,13 @@ public ResponseEntity<?> sendHttpMessage(
 }
 
     @PostMapping("/sync")
-    public ResponseEntity<?> syncMessage(@RequestBody ChatMessage message, Authentication authentication) {
+    public ResponseEntity<?> syncMessage(@Valid @RequestBody ChatMessage message, Authentication authentication) {
         ChatMessage saved = chatService.syncMessage(message, authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("Message synced", saved));
     }
 
     @PostMapping("/sync/batch")
-    public ResponseEntity<?> syncBatch(@RequestBody java.util.List<ChatMessage> messages, Authentication authentication) {
+    public ResponseEntity<?> syncBatch(@Valid @RequestBody @jakarta.validation.constraints.Size(max = 50, message = "Batch cannot exceed 50 messages") java.util.List<@Valid ChatMessage> messages, Authentication authentication) {
         java.util.List<ChatMessage> saved = chatService.syncMessages(messages, authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("Messages synced", saved));
     }
@@ -125,7 +128,7 @@ public void typing(
 @PostMapping("/read/{friendId}")
 public void markConversationRead(
 
-        @PathVariable Long friendId,
+        @PathVariable @Positive Long friendId,
 
         Authentication authentication
 
@@ -144,9 +147,9 @@ public void markConversationRead(
 @PutMapping("/messages/{messageId}")
 public ResponseEntity<?> editMessage(
 
-        @PathVariable Long messageId,
+        @PathVariable @Positive Long messageId,
 
-        @RequestBody EditMessageRequest request,
+        @Valid @RequestBody EditMessageRequest request,
 
         Authentication authentication
 
@@ -169,7 +172,7 @@ public ResponseEntity<?> editMessage(
 @DeleteMapping("/messages/{messageId}")
 public ResponseEntity<ApiResponse<String>> deleteForEveryone(
 
-        @PathVariable Long messageId,
+        @PathVariable @Positive Long messageId,
 
         Authentication authentication
 
@@ -197,7 +200,7 @@ public ResponseEntity<ApiResponse<String>> deleteForEveryone(
 
 @DeleteMapping("/messages/{messageId}/me")
 public ResponseEntity<ApiResponse<Void>> deleteForMe(
-        @PathVariable Long messageId,
+        @PathVariable @Positive Long messageId,
         Authentication authentication
 ) {
 
@@ -214,9 +217,9 @@ public ResponseEntity<ApiResponse<Void>> deleteForMe(
 
 }
 
-@DeleteMapping("/messages/bulk")
+ @DeleteMapping("/messages/bulk")
 public ResponseEntity<ApiResponse<String>> bulkDelete(
-        @RequestBody BulkDeleteRequest request,
+        @Valid @RequestBody BulkDeleteRequest request,
         Authentication authentication
 ) {
     chatService.bulkDelete(
@@ -232,7 +235,7 @@ public ResponseEntity<ApiResponse<String>> bulkDelete(
 
 @PostMapping("/messages/bulk-delete")
 public ResponseEntity<ApiResponse<String>> bulkDeletePost(
-        @RequestBody BulkDeleteRequest request,
+        @Valid @RequestBody BulkDeleteRequest request,
         Authentication authentication
 ) {
     chatService.bulkDelete(
@@ -249,9 +252,9 @@ public ResponseEntity<ApiResponse<String>> bulkDeletePost(
 @PostMapping("/messages/{messageId}/forward")
 public ResponseEntity<ApiResponse<String>> forwardMessage(
 
-        @PathVariable Long messageId,
+        @PathVariable @Positive Long messageId,
 
-        @RequestBody ForwardMessageRequest request,
+        @Valid @RequestBody ForwardMessageRequest request,
 
         Authentication authentication
 
@@ -282,9 +285,9 @@ public ResponseEntity<ApiResponse<String>> forwardMessage(
 @PostMapping("/messages/{messageId}/forward/{receiverId}")
 public ResponseEntity<ApiResponse<String>> forwardMessage(
 
-        @PathVariable Long messageId,
+        @PathVariable @Positive Long messageId,
 
-        @PathVariable Long receiverId,
+        @PathVariable @Positive Long receiverId,
 
         Authentication authentication
 
@@ -307,7 +310,7 @@ public ResponseEntity<ApiResponse<String>> forwardMessage(
 @DeleteMapping("/clear/{friendId}")
 public ResponseEntity<ApiResponse<String>> clearChat(
 
-        @PathVariable Long friendId,
+        @PathVariable @Positive Long friendId,
 
         Authentication authentication
 

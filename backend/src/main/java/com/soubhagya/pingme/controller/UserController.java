@@ -20,13 +20,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
+@org.springframework.validation.annotation.Validated
 public class UserController {
 
     private final UserService userService;
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<UserSearchResponse>>> searchUsers(
-            @RequestParam String keyword,
+            @RequestParam @jakarta.validation.constraints.Size(max = 100, message = "Search keyword must be at most 100 characters") String keyword,
             Authentication authentication
     ) {
 
@@ -71,7 +72,7 @@ public class UserController {
 
     @PutMapping("/profile")
     public ResponseEntity<ApiResponse<ProfileResponse>> updateProfile(
-            @RequestBody UpdateProfileRequest request,
+            @Valid @RequestBody UpdateProfileRequest request,
             Authentication authentication
     ) {
 

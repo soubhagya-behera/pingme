@@ -14,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
+@org.springframework.validation.annotation.Validated
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -60,7 +61,7 @@ public class NotificationController {
 
     @PutMapping("/{id}/read")
     public ResponseEntity<ApiResponse<Void>> markAsRead(
-            @PathVariable Long id,
+            @PathVariable @jakarta.validation.constraints.Positive Long id,
             Authentication authentication) {
 
         notificationService.markAsRead(

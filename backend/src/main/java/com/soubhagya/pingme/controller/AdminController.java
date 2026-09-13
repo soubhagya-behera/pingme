@@ -14,6 +14,8 @@ import com.soubhagya.pingme.dto.response.AdminSettingsResponse;
 
 import com.soubhagya.pingme.dto.request.ChangePasswordRequest;
 import com.soubhagya.pingme.dto.request.SendPasswordOtpRequest;
+import com.soubhagya.pingme.service.RateLimitService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -21,9 +23,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
+@org.springframework.validation.annotation.Validated
 public class AdminController {
 
     private final AdminService adminService;
+    private final RateLimitService rateLimitService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<ApiResponse<AdminDashboardStatsResponse>> getDashboardStats() {
@@ -38,10 +42,10 @@ public class AdminController {
 
     @GetMapping("/users")
     public ResponseEntity<ApiResponse<AdminUserPageResponse>> getUsers(
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 20, message = "status filter too long") String status,
+            @RequestParam(required = false) @jakarta.validation.constraints.Size(max = 100, message = "search must be at most 100 characters") String search,
+            @RequestParam(defaultValue = "0") @jakarta.validation.constraints.Min(value = 0, message = "page must be >= 0") int page,
+            @RequestParam(defaultValue = "10") @jakarta.validation.constraints.Min(value = 1, message = "size must be >= 1") @jakarta.validation.constraints.Max(value = 50, message = "size must be <= 50") int size) {
 
         return ResponseEntity.ok(
                 ResponseUtil.success(
@@ -63,7 +67,7 @@ public class AdminController {
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable @jakarta.validation.constraints.Positive Long id) {
 
         return ResponseEntity.ok(
                 ResponseUtil.success(
@@ -75,7 +79,7 @@ public class AdminController {
 
     @PutMapping("/approve/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> approveUser(
-            @PathVariable Long id) {
+            @PathVariable @jakarta.validation.constraints.Positive Long id) {
 
         return ResponseEntity.ok(
 
@@ -93,7 +97,7 @@ public class AdminController {
 
     @PutMapping("/reject/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> rejectUser(
-            @PathVariable Long id) {
+            @PathVariable @jakarta.validation.constraints.Positive Long id) {
 
         return ResponseEntity.ok(
 
@@ -110,7 +114,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable @jakarta.validation.constraints.Positive Long id) {
 
         adminService.deleteUser(id);
 
@@ -125,7 +129,7 @@ public class AdminController {
 
     @PutMapping("/resend-activation/{id}")
 public ResponseEntity<?> resendActivationEmail(
-        @PathVariable Long id
+        @PathVariable @jakarta.validation.constraints.Positive Long id
 ) {
 
     return ResponseEntity.ok(
@@ -164,10 +168,13 @@ public ResponseEntity<?> sendPasswordOtp(
 
         @Valid
         @RequestBody
-        SendPasswordOtpRequest request
+        SendPasswordOtpRequest request,
+        HttpServletRequest httpRequest
 
 ) {
 
+    String key = (httpRequest.getRemoteAddr() != null ? httpRequest.getRemoteAddr() : "unknown") + ":" + request.getEmail().toLowerCase();
+    rateLimitService.checkOtp(key);
     adminService.sendPasswordOtp(
             request.getEmail()
     );
@@ -191,10 +198,13 @@ public ResponseEntity<?> changePassword(
 
         @Valid
         @RequestBody
-        ChangePasswordRequest request
+        ChangePasswordRequest request,
+        HttpServletRequest httpRequest
 
 ) {
 
+    String key = (httpRequest.getRemoteAddr() != null ? httpRequest.getRemoteAddr() : "unknown") + ":" + request.getEmail().toLowerCase();
+    rateLimitService.checkResetPassword(key);
     adminService.changePassword(
 
             request.getEmail(),

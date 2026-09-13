@@ -1,6 +1,7 @@
 package com.soubhagya.pingme.exception;
 
 import com.soubhagya.pingme.payload.ApiResponse;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,6 +11,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -98,6 +100,29 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({SecurityException.class, AccessDeniedException.class})
     public ResponseEntity<ApiResponse<?>> forbidden(Exception ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiResponse<?>> rateLimit(RateLimitExceededException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                .body(ApiResponse.failure(ex.getMessage()));
+    }
+
+    @ExceptionHandler({ConstraintViolationException.class, HandlerMethodValidationException.class})
+    public ResponseEntity<ApiResponse<?>> constraintViolation(Exception ex) {
+        String message = "Invalid request parameters";
+        if (ex instanceof ConstraintViolationException cve && !cve.getConstraintViolations().isEmpty()) {
+            message = cve.getConstraintViolations().iterator().next().getMessage();
+        } else if (ex instanceof HandlerMethodValidationException hmve) {
+            var first = hmve.getAllErrors().stream().findFirst();
+            if (first.isPresent() && first.get() instanceof org.springframework.validation.FieldError fe && fe.getDefaultMessage() != null) {
+                message = fe.getDefaultMessage();
+            } else if (first.isPresent() && first.get().getDefaultMessage() != null) {
+                message = first.get().getDefaultMessage();
+            }
+        }
+        return ResponseEntity.badRequest().body(ApiResponse.failure(message));
     }
 
     @ExceptionHandler(Exception.class)

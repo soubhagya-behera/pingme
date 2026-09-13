@@ -56,6 +56,9 @@ public class MessageServiceImpl implements MessageService {
             int size
 
     ) {
+        // H9: clamp pagination to prevent unbounded queries — defense in depth (controller also validates)
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 50);
 
         User sender =
 
@@ -97,9 +100,9 @@ public class MessageServiceImpl implements MessageService {
 
                 PageRequest.of(
 
-                        page,
+                        safePage,
 
-                        size,
+                        safeSize,
 
                         Sort.by("sentAt").descending()
 
