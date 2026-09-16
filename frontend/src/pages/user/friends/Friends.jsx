@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FriendService from "../../../services/FriendService";
 
-import { onSocketConnected } from "../../../websocket/socket";
+import { onSocketConnected, isSocketConnected } from "../../../websocket/socket";
 import {
     subscribeFriendRequests,
     subscribeFriends,
@@ -39,6 +39,9 @@ export default function Friends() {
     loadFriends();
 
     const resubscribe = () => {
+        // B-W4: never replace a live subscription with the safeSubscribe
+        // no-op — retry only when the socket is actually connected.
+        if (!isSocketConnected()) return;
         friendRequestSubscription?.unsubscribe();
         friendsSubscription?.unsubscribe();
         presenceSubscription?.unsubscribe();

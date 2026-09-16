@@ -7,6 +7,7 @@ import CallHistoryMessage from "./CallHistoryMessage";
 import HighlightText from "./HighlightText";
 import { attachmentLabel, isImageAttachment, isVoiceMessage } from "./AttachmentUtils";
 import { useSecureMedia } from "../../../hooks/useSecureMedia";
+import { retryFailedMessage } from "../../../offline/syncQueue";
 
 export default function MessageBubble({ message, mine, text, time, status, onReply, onEdit, onDelete, onDeleteMe, onForward, isHighlighted = false, highlightQuery = "", selectionMode = false, isSelected = false, onToggleSelect = null }) {
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -31,7 +32,13 @@ export default function MessageBubble({ message, mine, text, time, status, onRep
   }
   const isImage = isImageAttachment(message);
   const isVoice = isVoiceMessage(message);
-  const ticks = !mine ? null : status === "PENDING" ? <span title="Waiting for connection" className="chat-pending-dot">○</span> : status === "SYNCING" ? <span className="chat-pending-dot is-syncing">◐</span> : status === "SENDING" ? "⌛" : status === "FAILED" ? "!" : status === "SENT" ? "✓" : status === "DELIVERED" ? "✓✓" : status === "READ" ? <span className="chat-read-receipt">✓✓</span> : null;
+  // B-O1: the existing "!" failed marker doubles as the retry affordance —
+  // same glyph, same styling; clicking requeues the row as PENDING and drains.
+  const failedRetry = status === "FAILED" && mine ? () => {
+    const key = message.clientId || message.id;
+    if (key != null) retryFailedMessage(String(key)).catch(() => {});
+  } : null;
+  const ticks = !mine ? null : status === "PENDING" ? <span title="Waiting for connection" className="chat-pending-dot">○</span> : status === "SYNCING" ? <span className="chat-pending-dot is-syncing">◐</span> : status === "SENDING" ? "⌛" : status === "FAILED" ? <span title="Send failed — click to retry" role="button" tabIndex={0} onClick={failedRetry} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); failedRetry?.(); } }} style={{ cursor: "pointer" }}>!</span> : status === "SENT" ? "✓" : status === "DELIVERED" ? "✓✓" : status === "READ" ? <span className="chat-read-receipt">✓✓</span> : null;
   const replyText = message.reply?.content || (message.reply?.attachmentUrl ? attachmentLabel(message.reply) : "Message");
   
   const handleSelectClick = (e) => {

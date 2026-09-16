@@ -9,7 +9,7 @@ import Input from "../../../components/ui/Input";
 import RequestStats from "../../../components/user/requests/RequestStats";
 import RequestCard from "../../../components/user/requests/RequestCard";
 import EmptyRequests from "../../../components/user/requests/EmptyRequests";
-import { onSocketConnected } from "../../../websocket/socket";
+import { onSocketConnected, isSocketConnected } from "../../../websocket/socket";
 
 export default function FriendRequests() {
     // Step 2: Added stats and search states alongside requests state
@@ -24,6 +24,9 @@ export default function FriendRequests() {
     let removeSocketListener;
 
     const resubscribe = () => {
+        // B-W4: never replace a live subscription with the safeSubscribe
+        // no-op — retry only when the socket is actually connected.
+        if (!isSocketConnected()) return;
         subscription?.unsubscribe();
         subscription = subscribeFriendRequests(async () => {
             await loadRequests();

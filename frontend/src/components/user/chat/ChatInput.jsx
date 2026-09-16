@@ -16,7 +16,7 @@ import ChatService from "../../../services/ChatService";
 import { sendTyping, sendStopTyping } from "../../../websocket/publisher";
 import { useVoiceRecorder } from "./useVoiceRecorder";
 import { enqueueMessage, syncPendingMessages } from "../../../offline/syncQueue";
-import { removePending } from "../../../offline/db";
+import { removePending, getPendingByConversation } from "../../../offline/db";
 
 function formatTimer(totalSeconds) {
     const seconds = Math.floor(totalSeconds);
@@ -192,6 +192,18 @@ export default function ChatInput({
 
         // If online, try immediate sync; offline will sync later automatically
         if (navigator.onLine) {
+            // B-O6: never let a fresh message jump older unsynced rows — if the
+            // outbox already holds this conversation's messages, stay queued so
+            // the FIFO drain preserves authored order.
+            let olderPending = 0;
+            try {
+                const queued = await getPendingByConversation(friend.id);
+                olderPending = (queued || []).filter(r => r.clientMessageId !== clientId).length;
+            } catch {}
+            if (olderPending > 0) {
+                syncPendingMessages().catch(()=>{});
+                return;
+            }
             try {
                 const resp = await ChatService.syncMessage(payload);
                 const serverMsg = resp?.data?.data ?? resp?.data;

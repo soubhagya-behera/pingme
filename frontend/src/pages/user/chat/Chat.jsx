@@ -28,6 +28,7 @@ import useChatAttachments from "./hooks/useChatAttachments";
 import useConnectivity from "../../../hooks/useConnectivity";
 import OfflineBanner from "../../../components/user/chat/OfflineBanner";
 import { syncPendingMessages, onSyncEvent } from "../../../offline/syncQueue";
+import { applySyncEventToMessages } from "../../../offline/syncReconcile";
 import * as offlineDB from "../../../offline/db";
 
 export default function Chat() {
@@ -66,26 +67,14 @@ export default function Chat() {
     const bannerRef = useRef(connectivity.banner);
     useEffect(() => { bannerRef.current = connectivity.banner; }, [connectivity.banner]);
     // Offline-first: listen for sync events to reconcile messages (stable listener, no thrash)
+    // B-block: list reconciliation lives in offline/syncReconcile (400-line rule).
     useEffect(() => {
         const unsub = onSyncEvent(ev => {
-            if (ev.type === "syncing") {
-                setMessages(prev => prev.map(m => (m.clientId === ev.clientMessageId || m.id === ev.clientMessageId) ? { ...m, status: "SYNCING" } : m));
+            if (ev.type === "syncing" || ev.type === "retry") {
+                setMessages(prev => applySyncEventToMessages(prev, ev));
                 connectivity.notifySyncing?.();
             } else if (ev.type === "sent") {
-                const srv = ev.serverMsg;
-                if (srv) {
-                    setMessages(prev => {
-                        const idx = prev.findIndex(m => m.clientId === ev.clientMessageId || m.id === ev.clientMessageId);
-                        if (idx !== -1) {
-                            const next = [...prev];
-                            next[idx] = { ...next[idx], ...srv, clientId: ev.clientMessageId };
-                            return next;
-                        }
-                        return prev;
-                    });
-                } else {
-                    setMessages(prev => prev.map(m => (m.clientId === ev.clientMessageId || m.id === ev.clientMessageId) ? { ...m, status: "SENT" } : m));
-                }
+                setMessages(prev => applySyncEventToMessages(prev, ev));
             } else if (ev.type === "sync-end") {
                 if (ev.synced > 0) connectivity.notifySynced?.();
                 else if (bannerRef.current === "syncing") connectivity.notifySynced?.();

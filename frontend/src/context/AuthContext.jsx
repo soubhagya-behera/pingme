@@ -8,6 +8,7 @@ import * as offlineDB from "../offline/db";
 import AuthService from "../services/AuthService";
 import { clearMediaCache } from "../hooks/useSecureMedia";
 import { resetHandling401 } from "../api/axios";
+import { isPublicAuthPath } from "../constants/publicRoutes";
 
 const AuthContext = createContext();
 
@@ -95,6 +96,34 @@ export function AuthProvider({ children }) {
         }
 
     }, [user]);
+
+    // B-W6: WebSocket-only auth failure (no REST 401 fired) routes through the
+    // same guarded session-expiry handling used by the axios interceptor.
+    useEffect(() => {
+        const onWsAuthFailed = () => {
+            try {
+                const currentToken = localStorage.getItem("token");
+                if (!currentToken) return;
+                disconnectSocket();
+                try {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+                    localStorage.removeItem("userId");
+                } catch {}
+                setUser(null);
+                setToken(null);
+                // Root-routing: on public pages (landing/login/register/...)
+                // a stale token must not yank the visitor to /login — clear
+                // the dead session silently instead. Redirect only from
+                // protected app routes.
+                if (typeof window !== "undefined" && !isPublicAuthPath(window.location.pathname)) {
+                    window.location.replace("/login");
+                }
+            } catch {}
+        };
+        window.addEventListener("pingme:ws-auth-failed", onWsAuthFailed);
+        return () => window.removeEventListener("pingme:ws-auth-failed", onWsAuthFailed);
+    }, []);
 
     // On mount, purge any pre-fix orphaned offline data that was stored without owner scoping
     useEffect(() => {

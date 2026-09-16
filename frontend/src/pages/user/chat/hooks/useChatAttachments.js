@@ -94,7 +94,18 @@ export default function useChatAttachments({
             optimisticId = optimistic.id;
             setMessages(previous => [...previous, optimistic]);
             setScrollToBottomRequest(request => request + 1);
-            await ChatService.sendMessage(payload);
+            // B-O5: reconcile from the REST response (not only the WS echo) so
+            // a message saved while the socket is down does not stick at SENDING.
+            const sendResp = await ChatService.sendMessage(payload);
+            const sentMsg = sendResp?.data?.data ?? sendResp?.data ?? null;
+            if (sentMsg?.id != null) {
+                const reconciled = sentMsg.clientId ? sentMsg : { ...sentMsg, clientId: payload.clientId };
+                setMessages(previous => previous.map(m =>
+                    (m.id === optimistic.id || (m.clientId && m.clientId === payload.clientId))
+                        ? { ...m, ...reconciled, status: reconciled.status || "SENT" }
+                        : m
+                ));
+            }
             toast.success("Attachment sent");
             resetAttachmentPreview();
             setReplyingTo(null);
@@ -168,7 +179,18 @@ export default function useChatAttachments({
             optimisticId = optimistic.id;
             setMessages(previous => [...previous, optimistic]);
             setScrollToBottomRequest(request => request + 1);
-            await ChatService.sendMessage(payload);
+            // B-O5: same REST-response reconciliation for voice messages — the
+            // WS echo stays the live path, this only heals the split-brain case.
+            const voiceResp = await ChatService.sendMessage(payload);
+            const voiceMsg = voiceResp?.data?.data ?? voiceResp?.data ?? null;
+            if (voiceMsg?.id != null) {
+                const reconciled = voiceMsg.clientId ? voiceMsg : { ...voiceMsg, clientId: payload.clientId };
+                setMessages(previous => previous.map(m =>
+                    (m.id === optimistic.id || (m.clientId && m.clientId === payload.clientId))
+                        ? { ...m, ...reconciled, status: reconciled.status || "SENT" }
+                        : m
+                ));
+            }
             toast.success("Voice message sent");
             resetVoicePreview();
             setReplyingTo(null);

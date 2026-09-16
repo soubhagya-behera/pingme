@@ -96,6 +96,9 @@ export default function useChatSocket({
             if (incoming.receiverId === myId && isOpenConversation) acknowledgeRead(incoming.id);
 
             setMessages(previous => {
+                // B-O8: dedupe by BOTH server id and clientId — a reconnect
+                // replay may resend a message the live socket already delivered
+                // (ack in flight while the socket flapped).
                 const optimisticIndex = previous.findIndex(item => item.clientId && item.clientId === incoming.clientId);
                 if (optimisticIndex !== -1) {
                     const next = [...previous]; next[optimisticIndex] = incoming;
@@ -103,7 +106,11 @@ export default function useChatSocket({
                     if (incoming.clientId) { removePending(incoming.clientId).catch(()=>{}); }
                     return next;
                 }
-                if (!isOpenConversation || previous.some(item => item.id === incoming.id)) return previous;
+                const alreadyHave = previous.some(item =>
+                    (incoming.id != null && item.id === incoming.id) ||
+                    (incoming.clientId && item.clientId && item.clientId === incoming.clientId)
+                );
+                if (!isOpenConversation || alreadyHave) return previous;
                 return [...previous, incoming];
             });
 

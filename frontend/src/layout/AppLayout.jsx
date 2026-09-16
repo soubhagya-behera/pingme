@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import AppRail from "./AppRail";
 import PageContainer from "./PageContainer";
 import MobileHeader from "./MobileHeader";
 import MobileNavDrawer from "./MobileNavDrawer";
+import { useAuth } from "../context/AuthContext";
+import { syncPendingMessages } from "../offline/syncQueue";
+import { onSocketConnected } from "../websocket/socket";
 
 export default function AppLayout({
 
@@ -14,6 +17,22 @@ export default function AppLayout({
 }){
 
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    const { token } = useAuth();
+
+    // B-O4: app-level outbox drain — the Chat page owns the message UI, but
+    // pending messages must sync no matter which protected page lands first
+    // after a hard refresh (auth-gated: no token, no sync).
+    useEffect(() => {
+        if (!token) return;
+        syncPendingMessages().catch(() => {});
+        const removeReconnectTrigger = onSocketConnected(() => syncPendingMessages().catch(() => {}));
+        const onOnline = () => syncPendingMessages().catch(() => {});
+        window.addEventListener("online", onOnline);
+        return () => {
+            removeReconnectTrigger?.();
+            window.removeEventListener("online", onOnline);
+        };
+    }, [token]);
 
     return(
 

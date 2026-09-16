@@ -1,5 +1,6 @@
 import axios from "axios";
 import { disconnectSocket } from "../websocket/socket";
+import { isPublicAuthPath } from "../constants/publicRoutes";
 
 // H4: single-flight guard to avoid multiple simultaneous 401 handlers fighting
 let handling401 = false;
@@ -52,8 +53,9 @@ api.interceptors.response.use(
             if (handling401) {
                 return Promise.reject(error);
             }
-            // If already on login page, don't redirect again
-            if (typeof window !== "undefined" && window.location.pathname === "/login") {
+            // On public pages (landing/login/register/...) never redirect to
+            // /login — a stale token must not yank the visitor off them.
+            if (typeof window !== "undefined" && isPublicAuthPath(window.location.pathname)) {
                 return Promise.reject(error);
             }
             // Do not clear a newly established session due to stale request from previous account:

@@ -21,7 +21,7 @@ import {
     subscribeDashboard,
     subscribeFriendRequests
 } from "../../../websocket/subscriptions";
-import { onSocketConnected } from "../../../websocket/socket";
+import { onSocketConnected, isSocketConnected } from "../../../websocket/socket";
 
 export default function Dashboard() {
 
@@ -37,7 +37,10 @@ export default function Dashboard() {
     let removeSocketListener;
 
     const resubscribe = () => {
-        dashboardSubscription?.unsubscribe();
+            // B-W4: never replace a live subscription with the safeSubscribe
+            // no-op — retry only when the socket is actually connected.
+            if (!isSocketConnected()) return;
+            dashboardSubscription?.unsubscribe();
         friendRequestSubscription?.unsubscribe();
         dashboardSubscription = subscribeDashboard(async () => {
             console.log("Dashboard Update");

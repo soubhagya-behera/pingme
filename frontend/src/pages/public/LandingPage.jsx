@@ -10,8 +10,6 @@ import TechSection from "../../components/landing/TechSection";
 import FinalCTA from "../../components/landing/FinalCTA";
 import Footer from "../../components/landing/Footer";
 
-import { maybeRunViewportAudit } from "../../dev/viewportAudit";
-
 import "../../styles/landing.css";
 
 const TRUST_ITEMS = [
@@ -21,8 +19,6 @@ const TRUST_ITEMS = [
 ];
 
 export default function LandingPage() {
-    maybeRunViewportAudit();
-
     useEffect(() => {
         const previousTitle = document.title;
         document.title = "PingMe — Real-Time Messaging";
