@@ -1,287 +1,894 @@
-# PingMe
+<div align="center">
 
-PingMe is a full-stack, real-time private messaging application built with **Spring Boot 3**, **PostgreSQL**, and **React 19**. It combines a JWT-secured REST API with STOMP-over-WebSocket delivery for live messaging, presence, typing indicators, receipts, notifications, and WebRTC call signalling — and layers an offline-first client on top: messages composed without connectivity are queued locally in IndexedDB and reconciled with server-side idempotency once the connection returns.
+# 💬 PingMe
 
-## Overview
+### Real-Time Private Messaging Platform
 
-PingMe implements a friend-gated private chat platform: accounts are registered, activated via email, and approved by an administrator before they can be used. Users find each other through search, exchange friend requests, and then chat one-to-one with text, images, files, and voice notes. The backend persists every message in PostgreSQL (schema managed by Flyway) and pushes real-time events to connected clients over authenticated STOMP sessions. The React client keeps a durable local outbox so a dropped connection does not lose a conversation.
+<p>
+A security-conscious full-stack communication system built around
+authenticated realtime messaging, offline-first delivery,
+presence, notifications, and WebRTC calling.
+</p>
 
-The project is designed as a realistic, security-conscious Java full-stack system: stateless JWT authentication with server-side token revocation, BCrypt password storage, request rate limiting, authorization-checked media access, and an approval-based account lifecycle.
+[![GitHub](https://img.shields.io/badge/GitHub-soubhagya--behera%2Fpingme-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/soubhagya-behera/pingme)
+[![Portfolio](https://img.shields.io/badge/Portfolio-soubhagya--dev-00C853?style=for-the-badge&logo=vercel&logoColor=white)](https://soubhagya-dev.vercel.app)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/soubhagyakumar-java)
 
-## Key Features
+<br/>
 
-### Authentication & Accounts
-- Email/password registration with BCrypt-hashed credentials
-- Email activation with single-use, SHA-256-hashed tokens (plaintext tokens are never persisted)
-- Administrator approval workflow — new accounts remain `PENDING` until approved, then activate via an emailed link
-- Login issuing JWT access tokens; stateless session management
-- Forgot-password flow using 6-digit OTPs delivered by email — hashed at rest, 10-minute expiry, lockout after repeated failed attempts, and no account-existence disclosure
-- Password change (with automatic invalidation of previously issued tokens)
-- Profile management: name, profession, bio, phone, and profile photo upload
+![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot 3.5.6](https://img.shields.io/badge/Spring_Boot-3.5.6-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+![WebSocket STOMP](https://img.shields.io/badge/WebSocket-STOMP-010101?style=for-the-badge&logo=socketdotio&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-HS256-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![Flyway](https://img.shields.io/badge/Flyway-Migrations-CC0200?style=for-the-badge&logo=flyway&logoColor=white)
+![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
-### Real-Time Messaging
-- Bidirectional messaging over STOMP (SockJS fallback), delivered to per-user queues
-- Delivery and read receipts pushed in real time (`SENT → DELIVERED → READ`)
-- Typing indicators between conversation participants
-- Live presence: online/offline status and last-seen timestamps broadcast on connect/disconnect, with multi-tab session tracking
-- Real-time message edit and delete events
-- Real-time notifications and friend-request/friend events
-- Configurable 10s/10s WebSocket heartbeats to detect half-open connections
+<br/>
 
-### Conversations & Message Management
-- Paginated chat history (server-side, page size capped at 50)
-- In-conversation message search
-- Chat sidebar with last-message previews and unread counts
-- Replies, message editing (15-minute window), delete-for-everyone, delete-for-me (hidden-message table), bulk delete, and message forwarding
-- Per-user conversation clearing (cleared-conversation cutoffs without affecting the other participant)
-- Call history entries for audio and video calls
+![Stars](https://img.shields.io/github/stars/soubhagya-behera/pingme?style=flat-square&logo=github)
+![Last commit](https://img.shields.io/github/last-commit/soubhagya-behera/pingme?style=flat-square&logo=github)
+![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square&logo=github)
+![License](https://img.shields.io/badge/License-Not_specified-lightgrey?style=flat-square)
+![Backend tests](https://img.shields.io/badge/Backend_tests-JUnit_%2B_H2-6DB33F?style=flat-square&logo=springboot)
+![Frontend checks](https://img.shields.io/badge/Frontend_checks-Oxlint_%2B_Build-61DAFB?style=flat-square&logo=react)
 
-### Media
-- Image messages, general file attachments, and in-browser voice notes (MediaRecorder)
-- Server-side size limits (10 MB per attachment, 5 MB profile photos)
-- Authenticated media access: chat files and images are served only to conversation participants, with strict stored-filename validation
+**[Features](#-features) • [Architecture](#-system-architecture) • [Realtime](#-realtime-architecture) • [Security](#-security-architecture) • [Offline](#-offline-first-messaging) • [API](#-api-reference) • [Getting Started](#-getting-started)**
 
-### Calls
-- One-to-one audio and video calls using WebRTC peer connections
-- Offer/answer/ICE signalling relayed over authenticated STOMP with server-side call-state tracking
-- Incoming/outgoing call overlays with ringback tones and call-reject/end handling
+</div>
 
-### Friends & Social
-- User search (approved accounts only; existing friends and pending requests excluded)
-- Friend requests: send, cancel, accept, reject — with live updates over WebSocket
-- Friend list with request statistics
+---
 
-### Notifications
-- Persisted, per-user notification feed with unread counts
-- Mark one / mark all as read; new notifications pushed over WebSocket
+## 🛰️ What is PingMe?
 
-### Offline-First Messaging
-- IndexedDB outbox and per-account conversation history cache in the browser
-- Optimistic send states (`PENDING` / `SYNCING` / `FAILED`) surfaced in the chat UI
-- Automatic drain on reconnect and on browser `online` events, from any protected page
-- Exponential backoff after consecutive failed sync passes; bounded per-message retry attempts with a manual retry affordance for terminal failures
-- Strict per-account data isolation in IndexedDB (owner-scoped keys and indexes, orphaned-data purge on login)
+PingMe is a friend-gated private chat platform: accounts register, activate over email, and are approved by an administrator before use. Users discover each other through search, exchange friend requests, then converse one-to-one with text, images, files, and voice notes. Every message is persisted in PostgreSQL under a Flyway-managed schema and pushed to connected clients over authenticated STOMP sessions — while the React client keeps a durable IndexedDB outbox so a dropped connection never loses a conversation.
 
-### Admin
-- Admin dashboard with platform statistics
-- User management: search, filter, paginate, approve/reject registrations, delete accounts
-- Database statistics and system information views
-- Admin settings with secure password change
-
-## Screenshots
-
-Place screenshots in a `screenshots/` directory at the repository root — the directory already exists (tracked via `.gitkeep`). Suggested contents:
-
-```
-screenshots/
-├── landing-page.png
-├── register.png
-├── login.png
-├── dashboard.png
-├── chat.png
-├── chat-actions.png
-├── friend-requests.png
-├── admin-dashboard.png
-└── mobile-chat.png
-```
-
-### Landing Page
-<!-- SCREENSHOT: Upload the Landing Page screenshot to screenshots/landing-page.png -->
-![PingMe Landing Page](screenshots/landing-page.png)
-
-### Registration
-<!-- SCREENSHOT: Upload the Registration screenshot to screenshots/register.png -->
-![PingMe Registration](screenshots/register.png)
-
-### Login
-<!-- SCREENSHOT: Upload the Login screenshot to screenshots/login.png -->
-![PingMe Login](screenshots/login.png)
-
-### Dashboard
-<!-- SCREENSHOT: Upload the Dashboard screenshot to screenshots/dashboard.png -->
-![PingMe Dashboard](screenshots/dashboard.png)
-
-### Chat
-<!-- SCREENSHOT: Upload the Chat screenshot to screenshots/chat.png -->
-![PingMe Chat](screenshots/chat.png)
-
-### Message Actions (reply, edit, delete, forward)
-<!-- SCREENSHOT: Upload a screenshot showing message actions to screenshots/chat-actions.png -->
-![PingMe Message Actions](screenshots/chat-actions.png)
-
-### Friend Requests
-<!-- SCREENSHOT: Upload the Friend Requests screenshot to screenshots/friend-requests.png -->
-![PingMe Friend Requests](screenshots/friend-requests.png)
-
-### Admin Dashboard
-<!-- SCREENSHOT: Upload the Admin Dashboard screenshot to screenshots/admin-dashboard.png -->
-![PingMe Admin Dashboard](screenshots/admin-dashboard.png)
-
-### Mobile Chat
-<!-- SCREENSHOT: Upload a mobile-width Chat screenshot to screenshots/mobile-chat.png -->
-![PingMe Mobile Chat](screenshots/mobile-chat.png)
-
-## Technology Stack
-
-| Layer | Technology |
+| Communication Problem | PingMe Approach |
 |---|---|
-| **Frontend** | React 19, Vite, React Router 7, Tailwind CSS 4, Axios, React Hook Form + Zod, Framer Motion, Lucide Icons, emoji-picker-react |
-| **Backend** | Java 17, Spring Boot 3.5 (Web, Data JPA, Security, Validation, WebSocket, Mail, Actuator), Lombok, ModelMapper |
-| **Database** | PostgreSQL, Flyway migrations, Hibernate (DDL validated against migrations) |
-| **Real-time communication** | Spring WebSocket + STOMP (SockJS fallback), @stomp/stompjs + sockjs-client, per-user queue and topic destinations |
-| **Authentication & security** | JWT (jjwt 0.12.6, HS256) with token-version revocation, Spring Security filter chain, BCrypt, hashed OTP tokens, in-memory sliding-window rate limiting |
-| **Calls** | WebRTC (`RTCPeerConnection`) with STOMP-based signalling |
-| **Build & tooling** | Maven (wrapper included), Vite, Oxlint, JUnit + H2 (backend tests) |
+| Delayed messaging | STOMP realtime delivery to per-user queues |
+| Lost messages during connectivity drops | IndexedDB offline outbox with reconnect drain |
+| Duplicate retries | Client UUID + `UNIQUE(sender_id, client_message_id)` backend idempotency |
+| Untrusted realtime sessions | JWT handshake + per-frame STOMP CONNECT/SUBSCRIBE/SEND validation |
+| Presence complexity | Multi-tab session tracking with connect/disconnect broadcasts |
+| Call signalling | WebRTC peer media with authenticated STOMP signalling |
+| Unauthorized media | Participant-checked file access with strict filename validation |
 
-## Architecture / Application Flow
+---
 
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%">
+
+**💬 Realtime Messaging**
+<br/>STOMP messaging over SockJS delivered to authenticated per-user queues, with post-commit fan-out.
+
+</td>
+<td width="50%">
+
+**🟢 Presence & Typing**
+<br/>Online/offline state, last-seen timestamps, multi-tab presence, and live typing signals.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**✅ Message Receipts**
+<br/>Full `SENT → DELIVERED → READ` lifecycle, persisted and pushed in realtime.
+
+</td>
+<td width="50%">
+
+**📦 Offline-First Outbox**
+<br/>Durable IndexedDB text queue with reconnect drain, backoff, and reconciliation.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**🔁 Idempotent Sync**
+<br/>Client-generated message UUIDs and a backend uniqueness constraint make retries duplicate-free.
+
+</td>
+<td width="50%">
+
+**📎 Rich Media**
+<br/>Images, file attachments, and voice notes with server-side size limits.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**📞 WebRTC Calls**
+<br/>One-to-one audio/video calls with STOMP-relayed offer/answer/ICE signalling.
+
+</td>
+<td width="50%">
+
+**👥 Friend-Based Privacy**
+<br/>Private conversations are gated through the friend relationship model.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**🔔 Notifications**
+<br/>Persisted notification feed with unread counts and realtime topic push.
+
+</td>
+<td width="50%">
+
+**🔐 Security**
+<br/>JWT with server-side revocation, BCrypt, rate limiting, and authorization-checked media.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**🛡️ Admin Controls**
+<br/>Registration approvals, user management, platform statistics, and secure settings.
+
+</td>
+<td width="50%">
+
+**⚡ Realtime Reliability**
+<br/>10s/10s STOMP heartbeats, session-aware reconnects, and bounded transport limits.
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🧩 Platform Capabilities
+
+| Capability | Supported |
+|---|---|
+| Private 1:1 chat | ✅ |
+| Text messaging (4000 chars) | ✅ |
+| Image / file / voice notes | ✅ |
+| Delivery receipts | ✅ |
+| Read receipts | ✅ |
+| Typing indicators | ✅ |
+| Presence + last-seen | ✅ |
+| Friend requests | ✅ |
+| Notifications | ✅ |
+| WebRTC audio/video calls | ✅ |
+| Offline text queue | ✅ |
+| Replies, edit, forward | ✅ |
+| Delete for me / everyone, bulk delete | ✅ |
+| Conversation clearing (per-user) | ✅ |
+| Conversation search + sidebar | ✅ |
+| Admin dashboard + approvals | ✅ |
+| Token revocation (logout / password change) | ✅ |
+
+---
+
+## 🔄 How PingMe Works
+
+```mermaid
+flowchart LR
+    USER[User]
+    UI[React Client]
+    REST[REST API]
+    WS[STOMP / WebSocket]
+    AUTH[JWT Authentication]
+    SERVICE[Spring Services]
+    DB[(PostgreSQL)]
+    IDB[(IndexedDB Outbox)]
+    RTC[WebRTC Peers]
+
+    USER --> UI
+    UI --> REST
+    UI --> WS
+    UI --> IDB
+    UI --> RTC
+
+    REST --> AUTH
+    WS --> AUTH
+    AUTH --> SERVICE
+    SERVICE --> DB
+    WS --> SERVICE
+    SERVICE -->|signalling only| RTC
 ```
-React 19 SPA (Vite)
-  │  REST (Axios, JWT Authorization header)          WebSocket/STOMP (SockJS, JWT handshake)
-  ▼                                                        ▼
-Spring Boot 3 ──── JwtAuthenticationFilter ──── JwtHandshakeInterceptor + StompAuthChannelInterceptor
-  │
-  ├── Controllers (auth, chat, messages, friends, notifications, calls, uploads, admin)
-  ├── Services (chat, messaging, presence, rate limiting, tokens, email, storage)
-  ├── Repositories (Spring Data JPA)
-  ▼
-PostgreSQL (Flyway-managed schema)          Local disk (attachments, images, profile photos)
+
+- **REST path** — authentication, history, search, message actions, uploads, notifications, admin.
+- **Realtime path** — messages, receipts, typing, presence, edits/deletes, notifications, friend events, call signalling.
+- **Offline path** — the outbox drains through idempotent REST sync when connectivity returns.
+- Message persistence is transactional; WebSocket fan-out happens after commit, so clients never receive events for rolled-back messages.
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TB
+    subgraph Client["React 19 Client"]
+        UI[Chat UI]
+        API[Axios API Layer]
+        STOMP[STOMP Client]
+        OUTBOX[IndexedDB Outbox]
+        CALL[WebRTC]
+    end
+
+    subgraph Backend["Spring Boot 3.5.6"]
+        SEC[Spring Security + JWT]
+        CTRL[REST Controllers]
+        CHAT[Chat Services]
+        PRESENCE[Presence Tracking]
+        NOTIFY[Notification Services]
+        SIGNAL[Call Signalling]
+        RATE[Rate Limiting]
+        MEDIA[Media Authorization]
+    end
+
+    subgraph Persistence["Persistence"]
+        DB[(PostgreSQL)]
+        FLY[Flyway Migrations]
+    end
+
+    UI --> API
+    UI --> STOMP
+    UI --> OUTBOX
+    UI --> CALL
+
+    API --> SEC
+    STOMP --> SEC
+
+    SEC --> CTRL
+    SEC --> CHAT
+    SEC --> PRESENCE
+    SEC --> NOTIFY
+    SEC --> SIGNAL
+    SEC --> RATE
+    SEC --> MEDIA
+
+    CHAT --> DB
+    PRESENCE --> DB
+    NOTIFY --> DB
+    MEDIA --> DB
+
+    FLY --> DB
 ```
 
-- **REST path** — request/response operations: authentication, history, search, message actions, uploads, notifications, admin.
-- **WebSocket path** — server-pushed events: messages, receipts, typing, presence, edits/deletes, notifications, friend events, dashboard updates, call signalling.
-- Message persistence is transactional; WebSocket fan-out happens after commit so clients never receive events for rolled-back messages.
+---
 
-## Authentication & Security
+## ⚡ Realtime Architecture
 
-Implemented mechanisms (verified in source):
+The `/ws` endpoint accepts SockJS connections with a JWT handshake interceptor and handshake handler. The same JWT is sent as an `Authorization` header on STOMP `CONNECT` and re-validated per frame by a channel interceptor, binding the authenticated principal to the session so sender identity cannot be spoofed. The simple broker serves `/queue` and `/topic` with explicit `10s/10s` heartbeats, `/app` routes inbound application messages, and `/user` scopes private destinations.
 
-- **JWT (HS256, jjwt)** carrying a per-user token version; incrementing the version on password change or activation immediately invalidates all previously issued tokens
-- **Spring Security** stateless filter chain: public routes limited to `/api/auth/**`, `/ws/**`, and `/actuator/health`; `/api/admin/**` restricted to the `ADMIN` authority; everything else authenticated; unauthenticated requests get a clean `401`
-- **BCrypt** password encoding with `DaoAuthenticationProvider`
-- **WebSocket authentication**: JWT validated at the HTTP handshake (Authorization header or SockJS `token` query param) and re-validated on STOMP `CONNECT`; the authenticated principal is bound to the session so per-frame sender identity cannot be spoofed
-- **Rate limiting**: configurable sliding-window limits on login, forgot-password, reset-password, OTP, and chat-send endpoints (HTTP 429 with retry-after)
-- **OTP/activation tokens**: stored only as SHA-256 hashes, single-row-per-user rotation, attempt counting with lockout, constant-time comparison
-- **Authorization-checked media**: `/api/files/**` verifies the requester is a participant of the conversation that owns a chat attachment; stored filenames are validated against a strict pattern
-- **Input validation**: Jakarta Bean Validation on request DTOs plus bounded pagination sizes on list endpoints
-- **CORS/origin allow-listing** for both REST and WebSocket handshake origins, externalized via configuration
-- **Secrets externalization**: database, JWT, mail, and admin credentials are read from environment variables; local overrides (`application-local.properties`, frontend `.env`) are git-ignored
+```mermaid
+sequenceDiagram
+    participant Client as React Client
+    participant WS as /ws STOMP Endpoint
+    participant Auth as JWT Interceptor
+    participant Service as Chat Service
+    participant DB as PostgreSQL
+    participant Peer as Recipient
 
-## Messaging Flow
+    Client->>WS: HTTP handshake + JWT
+    WS->>Auth: Validate token
+    Auth-->>WS: Authenticated principal
+    Client->>WS: CONNECT + Authorization
+    WS->>Auth: Re-validate CONNECT
+    Auth-->>WS: Session bound to principal
+    WS-->>Client: CONNECTED (10s/10s heartbeats)
 
-1. The client assigns each outgoing message a UUID `clientId` and renders it optimistically as `SENDING`.
-2. Text messages travel over either the authenticated REST endpoint (`POST /api/chat/send`) or the STOMP destination (`/chat.send`) — both converge on the same service.
-3. The backend checks `clientId` for idempotency (backed by a unique `(sender_id, client_message_id)` constraint, with race-condition recovery), persists the message, and — after commit — pushes the saved message to both participants' `/user/queue/messages`.
-4. Receipts (`DELIVERED`, `READ`) arrive via STOMP and are persisted; the receiver's unread counts and sidebar update accordingly.
-5. If the socket is down, the REST response is used to reconcile the optimistic message so it does not stay stuck at `SENDING`.
-
-## Offline-First Messaging
-
-The client is offline-tolerant for text messaging:
-
-- Outgoing messages are written to an **IndexedDB outbox** keyed by `clientMessageId`, with a separate **per-account history cache** (`ownerId:friendId` composite keys) so a shared browser never leaks one account's conversations to another.
-- Rows move through `PENDING → SYNCING → (sent | FAILED)`; a refresh mid-drain heals stale `SYNCING` rows back to `PENDING` at the next drain.
-- Drains run when connectivity returns — triggered by socket reconnect and browser `online` events — and loop until the outbox is empty (bounded per pass).
-- Consecutive fully-failed passes trigger **exponential backoff** (15 s up to 2 min); transient failures (network, 5xx, 429) requeue, while auth failures mark the row `FAILED` with a stored error reason; terminal failures offer a manual retry from the message's `!` indicator.
-- Ordering uses the durable max `seq` as the tie-breaker so per-load counters cannot invert message order.
-- Idempotency is enforced end-to-end: the backend deduplicates by `(sender, clientMessageId)`, so retries and cross-tab drains can never create duplicates.
-
-**Current limitations of the offline layer:**
-
-- Attachments and voice notes require connectivity at send time — the file is uploaded to the server before the message is created, so unsent media bytes are **not** durable across a refresh (only text outbox rows persist).
-- This is browser-to-server resilience, not offline device-to-device mesh messaging.
-
-## Project Structure
-
+    Client->>WS: /app/chat.send
+    WS->>Service: Principal-bound message
+    Service->>DB: Idempotent transactional persist
+    DB-->>Service: Saved message
+    Service-->>Peer: /user/queue/messages
+    Service-->>Client: /user/queue/messages + receipts
 ```
+
+Inbound destinations: `/chat.send`, `/chat.delivered`, `/chat.read`, `/chat.ready`, `/chat.typing`, `/chat.active`, `/call.signal`. Private queues: `/user/queue/messages`, `/user/queue/receipts`, `/user/queue/typing`, `/user/queue/message-edited`, `/user/queue/message-deleted`, `/user/queue/call`. Broadcast topics: `/topic/status`, `/topic/dashboard/{userId}`, `/topic/friend-request/{userId}`, `/topic/friends/{userId}`, `/topic/notifications/{userId}`.
+
+---
+
+## 💬 Message Lifecycle
+
+```mermaid
+flowchart TB
+    A[Compose] --> B[Client UUID generated]
+    B --> C[Optimistic UI state]
+    C --> D{Transport}
+    D -->|Online| E[REST or STOMP]
+    D -->|Offline| F[IndexedDB Outbox]
+    F -->|Reconnect| G[POST /api/chat/sync]
+    E --> H[Authorization + validation]
+    G --> H
+    H --> I[Idempotency check<br/>sender_id + client_message_id]
+    I --> J[Transactional persistence]
+    J --> K[Post-commit fan-out]
+    K --> L[Recipient receives message]
+    L --> M[DELIVERED]
+    M --> N[READ]
+```
+
+REST (`POST /api/chat/send`, `/sync`, `/sync/batch`) and STOMP (`/app/chat.send`) converge on the same `ChatService`, so both transports share validation, idempotency, authorization, and fan-out. If the socket is down, the REST response reconciles the optimistic message so it never stays stuck at `SENDING`. Undelivered messages are replayed when the client announces readiness (`/app/chat.ready`).
+
+---
+
+## 📦 Offline-First Messaging
+
+```mermaid
+flowchart LR
+    SEND[Compose Message]
+    LOCAL[IndexedDB Outbox]
+    ONLINE{Connection?}
+    SYNC[Sync Worker]
+    API[POST /api/chat/sync]
+    DB[(PostgreSQL)]
+    ACK[Reconcile + Remove]
+    FAILED[FAILED + Manual Retry]
+
+    SEND --> LOCAL
+    LOCAL --> ONLINE
+    ONLINE -->|Yes| SYNC
+    ONLINE -->|No| LOCAL
+    SYNC --> API
+    API --> DB
+    DB --> ACK
+    ACK --> LOCAL
+    SYNC --> FAILED
+    FAILED --> LOCAL
+```
+
+Rows move through `PENDING → SYNCING → (sent | FAILED)`. Drains trigger on socket reconnect and browser `online` events from any protected page, looping until the outbox is empty (bounded passes). Consecutive fully-failed passes back off exponentially (15s up to 2min); transient failures (network, 5xx, 429) requeue as `PENDING`, auth failures (401/403) become `FAILED` with a stored reason, and terminal failures offer manual retry from the message's `!` indicator. A refresh mid-drain heals stale `SYNCING` rows back to `PENDING`. Outbox data is strictly owner-scoped per account with orphaned-data purge on login, and ordering uses a durable `seq` tie-breaker. End-to-end idempotency (`sender, clientMessageId`) keeps cross-tab drains duplicate-free. Bounded retries cap at 10 attempts per message.
+
+> [!WARNING]
+> Offline-first covers **text messages**. Image/file/voice uploads require connectivity before the message is created — unsent media bytes are not durable across a refresh, only text outbox rows persist.
+
+---
+
+## 🔁 Idempotent Messaging
+
+Each outgoing message carries a client-generated UUID (`clientId`, max 36 chars). The `messages` table enforces `UNIQUE(sender_id, client_message_id)`, and the service recovers from race-condition constraint violations — so retries, reconnect drains, and cross-tab drains can never create duplicates.
+
+| Scenario | Protection |
+|---|---|
+| Network retry | Same `clientMessageId` re-sent |
+| Reconnect drain | Backend deduplication on `(sender, clientMessageId)` |
+| Cross-tab drain | Unique constraint + violation recovery |
+| Duplicate HTTP/STOMP send | Both transports share the same service + idempotency path |
+| Batch sync overlap (max 50/batch) | Per-message idempotency inside the batch |
+
+---
+
+## 🔐 Security Architecture
+
+<table>
+<tr>
+<td width="50%">
+
+**🔑 Authentication**
+<br/>JWT HS256 (jjwt 0.12.6) with a per-user `ver` claim, stateless REST security, BCrypt passwords, and clean `401` for unauthenticated requests.
+
+</td>
+<td width="50%">
+
+**🚫 Revocation**
+<br/>Token version is stored server-side and bumped on logout, password change, and activation — immediately invalidating previously issued tokens.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**🔌 WebSocket Authentication**
+<br/>JWT validated at the HTTP handshake (header or SockJS `token` param), re-validated on STOMP `CONNECT`, with per-frame identity binding.
+
+</td>
+<td width="50%">
+
+**⏱️ Rate Limiting**
+<br/>In-memory sliding-window limits with HTTP `429` + `Retry-After` on login, password flows, OTP, and chat send.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**🔢 OTP Security**
+<br/>6-digit OTPs stored only as SHA-256 hashes, 10-minute expiry, 5-attempt lockout (10 min), generic responses with no account disclosure.
+
+</td>
+<td width="50%">
+
+**📁 Media Security**
+<br/>Chat files served only to conversation participants, strict UUID filename patterns, and bounded upload sizes.
+
+</td>
+</tr>
+</table>
+
+CORS and WebSocket origins are allow-listed explicitly (no wildcards) and externalized via `APP_CORS_ALLOWED_ORIGINS` / `APP_WS_ALLOWED_ORIGINS`. All secrets (database, JWT, mail, admin bootstrap) are environment-driven — nothing sensitive is committed.
+
+> [!IMPORTANT]
+> PingMe authenticates both REST requests and realtime WebSocket/STOMP sessions. A valid HTTP login does not implicitly trust a WebSocket session — the handshake and STOMP `CONNECT` are validated independently, and every frame is checked against the bound principal.
+
+### 🛡️ Abuse Protection
+
+| Endpoint family | Default limit |
+|---|---|
+| Login | 5 / 60s |
+| Forgot password | 3 / 60s |
+| Reset password | 5 / 60s |
+| OTP | 3 / 60s |
+| Chat send | 30 / 60s |
+
+Limits are configurable via `app.rate-limit.*` properties. Exceeding a limit returns HTTP `429` with a `Retry-After` hint.
+
+---
+
+## 📞 WebRTC Calling
+
+One-to-one audio and video calls use `RTCPeerConnection` for peer-to-peer media. STOMP carries only signalling — offer/answer/ICE — over the authenticated `/app/call.signal` channel to `/user/queue/call`, with server-side call-state tracking and incoming/outgoing overlays (ringback, reject/end handling).
+
+```mermaid
+sequenceDiagram
+    participant A as Caller
+    participant S as STOMP Signalling
+    participant B as Receiver
+    participant RTC as WebRTC Media
+
+    A->>S: /app/call.signal — offer
+    S->>B: /user/queue/call — offer
+    B->>S: /app/call.signal — answer
+    S->>A: /user/queue/call — answer
+    A->>S: ICE candidates
+    S->>B: ICE candidates
+    B->>S: ICE candidates
+    S->>A: ICE candidates
+    A<<->>B: Peer-to-peer audio/video
+```
+
+Call events persist as messages (`AUDIO_CALL` / `VIDEO_CALL` types), giving each conversation a call history.
+
+---
+
+## 🟢 Presence & Session Tracking
+
+Presence is session-aware: a `UserSessionTracker` counts concurrent sessions per user, so multi-tab connections stay online until the **last** tab disconnects. Connect/disconnect events broadcast on `/topic/status` with online/offline state and last-seen timestamps. Online state is reset to a consistent baseline at startup, and the client tracks the active conversation (`/app/chat.active`) so delivery/read semantics reflect what is actually on screen. Presence state lives in memory (per instance); the user record carries the durable last-seen value.
+
+---
+
+## 👥 Friends & 🔔 Notifications
+
+<table>
+<tr>
+<td width="50%">
+
+**👥 Friends**
+<br/>Search approved accounts (friends and pending requests excluded), then send, cancel, accept, or reject requests — with live updates over `/topic/friend-request/{userId}` and `/topic/friends/{userId}`. Private messaging is restricted to friends.
+
+</td>
+<td width="50%">
+
+**🔔 Notifications**
+<br/>Persisted per-user feed with unread counts, mark-one / mark-all read, and realtime push over `/topic/notifications/{userId}`.
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🧠 Engineering Highlights
+
+| Engineering Problem | PingMe Solution |
+|---|---|
+| Lost text messages | IndexedDB durable outbox with reconnect drain |
+| Duplicate retries | End-to-end idempotency (`UNIQUE(sender_id, client_message_id)`) |
+| Socket spoofing | Handshake + CONNECT + per-frame STOMP authentication |
+| Stale WebSockets | 10s/10s heartbeats on both broker and client |
+| Unauthorized files | Participant-aware media authorization + filename patterns |
+| Token invalidation | Server-side token version (`ver` claim) |
+| Brute-force attempts | Sliding-window rate limiting with 429 + Retry-After |
+| Message ordering | Durable `seq` tie-breaker |
+| Multi-tab offline sync | Account-scoped IndexedDB + backend uniqueness |
+| Event consistency | Transactional persistence + post-commit fan-out |
+| Call transport | WebRTC media + STOMP signalling |
+| Edit/delete races | 15-minute action windows with server enforcement |
+
+---
+
+## 🖼️ Product Tour
+
+<table>
+<tr>
+<td width="50%">
+<img src="./screenshots/landing-page.png" alt="PingMe landing page" />
+<p align="center"><b>Landing Experience</b></p>
+</td>
+<td width="50%">
+<img src="./screenshots/register.png" alt="PingMe registration" />
+<p align="center"><b>Account Registration</b></p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="./screenshots/login.png" alt="PingMe login" />
+<p align="center"><b>Secure Authentication</b></p>
+</td>
+<td width="50%">
+<img src="./screenshots/dashboard.png" alt="PingMe dashboard" />
+<p align="center"><b>User Dashboard</b></p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="./screenshots/chat.png" alt="PingMe chat" />
+<p align="center"><b>Realtime Chat</b></p>
+</td>
+<td width="50%">
+<img src="./screenshots/chat-actions.png" alt="PingMe message actions" />
+<p align="center"><b>Replies, Edits, Forwards</b></p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="./screenshots/friend-requests.png" alt="PingMe friend requests" />
+<p align="center"><b>Friend Requests</b></p>
+</td>
+<td width="50%">
+<img src="./screenshots/admin-dashboard.png" alt="PingMe admin dashboard" />
+<p align="center"><b>Admin Dashboard</b></p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="./screenshots/mobile-chat.png" alt="PingMe mobile chat" />
+<p align="center"><b>Mobile Chat</b></p>
+</td>
+<td width="50%">
+<p align="center"><b>Responsive app shell</b> — rail navigation, drawers, and adaptive layouts carry the full chat experience to small screens.</p>
+</td>
+</tr>
+</table>
+
+<details>
+<summary>🎥 Product Walkthrough</summary>
+
+> Demo recording placeholder — add a verified walkthrough asset when available.
+
+</details>
+
+---
+
+## 🔌 API Reference
+
+| Area | Base Path | Purpose |
+|---|---|---|
+| Auth | `/api/auth` | Registration, activation, login, logout, password recovery |
+| Chat | `/api/chat` | Send, sync, edit, delete, forward, clear |
+| Messages | `/api/messages` | History, recent chats, search, sidebar |
+| Dashboard | `/api/dashboard` | User dashboard data |
+| Friends | `/api/friends` | Friend list and management |
+| Friend Requests | `/api/friend-request` | Request lifecycle |
+| Users | `/api/user` | Profile, search, password |
+| Notifications | `/api/notifications` | Feed, unread count, read state |
+| Uploads | `/api/upload` | Attachment, image, voice uploads |
+| Files | `/api/files` | Protected media retrieval |
+| Admin | `/api/admin` | Approvals, users, stats, settings |
+
+<details>
+<summary>🔐 Authentication endpoints</summary>
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/auth/register` | Register account (PENDING approval) |
+| POST | `/api/auth/login` | Login, receive JWT |
+| GET | `/api/auth/activate?token=` | Validate activation token |
+| POST | `/api/auth/set-password` | Set password via activation |
+| POST | `/api/auth/forgot-password` | Request OTP (generic response) |
+| POST | `/api/auth/reset-password` | Reset password with OTP |
+| POST | `/api/auth/logout` | Revoke current token |
+
+</details>
+
+<details>
+<summary>💬 Chat endpoints</summary>
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/chat/send` | Send message |
+| POST | `/api/chat/sync` | Idempotent single-message sync (offline drain) |
+| POST | `/api/chat/sync/batch` | Batch sync (max 50 messages) |
+| POST | `/api/chat/read/{friendId}` | Mark conversation read |
+| PUT | `/api/chat/messages/{messageId}` | Edit message (15-min window) |
+| DELETE | `/api/chat/messages/{messageId}` | Delete for everyone (15-min window) |
+| DELETE | `/api/chat/messages/{messageId}/me` | Delete for me |
+| DELETE | `/api/chat/messages/bulk` | Bulk delete |
+| POST | `/api/chat/messages/bulk-delete` | Bulk delete (POST variant) |
+| POST | `/api/chat/messages/{messageId}/forward` | Forward with body `{receiverId}` |
+| POST | `/api/chat/messages/{messageId}/forward/{receiverId}` | Forward with path param |
+| DELETE | `/api/chat/clear/{friendId}` | Clear conversation for me |
+
+STOMP inbound: `/app/chat.send`, `/app/chat.delivered`, `/app/chat.read`, `/app/chat.ready`, `/app/chat.typing`, `/app/chat.active`, `/app/call.signal`.
+
+</details>
+
+<details>
+<summary>📜 Messages, friends, users, notifications</summary>
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/messages/history/{friendId}?page=&size=` | Paginated history (size max 50) |
+| GET | `/api/messages/recent` | Recent chats |
+| GET | `/api/messages/search/{friendId}?query=&limit=` | Conversation search (limit max 100) |
+| GET | `/api/messages/chat-sidebar` | Sidebar with previews + unread |
+| GET | `/api/dashboard` | Dashboard data |
+| GET | `/api/friends` | Friend list |
+| GET | `/api/friends/stats` | Friend statistics |
+| DELETE | `/api/friends/{friendId}` | Remove friend |
+| POST | `/api/friend-request/send` | Send request |
+| GET | `/api/friend-request/incoming` | Pending incoming |
+| PUT | `/api/friend-request/accept/{requestId}` | Accept |
+| PUT | `/api/friend-request/reject/{requestId}` | Reject |
+| DELETE | `/api/friend-request/cancel/{requestId}` | Cancel |
+| GET | `/api/friend-request/stats` | Request statistics |
+| GET | `/api/user/search` | Search approved users |
+| GET | `/api/user/profile` | Own profile |
+| PUT | `/api/user/profile` | Update profile |
+| POST | `/api/user/profile/photo` | Upload profile photo |
+| DELETE | `/api/user/profile/photo` | Remove profile photo |
+| PUT | `/api/user/change-password` | Change password (revokes tokens) |
+| GET | `/api/notifications` | Notification feed |
+| GET | `/api/notifications/unread-count` | Unread count |
+| PUT | `/api/notifications/{id}/read` | Mark one read |
+| PUT | `/api/notifications/read-all` | Mark all read |
+
+</details>
+
+<details>
+<summary>📎 Uploads, files, admin</summary>
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/upload/file` | General attachment upload |
+| POST | `/api/upload/image` | Image upload |
+| GET | `/api/files/chat-files/{storedName}` | Participant-checked file |
+| GET | `/api/files/chat-images/{storedName}` | Participant-checked image |
+| GET | `/api/files/profile-photos/{storedName}` | Authenticated profile photo |
+| GET | `/api/admin/dashboard` | Platform statistics |
+| GET | `/api/admin/users` | Paginated user management |
+| GET | `/api/admin/pending-users` | Pending approvals |
+| GET | `/api/admin/users/{id}` | User detail |
+| PUT | `/api/admin/approve/{id}` | Approve registration |
+| PUT | `/api/admin/reject/{id}` | Reject registration |
+| DELETE | `/api/admin/users/{id}` | Delete account |
+| PUT | `/api/admin/resend-activation/{id}` | Resend activation |
+| GET | `/api/admin/settings` | Admin settings |
+| POST | `/api/admin/send-password-otp` | Admin password-reset OTP |
+| POST | `/api/admin/change-password` | Admin password change |
+
+</details>
+
+<details>
+<summary>📨 Send message — request / response</summary>
+
+```http
+POST /api/chat/send
+Authorization: Bearer <jwt>
+Content-Type: application/json
+```
+
+```json
+{
+  "clientId": "3f2c1a40-7b1e-4c9d-9f2a-6e5d8c0b1a23",
+  "receiverId": 12,
+  "content": "Hey — are you online?",
+  "messageType": "TEXT",
+  "replyToId": null
+}
+```
+
+Field notes (from `ChatMessage`): `receiverId` required positive; `clientId` max 36 chars; `content` max 4000 chars; media fields `attachmentUrl` (max 512, alias `imageUrl`), `attachmentName` (max 255), `attachmentSize`, `attachmentMimeType` (max 128), `attachmentDuration`; `messageType` max 20 chars (`TEXT`, `IMAGE`, `FILE`, `VOICE`, `AUDIO_CALL`, `VIDEO_CALL`).
+
+Success returns the persisted message under `data`, including server `id`, `status`, and `sentAt`.
+
+```http
+POST /api/chat/sync
+```
+
+Same shape as `/send` — the idempotent endpoint used by the offline drain. `POST /api/chat/sync/batch` accepts an array of up to 50 such payloads.
+
+</details>
+
+<details>
+<summary>✏️ Edit, delete, history — request shapes</summary>
+
+```http
+PUT /api/chat/messages/{messageId}
+Content-Type: application/json
+
+{ "content": "Updated text" }
+```
+
+```http
+DELETE /api/chat/messages/{messageId}
+DELETE /api/chat/messages/{messageId}/me
+POST /api/chat/messages/bulk-delete
+
+{ "messageIds": [101, 102, 103] }
+```
+
+```http
+GET /api/messages/history/12?page=0&size=20
+GET /api/messages/search/12?query=deploy&limit=100
+```
+
+History pages cap at 50 items; search caps at 100 results with a 200-character query limit.
+
+</details>
+
+---
+
+## 🧰 Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| **Frontend** | React 19.2.7 · Vite 8.1 · Tailwind CSS 4.3.2 · React Router 7.18.1 · Axios · React Hook Form + Zod · Framer Motion · Lucide + React Icons · emoji-picker-react · UUID |
+| **Backend** | Java 17 · Spring Boot 3.5.6 (Web, Security, Data JPA, Validation, WebSocket, Mail, Actuator) · Lombok · ModelMapper 3.2.1 |
+| **Data** | PostgreSQL 14+ · Hibernate (`ddl-auto=validate`) · Flyway (V1 schema, V2 indexes) |
+| **Security** | JWT HS256 (jjwt 0.12.6) + token-version revocation · BCrypt · SHA-256 OTP hashes · sliding-window rate limiting |
+| **Realtime** | STOMP over SockJS (`/ws`) · `@stomp/stompjs` + `sockjs-client` · 10s/10s heartbeats · WebRTC (`RTCPeerConnection`) |
+| **Client storage** | IndexedDB offline outbox + per-account history cache |
+| **Tooling** | Maven wrapper · Oxlint · JUnit + H2 (backend tests) |
+
+---
+
+## 🗄️ Data Model & Migrations
+
+PostgreSQL is the system of record. Flyway owns the schema (`db/migration`); Hibernate runs in `validate` mode so entities and migrations cannot silently diverge. **V1** creates the eight core tables; **V2** adds indexes on conversation paging, receipt/status lookups, idempotency lookups, and friend/request scans. `baseline-on-migrate` is enabled for existing installations.
+
+```mermaid
+erDiagram
+    USERS ||--o{ FRIENDS : "friends"
+    USERS ||--o{ FRIEND_REQUESTS : "requests"
+    USERS ||--o{ MESSAGES : "sends"
+    USERS ||--o{ MESSAGES : "receives"
+    MESSAGES ||--o{ MESSAGES : "replyTo"
+    USERS ||--o{ MESSAGE_HIDDEN : "hides"
+    USERS ||--o{ CLEARED_CONVERSATIONS : "clears"
+    USERS ||--o{ NOTIFICATIONS : "receives"
+    USERS ||--o{ PASSWORD_RESET_TOKENS : "resets"
+
+    USERS {
+        bigint id PK
+        string email UK
+        string password_hash
+        string role
+        string status
+        long token_version
+        boolean online
+        timestamp last_seen
+    }
+    MESSAGES {
+        bigint id PK
+        bigint sender_id FK
+        bigint receiver_id FK
+        string client_message_id
+        text content
+        string message_type
+        string status
+        timestamp sent_at
+    }
+```
+
+Call history is stored as messages with `AUDIO_CALL` / `VIDEO_CALL` types rather than a separate table.
+
+---
+
+## 🗂️ Project Structure
+
+```text
 pingme/
 ├── backend/
 │   └── src/main/java/com/soubhagya/pingme/
 │       ├── config/          # Security, CORS, WebSocket, upload, JWT configuration
 │       ├── controller/      # REST + STOMP controllers (auth, chat, messages, calls, admin, …)
-│       ├── service/         # Business logic and interfaces (+ impl/)
-│       ├── security/        # JWT service and authentication filter
-│       ├── websocket/       # Handshake auth, STOMP auth, presence tracking, call state
+│       ├── service/         # Business logic interfaces (+ impl/)
+│       ├── security/        # JWT service, auth filter, user details
+│       ├── websocket/       # Handshake auth, STOMP auth, presence, call state
 │       ├── entity/          # JPA entities (User, Message, Friend, Notification, …)
 │       ├── repository/      # Spring Data JPA repositories
-│       ├── dto/             # Request/response/chat DTOs
+│       ├── dto/             # Request / response / chat / websocket DTOs
+│       ├── dashboard/       # Dashboard statistics calculator
+│       ├── mapper/          # ModelMapper user mapping
+│       ├── exception/       # Global handler + domain exceptions
 │       └── resources/
 │           ├── db/migration/    # Flyway migrations (V1 schema, V2 indexes)
 │           └── application*.properties
 ├── frontend/
 │   └── src/
-│       ├── api/             # Axios instance with JWT interceptor + 401 single-flight handling
+│       ├── api/             # Axios instance with JWT interceptor + 401 handling
 │       ├── websocket/       # STOMP client, subscriptions, publishers
 │       ├── offline/         # IndexedDB store, sync queue, reconciliation
-│       ├── pages/           # public / auth / user / admin pages
-│       ├── components/      # chat, call, admin, auth, landing components
-│       ├── context/         # Auth and call state
+│       ├── pages/           # Public / auth / user / admin pages
+│       ├── components/      # Chat, call, admin, auth, landing components
+│       ├── context/         # Auth, call, chat-realtime, notification, socket, theme
 │       ├── routes/          # Router with role-aware protected routes
-│       └── services/        # REST service modules
-└── screenshots/
+│       ├── services/        # REST service modules
+│       ├── hooks/           # Connectivity, debounce, secure media
+│       └── layout/          # App shell, rail, navigation
+├── screenshots/
+├── uploads/                 # Local runtime media (git-ignored)
+└── README.md
 ```
 
-## API / Communication
+---
 
-REST controllers (all JWT-protected except auth):
-
-| Area | Base path | Purpose |
-|---|---|---|
-| Auth | `/api/auth` | Register, activate, set password, login, forgot/reset password |
-| Chat | `/api/chat` | Send, sync (single + batch), edit, delete (me/everyone/bulk), forward, clear |
-| Messages | `/api/messages` | Paginated history, recent chats, conversation search, chat sidebar |
-| Friends | `/api/friends` | Friend list and management |
-| Friend requests | `/api/friend-request` | Send/accept/reject/cancel, pending list, stats |
-| Users | `/api/user` | Profile, search, password change |
-| Notifications | `/api/notifications` | Feed, unread count, mark read |
-| Uploads | `/api/upload` | Attachment/image/voice/profile-photo uploads |
-| Files | `/api/files` | Authorization-checked media retrieval |
-| Admin | `/api/admin` | Dashboard stats, user management, approvals |
-
-STOMP: `/chat.send`, `/chat.delivered`, `/chat.read`, typing, and `/call.signal` inbound; per-user queues for messages, receipts, typing, edits, deletes, and calls; topics for presence, notifications, friend events, and dashboard updates.
-
-## Local Development
+## 🚀 Getting Started
 
 ### Prerequisites
+
 - Java 17 (Maven wrapper included — no separate Maven install needed)
 - Node.js 18+ and npm
 - PostgreSQL 14+ running locally
+- Git
 
-### 1. Clone the repository
+### 1. Clone
+
 ```bash
 git clone https://github.com/soubhagya-behera/pingme.git
 cd pingme
 ```
 
-### 2. Configure the backend
-The committed `application.properties` reads all secrets from environment variables — nothing sensitive is stored in the repository. For local development, create `backend/src/main/resources/application-local.properties` (git-ignored) with your local values, or export the environment variables listed below.
+### 2. Create the database
 
-### 3. Create the database
 ```sql
 CREATE DATABASE pingme;
 ```
+
 Flyway creates and migrates the schema automatically on startup (`ddl-auto` is `validate`; Hibernate never mutates the schema).
 
+### 3. Configure the backend
+
+The committed `application.properties` reads secrets from environment variables. For local development, create the git-ignored `backend/src/main/resources/application-local.properties` with your values (see template below), or export the variables directly.
+
 ### 4. Run the backend
+
 ```bash
 cd backend
-mvnw.cmd spring-boot:run     # Linux/macOS: ./mvnw spring-boot:run
+./mvnw spring-boot:run
 ```
-The Maven plugin auto-activates the `local` profile during development; a production jar (`java -jar`) runs without it and requires the environment variables to be present.
+
+Windows:
+
+```bash
+cd backend
+mvnw.cmd spring-boot:run
+```
+
+The Maven plugin auto-activates the `local` profile during development; a production jar (`java -jar`) runs without it and requires the environment variables to be present. Backend defaults to `http://localhost:8080`.
 
 ### 5. Run the frontend
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-The app opens at `http://localhost:5173`; the backend defaults to `http://localhost:8080`. Frontend endpoints are controlled by `VITE_API_URL` / `VITE_WS_URL` (see `frontend/.env.example`).
 
-> **Never commit real credentials.** `application-local.properties`, `application-dev.properties`, and `.env` files are git-ignored by design.
+The app opens at `http://localhost:5173`. Endpoints are controlled by `VITE_API_URL` / `VITE_WS_URL` (see `frontend/.env.example`).
 
-## Environment Configuration
+> [!NOTE]
+> Never commit real credentials. `application-local.properties`, `application-dev.properties`, and frontend `.env` files are git-ignored by design.
 
-Backend (environment variables consumed by `application.properties`):
+<details>
+<summary>🔐 Environment Configuration</summary>
+
+Backend variables consumed by `application.properties`:
 
 ```properties
 DB_URL=jdbc:postgresql://localhost:5432/pingme
@@ -297,65 +904,131 @@ APP_CORS_ALLOWED_ORIGINS=http://localhost:5173
 APP_WS_ALLOWED_ORIGINS=http://localhost:5173
 ```
 
-Rate-limit and upload limits are configurable via `app.rate-limit.*` and `app.upload.*` properties (see `application-example.properties` for a fully commented template).
+Rate-limit and upload limits are configurable via `app.rate-limit.*` and `app.upload.*` (see `application-example.properties` for the commented template).
 
-Frontend (`.env`, see `.env.example`):
+Frontend `.env` (see `.env.example`):
 
 ```properties
 VITE_API_URL=http://localhost:8080/api
 VITE_WS_URL=http://localhost:8080/ws
 ```
 
-Local development (`local` profile) is separate from production configuration: production runs the packaged jar with environment variables only, while `mvnw spring-boot:run` uses git-ignored local overrides.
+</details>
 
-## Database & Migrations
+---
 
-Schema management is handled by **Flyway** (`db/migration`), with Hibernate in `validate` mode so entities and migrations cannot silently diverge:
+## 📏 Resource Limits
 
-- **V1** — initial schema: `users`, `friends`, `friend_requests`, `messages` (with reply, edit, forwarding, deletion, and idempotency columns), `message_hidden`, `cleared_conversations`, `notifications`, `password_reset_tokens`
-- **V2** — indexes for hot query paths: conversation paging, receipt/status lookups, idempotency lookups, and friend/request scans
+| Resource | Limit |
+|---|---|
+| Chat image | 10 MB |
+| General attachment | 10 MB |
+| Profile image | 5 MB |
+| Servlet multipart file / request | 10 MB / 11 MB |
+| WebSocket frame | 128 KB |
+| WebSocket send time | 15 sec |
+| WebSocket send buffer | 512 KB |
+| Chat history page | max 50 |
+| Message search | max 100 results |
+| Search query | max 200 chars |
+| Message content | max 4000 chars |
+| Offline batch sync | max 50 messages |
+| Offline retries per message | max 10 attempts |
 
-`baseline-on-migrate` is enabled so existing installations adopt the migrations cleanly.
+---
 
-## Testing & Verification
+## 🧪 Testing
 
 ```bash
 # Backend tests (JUnit, H2 in-memory database)
 cd backend
-mvnw.cmd test
+./mvnw spring-boot:run   # Windows: mvnw.cmd spring-boot:run
+./mvnw test              # Windows: mvnw.cmd test
 
-# Backend production package (skips tests)
-mvnw.cmd package -DskipTests
-
-# Frontend lint (Oxlint)
+# Frontend checks (Oxlint + production build)
 cd frontend
 npm run lint
-
-# Frontend production build
 npm run build
 ```
 
-The frontend also includes a regression test module for IndexedDB owner isolation (`src/offline/db.ownerIsolation.regression.test.js`); there is currently no browser test runner wired into `npm` scripts, so frontend verification is via `lint` and `build`.
+The backend suite covers the Spring context with H2. The frontend ships an IndexedDB owner-isolation regression module (`src/offline/db.ownerIsolation.regression.test.js`); no browser test runner is currently wired into npm scripts, so client verification is `lint` + `build`. No E2E suite is claimed.
 
-## Current Scope / Known Limitations
+---
 
-- **Single-instance design** — rate limiting, WebSocket session tracking, and the STOMP simple broker are in-memory; they do not share state across multiple backend instances.
-- **Local-disk media storage** — attachments and profile photos are stored on the server filesystem (`uploads/`), not object storage.
-- **Attachments need connectivity** — offline queuing covers text messages; media must upload successfully before a message can be created.
-- **Cross-tab outbox drains** rely on backend idempotency (`(sender, clientId)` uniqueness) to stay duplicate-free.
-- **No automated frontend test suite** — quality gates for the client are Oxlint and the production build; the backend has JUnit tests.
+## ⚡ Reliability Characteristics
 
-## Future Improvements
+- Paginated history with server-enforced page-size caps
+- Bounded sync batches (50) and bounded offline retries (10/message)
+- Reconnect drains with exponential backoff (15s → 2min)
+- 10s/10s WebSocket heartbeats on broker and client
+- Bounded message/frame sizes on the STOMP transport
+- Idempotent sync safe to retry across tabs and reconnects
+- Post-commit event delivery — no events for rolled-back writes
+- Local IndexedDB caching with per-account isolation
+- Auth-failure detection stops reconnect churn on dead credentials
 
-Ideas for future work (not implemented):
+---
 
-- Horizontal scaling with an external STOMP broker and distributed rate limiting
-- Object-storage integration for chat media
-- Expanded automated integration and end-to-end test coverage
-- Production deployment infrastructure (containerization, CI/CD pipeline, hosted database)
+## ⚠️ Current Limitations
 
-## Author
+- **Single instance** — rate limiting, WebSocket session tracking, and the STOMP simple broker are in-memory; state is not shared across backend instances.
+- **Local media storage** — attachments and profile photos live on the server filesystem (`uploads/`), not object storage.
+- **Offline media** — the outbox covers text; media uploads require connectivity before message creation.
+- **Frontend testing** — lint + build only; no browser test runner wired.
+- **Deployment** — no Docker or CI workflows are included in this repository.
 
-**Soubhagya Behera** — [github.com/soubhagya-behera](https://github.com/soubhagya-behera)
+> Deployment infrastructure is not included in this repository; production deployment remains a future step.
 
-Repository: [github.com/soubhagya-behera/pingme](https://github.com/soubhagya-behera/pingme)
+---
+
+## 🗺️ Roadmap
+
+Future work based on current limitations (not implemented):
+
+- External STOMP broker (e.g. RabbitMQ) for horizontal scaling
+- Distributed rate limiting (e.g. Redis)
+- Object storage for chat media
+- Hosted PostgreSQL + containerization + CI/CD pipeline
+- Browser E2E test coverage
+- Call quality metrics and richer call states
+- Message reactions
+- Group conversations
+- Push notifications
+
+---
+
+<details>
+<summary>⭐ Star History</summary>
+
+<p align="center">
+
+<img
+src="https://api.star-history.com/svg?repos=soubhagya-behera/pingme&type=Date"
+alt="PingMe Star History"
+/>
+
+</p>
+
+</details>
+
+---
+
+## 🤝 Contributing
+
+PRs, issues, documentation improvements, and constructive feedback are welcome. Keep changes focused, preserve security boundaries (auth, WebSocket trust, media authorization), test affected behavior, and never commit secrets.
+
+---
+
+<div align="center">
+
+### 💬 Built by Soubhagya Kumar Behera
+
+Java Full Stack Developer · Spring Boot · React · Realtime Systems
+
+[![GitHub](https://img.shields.io/badge/GitHub-soubhagya--behera-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/soubhagya-behera)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-soubhagyakumar--java-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/soubhagyakumar-java)
+[![Portfolio](https://img.shields.io/badge/Portfolio-soubhagya--dev-00C853?style=for-the-badge&logo=vercel&logoColor=white)](https://soubhagya-dev.vercel.app)
+
+⭐ If PingMe was useful or interesting, consider starring the repository.
+
+</div>
